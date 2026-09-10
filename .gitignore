@@ -1,0 +1,31 @@
+# Contexto interno da equipe (repo PUBLICO: .contexto nao sobe, doutrina 2026-07-27)
+.contexto/
+
+# Segredos e configuracao local (12-factor: só .env.example sobe)
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Dados locais (staging/lake ficam fora do git; amostras versionadas só por decisão explicita)
+data/
+*.parquet
+*.duckdb
+
+# Cinto extra LGPD: nenhum .pbix jamais entra neste repositorio
+*.pbix
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
