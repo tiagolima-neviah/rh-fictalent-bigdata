@@ -1,5 +1,114 @@
+<a id="topo"></a>
+
 # Fictalent RH · Pipeline de dados ponta a ponta
 
-> Projeto em construção. Terceiro caso público da série de pipelines de BI da Neviah, sobre a **Fictalent RH**, uma empresa **fictícia** de gestão de mão de obra (recrutamento e seleção, trabalho temporário, terceirização e treinamentos) do eixo Fernão Dias, com dados **100% sintéticos** calibrados por sazonalidade pública (Novo CAGED). Nenhuma afiliação com empresas reais.
+<!-- nav:start -->
+[Entendimento do Negócio](docs/01_entendimento_negocio.md) | [Entendimento dos Dados](docs/02_entendimento_dados.md) | [Arquitetura](docs/03_arquitetura.md)
+<!-- nav:end -->
 
-O README completo, no padrão da série, entra com o primeiro marco (modelo relacional + staging validado).
+> Pipeline completo e moderno de dados construído sobre a **Fictalent RH**, uma empresa **fictícia** de gestão de mão de obra (recrutamento e seleção, trabalho temporário, terceirização e treinamentos) com dados **100% sintéticos**: de um banco relacional modular em 10 módulos ao staging com **backfill histórico desde 2018 e carga incremental diária**, do staging às camadas bronze, silver e gold em parquet, da gold ao modelo multidimensional (star schema) em Postgres, pronto para painel web e Power BI. A sazonalidade dos dados sintéticos é **calibrada por fonte pública** (microdados do Novo CAGED). O repositório existe para ajudar analistas em início de carreira a percorrer um projeto de engenharia de dados e BI do jeito que ele acontece no mundo real, com custo baixo e total portabilidade.
+
+> **Aviso:** a Fictalent RH não existe. Empresa, clientes, pessoas, documentos e valores são fictícios e gerados sinteticamente. Este projeto não possui afiliação com nenhuma empresa real; qualquer semelhança é coincidência.
+
+## ⚠️ Disclaimer: projeto de estudo, não use em produção
+
+Este repositório é um **CASE fictício com dados sintéticos, criado exclusivamente para fins de estudo**. Ele **não deve, em hipótese alguma, ser usado em ambiente de produção real**: por ser material didático, conceitos essenciais de segurança da informação foram deliberadamente deixados de fora do escopo, e códigos, containers e configurações aqui presentes são frágeis por concepção (senhas em `.env` local, serviços sem hardening, ausência de criptografia em repouso e de trilha de auditoria de acesso).
+
+O software é fornecido **"no estado em que se encontra" (AS IS), sem garantias de qualquer natureza**, nos termos da [licença MIT](LICENSE) deste repositório. Os autores e a Neviah **não se responsabilizam por quaisquer danos** decorrentes do uso deste material; qualquer utilização fora do contexto de estudo, incluindo ambientes produtivos, é feita **por conta e risco exclusivos de quem a fizer**.
+
+Tem interesse em implementar este projeto de verdade na sua empresa? Entre em contato pela **[www.neviah.com.br](https://www.neviah.com.br)**: a implementação real é feita de forma completa e correta, considerando todas as políticas de segurança da informação e de proteção de dados (LGPD).
+
+## Por que este projeto existe
+
+Os dois primeiros casos desta série resolveram o problema de **volume** (uma operadora logística com 25 milhões de linhas) e o problema de **confiança** (uma empresa comercial sem nenhum relatório que fechasse). Este resolve um terceiro, que é o mais comum em empresas de serviço: a que **cresceu rápido demais para o próprio processo**.
+
+A Fictalent administra mão de obra. O trabalhador alocado é, ao mesmo tempo, o produto entregue ao cliente, a unidade de receita e um empregado CLT dela própria. Isso torna o dado dela **híbrido por natureza**: um funil comercial de vagas, uma folha de milhares de pessoas, uma carteira de contratos com margem por posto e um dever de compliance com prazo legal. Cada pedaço mora num sistema diferente, e a pergunta que mais importa, **qual cliente dá margem e qual só dá trabalho**, exige cruzar os quatro na mão, toda vez.
+
+Duas coisas neste caso não existiam nos anteriores e são o motivo de ele ser interessante:
+
+1. **Backfill histórico.** O pipeline não começa a contar a história a partir de hoje: ele reconstrói **desde 2018**, porque o histórico é o que permite comparar ano a ano e responder por que a empresa perdeu contratos. É também a resposta para a pergunta que todo dono faz na primeira reunião: não, você não vai recomeçar do zero.
+2. **Sazonalidade calibrada por dado público.** A curva mensal do gerador não é invenção plausível: ela é ajustada a partir dos **microdados do Novo CAGED** (admissões e desligamentos por mês, município e CNAE) para os CNAEs do segmento na região do caso. O arco da história é ficção; o ritmo do ano é real.
+
+## O caso
+
+A Fictalent RH (matriz em Atibaia, filiais em Bragança Paulista e Extrema, no eixo Fernão Dias) coloca e administra pessoas em indústrias, transportadoras, galpões de armazenagem e varejo da região. Fundada em 2018, ela atravessa uma pandemia, cresce muito entre 2022 e 2024, e a partir do fim de 2025 começa a perder contratos sem saber por quê.
+
+O que quebrou não foi o negócio, foi o processo de informação: um time que exportava planilhas e as cruzava à mão dava conta de 150 pessoas alocadas e não dá conta de 1.400. As coordenadoras, que deveriam analisar, foram absorvidas pelo operacional, e a empresa passou a crescer sem saber de onde vinha o lucro. A história completa está no [Entendimento do Negócio](docs/01_entendimento_negocio.md).
+
+## Arquitetura
+
+```
+Banco relacional de origem (simulado: 10 módulos, o sistema que a empresa não tem)
+        │  backfill histórico desde 2018  +  carga incremental diária
+        ▼
+Staging (Postgres em Docker, 10 schemas)
+        ▼
+Bronze ──► Silver ──► Gold (parquet; storage via fsspec: file:// ↔ s3://)
+                        ▼
+              Star schema multidimensional
+                        ▼
+     Destino configurável por .env (Postgres, Neon, SQL Server...)
+                        ▼
+            Painel web e Power BI
+```
+
+Detalhe de cada etapa, com as decisões e os porquês, em [Arquitetura](docs/03_arquitetura.md).
+
+## Status do projeto
+
+| etapa | situação |
+|---|---|
+| Entendimento do negócio e dos dados | em revisão |
+| Plano de sintetização | em revisão |
+| Modelo relacional (10 módulos) + DDL | a iniciar |
+| Staging Postgres no Docker | a iniciar |
+| Calibração da sazonalidade (Novo CAGED) | a iniciar |
+| Régua de validação dos dados sintéticos | a iniciar |
+| Gerador de dados sintéticos (2018 a 2026) | a iniciar |
+| Carga incremental diária | a iniciar |
+| Bronze | a iniciar |
+| Auditoria de qualidade (notebooks) + catálogo de regras | a iniciar |
+| Silver | a iniciar |
+| Gold (star schema) | a iniciar |
+| Warehouse multidimensional | a iniciar |
+| Painel web e Power BI | projeto separado |
+
+## Requisitos
+
+Máquina modesta resolve: 4 núcleos, 8 GB de RAM e cerca de 15 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
+
+## Como rodar (estado atual)
+
+O projeto está em construção. O guia de reprodução, com o passo a passo completo do clone ao warehouse, entra junto com o primeiro marco (staging validado pela régua).
+
+## Estrutura de diretórios
+
+```
+rh-fictalent-bigdata/
+├── docs/                    # a documentação navegável (leia na ordem)
+├── staging/                 # docker compose e DDL do banco relacional
+├── src/rh_fictalent/
+│   ├── gerador/             # o gerador determinístico dos dados sintéticos
+│   ├── validacao/           # a régua: bandas e checks de aceite
+│   ├── bronze/  silver/  gold/   # as camadas do lake
+│   └── warehouse/           # carga do star schema no destino
+├── notebooks/               # auditoria de qualidade e demonstrações
+└── tests/                   # esteira de qualidade (ruff, mypy, pytest)
+```
+
+## Documentação
+
+<details>
+<summary><strong>Regras de negócio e documentação técnica</strong> (leia na ordem)</summary>
+
+- [01 · Entendimento do Negócio](docs/01_entendimento_negocio.md): quem é a Fictalent, como um pedido de vaga vira pessoa alocada e receita, e a história de 2018 a 2026 que os dados precisam contar.
+- [02 · Entendimento dos Dados](docs/02_entendimento_dados.md): o banco relacional em 10 módulos, o que cada um guarda e o que esperar da qualidade desses dados.
+- [03 · Arquitetura](docs/03_arquitetura.md): as decisões de arquitetura do pipeline, do backfill ao warehouse, e por que cada uma foi tomada.
+
+</details>
+
+---
+
+Empresa fictícia, dados sintéticos, licença [MIT](LICENSE). Uma solução [Neviah](https://www.neviah.com.br).
+
+[Início](#topo)
