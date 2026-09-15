@@ -14,7 +14,7 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-LONGA_DURACAO=(pg-origem pg-staging pg-dagster s3 mysql-dw dagster-web dagster-daemon grafana)
+LONGA_DURACAO=(mysql-staging pg-dw pg-dagster s3 dagster-web dagster-daemon grafana)
 JOBS=(s3-init)
 TEMPO_MAXIMO="${TEMPO_MAXIMO:-300}"
 inicio=$(date +%s)

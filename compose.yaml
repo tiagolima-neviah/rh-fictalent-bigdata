@@ -1,15 +1,18 @@
 # Fictalent RH · a plataforma de dados inteira em containers.
 #
-# Oito serviços de longa duração e um job de inicialização:
-#   pg-origem       Postgres · o sistema de origem simulado (10 módulos)
-#   pg-staging      Postgres · o espelho de onde o pipeline lê
+# Sete serviços de longa duração e um job de inicialização:
+#   mysql-staging   MySQL · a réplica autorizada do sistema do cliente, de onde o pipeline lê
+#   pg-dw           Postgres · o warehouse dimensional (OLAP)
 #   pg-dagster      Postgres · metadados do Dagster (execuções, eventos, agendas)
 #   s3              SeaweedFS · armazenamento compatível com S3 para o lake
 #   s3-init         job único · cria o bucket do lake e termina
-#   mysql-dw        MySQL · o warehouse dimensional (OLAP)
 #   dagster-web     Dagster · interface web e API GraphQL
 #   dagster-daemon  Dagster · agendas, sensores e fila de execuções
 #   grafana         Grafana · monitoramento e alertas
+#
+# O sistema produtivo do cliente não está aqui: a consultoria nunca o toca. O que existe
+# é a réplica (staging), e é dela que saem as cargas. Por que MySQL na réplica e Postgres
+# no warehouse: docs/adr/0001-mysql-no-staging-postgres-no-olap.md
 #
 # Regras deste arquivo (conferidas por tests/test_compose.py):
 #   - toda imagem com versão exata, nunca "latest";
@@ -34,41 +37,49 @@ x-saude: &saude
   start_period: 30s
 
 services:
-  # ─────────────────────────────── bancos Postgres ───────────────────────────────
-  pg-origem:
+  # ─────────────────────────── staging: a réplica do cliente ───────────────────────────
+  mysql-staging:
     <<: *seguranca
-    image: postgres:16.15-alpine
-    container_name: fictalent_pg_origem
+    image: mysql:8.4.11
+    container_name: fictalent_mysql_staging
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --local-infile=0
+      - --skip-name-resolve
     environment:
-      POSTGRES_DB: ${ORIGEM_DB:-db_fictalent}
-      POSTGRES_USER: ${ORIGEM_ADMIN_USER:-fictalent_admin}
-      POSTGRES_PASSWORD: ${ORIGEM_ADMIN_PASSWORD:?defina ORIGEM_ADMIN_PASSWORD no .env}
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --data-checksums"
+      # em MySQL, schema e database são a mesma coisa: os 10 módulos viram 10 databases,
+      # criados pela DDL (card 2.2); os usuários por perfil vêm com o DCL (card 2.4)
+      MYSQL_ROOT_PASSWORD: ${STAGING_ROOT_PASSWORD:?defina STAGING_ROOT_PASSWORD no .env}
     ports:
-      - "127.0.0.1:${ORIGEM_PORT:-5441}:5432"
+      - "127.0.0.1:${STAGING_PORT:-3316}:3306"
     volumes:
-      - pg_origem:/var/lib/postgresql/data
+      - mysql_staging:/var/lib/mysql
     healthcheck:
       <<: *saude
-      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      start_period: 60s
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
     deploy:
       resources:
         limits:
           memory: 2g
 
-  pg-staging:
+  # ─────────────────────────────── bancos Postgres ───────────────────────────────
+  pg-dw:
     <<: *seguranca
     image: postgres:16.15-alpine
-    container_name: fictalent_pg_staging
+    container_name: fictalent_pg_dw
     environment:
-      POSTGRES_DB: ${STAGING_DB:-stg_fictalent}
-      POSTGRES_USER: ${STAGING_ADMIN_USER:-fictalent_admin}
-      POSTGRES_PASSWORD: ${STAGING_ADMIN_PASSWORD:?defina STAGING_ADMIN_PASSWORD no .env}
+      POSTGRES_DB: ${DW_DB:-dw_fictalent}
+      POSTGRES_USER: ${DW_ADMIN_USER:-fictalent_admin}
+      POSTGRES_PASSWORD: ${DW_ADMIN_PASSWORD:?defina DW_ADMIN_PASSWORD no .env}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --data-checksums"
+      GRAFANA_LEITOR_PASSWORD: ${GRAFANA_LEITOR_PASSWORD:?defina GRAFANA_LEITOR_PASSWORD no .env}
     ports:
-      - "127.0.0.1:${STAGING_PORT:-5442}:5432"
+      - "127.0.0.1:${DW_PORT:-5441}:5432"
     volumes:
-      - pg_staging:/var/lib/postgresql/data
+      - pg_dw:/var/lib/postgresql/data
+      - ./infra/postgres/dw:/docker-entrypoint-initdb.d:ro
     healthcheck:
       <<: *saude
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
@@ -136,36 +147,6 @@ services:
     depends_on:
       s3:
         condition: service_healthy
-
-  # ─────────────────────────────── warehouse (OLAP) ───────────────────────────────
-  mysql-dw:
-    <<: *seguranca
-    image: mysql:8.4.11
-    container_name: fictalent_mysql_dw
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_0900_ai_ci
-      - --local-infile=0
-      - --skip-name-resolve
-    environment:
-      MYSQL_DATABASE: ${DW_DB:-dw_fictalent}
-      MYSQL_ROOT_PASSWORD: ${DW_ROOT_PASSWORD:?defina DW_ROOT_PASSWORD no .env}
-      MYSQL_USER: ${DW_CARGA_USER:-fictalent_carga}
-      MYSQL_PASSWORD: ${DW_CARGA_PASSWORD:?defina DW_CARGA_PASSWORD no .env}
-      GRAFANA_LEITOR_PASSWORD: ${GRAFANA_LEITOR_PASSWORD:?defina GRAFANA_LEITOR_PASSWORD no .env}
-    ports:
-      - "127.0.0.1:${DW_PORT:-3316}:3306"
-    volumes:
-      - mysql_dw:/var/lib/mysql
-      - ./infra/mysql:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      <<: *saude
-      start_period: 60s
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
-    deploy:
-      resources:
-        limits:
-          memory: 2g
 
   # ─────────────────────────────── orquestração ───────────────────────────────
   dagster-web:
@@ -246,7 +227,7 @@ services:
     depends_on:
       pg-dagster:
         condition: service_healthy
-      mysql-dw:
+      pg-dw:
         condition: service_healthy
     deploy:
       resources:
@@ -254,10 +235,9 @@ services:
           memory: 512m
 
 volumes:
-  pg_origem:
-  pg_staging:
+  mysql_staging:
+  pg_dw:
   pg_dagster:
   s3_dados:
-  mysql_dw:
   dagster_logs:
   grafana_dados:

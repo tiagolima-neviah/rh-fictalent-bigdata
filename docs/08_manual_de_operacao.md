@@ -12,12 +12,11 @@
 
 | serviço | o que é | endereço na sua máquina | publicado na rede? |
 |---|---|---|---|
-| `pg-origem` | Postgres · sistema de origem simulado | `127.0.0.1:5441` | não |
-| `pg-staging` | Postgres · espelho de onde o pipeline lê | `127.0.0.1:5442` | não |
+| `mysql-staging` | MySQL · a réplica autorizada do sistema do cliente, de onde o pipeline lê | `127.0.0.1:3316` | não |
+| `pg-dw` | Postgres · warehouse dimensional | `127.0.0.1:5441` | não |
 | `pg-dagster` | Postgres · metadados do Dagster | sem porta (só rede interna) | não |
 | `s3` | SeaweedFS · lake compatível com S3 | `127.0.0.1:8333` | não |
 | `s3-init` | job único · cria o bucket do lake e termina | sem porta | não |
-| `mysql-dw` | MySQL · warehouse dimensional | `127.0.0.1:3316` | não |
 | `dagster-web` | Dagster · interface web | <http://127.0.0.1:3010> | não |
 | `dagster-daemon` | Dagster · agendas, sensores e fila | sem porta | não |
 | `grafana` | Grafana · monitoramento e alertas | <http://127.0.0.1:3011> | não |
@@ -33,7 +32,7 @@ cp .env.example .env
 ```
 
 ```bash
-for v in ORIGEM_ADMIN_PASSWORD STAGING_ADMIN_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ROOT_PASSWORD DW_CARGA_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
+for v in STAGING_ROOT_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
 ```
 
 **2. Construa a imagem do Dagster e suba tudo:**
@@ -60,7 +59,7 @@ Visão geral, com o estado de saúde de cada serviço:
 docker compose ps
 ```
 
-Resultado esperado: oito serviços com `(healthy)` e o `s3-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
+Resultado esperado: sete serviços com `(healthy)` e o `s3-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
 
 Esperar até tudo ficar saudável, sem precisar ficar repetindo o comando:
 
@@ -74,9 +73,9 @@ O que cada healthcheck confere:
 
 | serviço | teste | significa que |
 |---|---|---|
-| Postgres (os três) | `pg_isready` | o banco aceita conexões |
+| `mysql-staging` | `mysqladmin ping` | a réplica aceita conexões |
+| Postgres (os dois) | `pg_isready` | o banco aceita conexões |
 | `s3` | `/cluster/healthz` do SeaweedFS | o armazenamento está de pé |
-| `mysql-dw` | `mysqladmin ping` | o MySQL aceita conexões |
 | `dagster-web` | `/server_info` | a interface e a API do Dagster respondem |
 | `dagster-daemon` | `dagster-daemon liveness-check` | o daemon está processando agendas e fila |
 | `grafana` | `/api/health` | a interface e o banco interno do Grafana respondem |
@@ -97,7 +96,8 @@ Estes comportamentos foram testados na subida da versão v0.2.0. Os comandos de 
 | Grafana não aceita acesso anônimo | `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3011/api/datasources` | `401` |
 | o Grafana lê os bancos com usuário **só de leitura** | teste das fontes na interface do Grafana (Connections, Data sources, Test) | `Database Connection OK` nas duas |
 | esse usuário não consegue criar nem apagar nada no banco do Dagster | tentativa de `CREATE TABLE` e de `DELETE FROM runs` com `grafana_leitor` | `permission denied for schema public` e `permission denied for table runs` |
-| e nem no warehouse | tentativa de `CREATE TABLE` no MySQL com `grafana_leitor` | `CREATE command denied to user 'grafana_leitor'` |
+| e nem no warehouse | tentativa de `CREATE TABLE` no Postgres do warehouse com `grafana_leitor` | `permission denied for schema public` |
+| a réplica não aceita conexão sem senha | `docker exec fictalent_mysql_staging mysql -uroot -e "select 1"` | `Access denied for user 'root'` |
 | o lake exige credencial | listar buckets com chave errada | `InvalidAccessKeyId` |
 | Dagster e Grafana não rodam como root | `docker exec fictalent_dagster_web id -u` | `10001` (Dagster) e `472` (Grafana) |
 
@@ -132,7 +132,7 @@ Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários
 |---|---|---|
 | `required variable ... is missing a value` | falta uma senha no `.env` | complete o `.env` (seção 2) |
 | `port is already allocated` | outra aplicação usa a porta | troque a porta correspondente no `.env` |
-| `mysql-dw` fica em `health: starting` por mais de um minuto | primeira inicialização do MySQL | normal na primeira subida; acompanhe com `docker compose logs -f mysql-dw` |
+| `mysql-staging` fica em `health: starting` por mais de um minuto | primeira inicialização do MySQL | normal na primeira subida; acompanhe com `docker compose logs -f mysql-staging` |
 | `dagster-daemon` `unhealthy` logo depois de subir | o daemon ainda não publicou o primeiro sinal de vida | espere o `start_period` (60 s); se persistir, `docker compose logs dagster-daemon` |
 | Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
 
