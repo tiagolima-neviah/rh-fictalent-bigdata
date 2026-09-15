@@ -6,13 +6,13 @@
 [Entendimento do Negócio](docs/01_entendimento_negocio.md) | [Entendimento dos Dados](docs/02_entendimento_dados.md) | [Arquitetura](docs/03_arquitetura.md)
 <!-- nav:end -->
 
-> Pipeline completo e moderno de dados construído sobre a **Fictalent RH**, uma empresa **fictícia** de gestão de mão de obra (recrutamento e seleção, trabalho temporário, terceirização e treinamentos) com dados **100% sintéticos**: de um banco relacional modular em 10 módulos ao staging com **backfill histórico desde 2018 e carga incremental diária**, do staging às camadas bronze, silver e gold em parquet, da gold ao modelo multidimensional (star schema) em Postgres, pronto para painel web e Power BI. A sazonalidade dos dados sintéticos é **calibrada por fonte pública** (microdados do Novo CAGED). O repositório existe para ajudar analistas em início de carreira a percorrer um projeto de engenharia de dados e BI do jeito que ele acontece no mundo real, com custo baixo e total portabilidade.
+> Pipeline completo e moderno de dados construído sobre a **Fictalent RH**, uma empresa **fictícia** de gestão de mão de obra (recrutamento e seleção, trabalho temporário, terceirização e treinamentos) com dados **100% sintéticos**: de um banco relacional modular em 10 módulos ao staging com **backfill histórico desde 2018 e carga incremental diária**, orquestrado com **Dagster**, das camadas bronze, silver e gold em parquet ao modelo multidimensional (star schema) num warehouse **MySQL**, com observabilidade em **Grafana**, API REST dos indicadores, controle de acesso por perfil e **LGPD aplicada** a dado pessoal, pronto para painel web, Power BI e Tableau. A sazonalidade dos dados sintéticos é **calibrada por fonte pública** (microdados do Novo CAGED). O repositório existe para ajudar analistas em início de carreira a percorrer um projeto de engenharia de dados e BI do jeito que ele acontece no mundo real, com custo baixo e total portabilidade.
 
 > **Aviso:** a Fictalent RH não existe. Empresa, clientes, pessoas, documentos e valores são fictícios e gerados sinteticamente. Este projeto não possui afiliação com nenhuma empresa real; qualquer semelhança é coincidência.
 
 ## ⚠️ Disclaimer: projeto de estudo, não use em produção
 
-Este repositório é um **CASE fictício com dados sintéticos, criado exclusivamente para fins de estudo**. Ele **não deve, em hipótese alguma, ser usado em ambiente de produção real**: por ser material didático, conceitos essenciais de segurança da informação foram deliberadamente deixados de fora do escopo, e códigos, containers e configurações aqui presentes são frágeis por concepção (senhas em `.env` local, serviços sem hardening, ausência de criptografia em repouso e de trilha de auditoria de acesso).
+Este repositório é um **CASE fictício com dados sintéticos, criado exclusivamente para fins de estudo e portfólio**. Ele **não deve, em hipótese alguma, ser usado em ambiente de produção real**. As práticas de segurança e de proteção de dados demonstradas aqui existem para ensinar, e não substituem um projeto de produção: o código não passou por auditoria de segurança independente, não tem suporte, e as configurações de exemplo (credenciais em `.env` local, certificados, parâmetros de rede e de retenção) não são adequadas a um ambiente real.
 
 O software é fornecido **"no estado em que se encontra" (AS IS), sem garantias de qualquer natureza**, nos termos da [licença MIT](LICENSE) deste repositório. Os autores e a Neviah **não se responsabilizam por quaisquer danos** decorrentes do uso deste material; qualquer utilização fora do contexto de estudo, incluindo ambientes produtivos, é feita **por conta e risco exclusivos de quem a fizer**.
 
@@ -38,44 +38,42 @@ O que quebrou não foi o negócio, foi o processo de informação: um time que e
 ## Arquitetura
 
 ```
-Banco relacional de origem (simulado: 10 módulos, o sistema que a empresa não tem)
-        │  backfill histórico desde 2018  +  carga incremental diária
-        ▼
-Staging (Postgres em Docker, 10 schemas)
-        ▼
-Bronze ──► Silver ──► Gold (parquet; storage via fsspec: file:// ↔ s3://)
-                        ▼
-              Star schema multidimensional
-                        ▼
-     Destino configurável por .env (Postgres, Neon, SQL Server...)
-                        ▼
-            Painel web e Power BI
+Origem: Postgres (10 módulos, DCL por perfil, RLS por filial, pgcrypto)
+   │  ingestão: relacional (backfill + incremental) · API REST · arquivo
+   ▼
+Staging: Postgres (espelho + linhagem + marca d'água)
+   ▼
+Lake em MinIO/S3 (parquet, fsspec) ── Bronze ► Silver ► Gold  [DuckDB]
+   ▼
+OLAP: MySQL (star schema, carga por partição, perfis de leitura)
+   ▼
+API REST [FastAPI]  ·  Painel web  ·  Power BI  ·  Tableau
+
+Atravessando tudo: Dagster (orquestração) · Grafana (monitoramento e alertas)
+                   auditoria · LGPD · CI com varredura de segurança
 ```
 
 Detalhe de cada etapa, com as decisões e os porquês, em [Arquitetura](docs/03_arquitetura.md).
 
 ## Status do projeto
 
-| etapa | situação |
-|---|---|
-| Entendimento do negócio e dos dados | em revisão |
-| Plano de sintetização | em revisão |
-| Modelo relacional (10 módulos) + DDL | a iniciar |
-| Staging Postgres no Docker | a iniciar |
-| Calibração da sazonalidade (Novo CAGED) | a iniciar |
-| Régua de validação dos dados sintéticos | a iniciar |
-| Gerador de dados sintéticos (2018 a 2026) | a iniciar |
-| Carga incremental diária | a iniciar |
-| Bronze | a iniciar |
-| Auditoria de qualidade (notebooks) + catálogo de regras | a iniciar |
-| Silver | a iniciar |
-| Gold (star schema) | a iniciar |
-| Warehouse multidimensional | a iniciar |
-| Painel web e Power BI | projeto separado |
+O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inteiro, com código, testes e documentação.
+
+| versão | bloco | situação |
+|---|---|---|
+| v0.1.0 | Entendimento do negócio e dos dados, arquitetura, modelo relacional | concluído |
+| v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos, DCL, RLS, cifra, dicionário, CI de segurança | a iniciar |
+| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | previsto |
+| v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | previsto |
+| v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | previsto |
+| v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
+| v0.7.0 | Gold, funções de janela, warehouse MySQL, painel de negócio | previsto |
+| v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | previsto |
+| (outro repositório) | Painel web, Power BI e Tableau Public | previsto |
 
 ## Requisitos
 
-Máquina modesta resolve: 4 núcleos, 8 GB de RAM e cerca de 15 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
+O projeto sobe oito serviços em containers. Referência inicial, a confirmar com medição na versão v0.3.0: 4 núcleos, **8 GB de RAM no mínimo (16 GB recomendado)** e cerca de 20 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
 
 ## Como rodar (estado atual)
 
@@ -88,6 +86,7 @@ rh-fictalent-bigdata/
 ├── docs/                    # a documentação navegável (leia na ordem)
 ├── staging/                 # docker compose e DDL do banco relacional
 ├── src/rh_fictalent/
+│   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
 │   ├── bronze/  silver/  gold/   # as camadas do lake
@@ -103,7 +102,9 @@ rh-fictalent-bigdata/
 
 - [01 · Entendimento do Negócio](docs/01_entendimento_negocio.md): quem é a Fictalent, como um pedido de vaga vira pessoa alocada e receita, e a história de 2018 a 2026 que os dados precisam contar.
 - [02 · Entendimento dos Dados](docs/02_entendimento_dados.md): o banco relacional em 10 módulos, o que cada um guarda e o que esperar da qualidade desses dados.
-- [03 · Arquitetura](docs/03_arquitetura.md): as decisões de arquitetura do pipeline, do backfill ao warehouse, e por que cada uma foi tomada.
+- [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
+
+Os manuais operacionais (instalação, operação, monitoramento e healthcheck, segurança e LGPD, auditoria, backup e solução de problemas) entram com as versões em que cada assunto passa a existir.
 
 </details>
 
