@@ -3,7 +3,7 @@
 # Arquitetura · da réplica do sistema do cliente ao painel
 
 <!-- nav:start -->
-[Home](../README.md) | [← Entendimento dos Dados](02_entendimento_dados.md) | [Manual de Operação →](08_manual_de_operacao.md)
+[Home](../README.md) | [← Entendimento dos Dados](02_entendimento_dados.md) | [Modelo de Dados →](04_modelo_dados_staging.md)
 <!-- nav:end -->
 
 > Como este pipeline é montado, peça por peça, com a ferramenta de cada etapa e o **porquê** de cada escolha. Documento vivo: cada etapa que entra atualiza a sua linha com o que foi medido de verdade; o que ainda não existe aparece como **previsto**, nunca como entregue. Números sem medição não entram aqui.
@@ -23,7 +23,7 @@
   O sistema produtivo do cliente fica FORA deste ambiente: a consultoria nunca
   o toca. O que existe aqui é a réplica autorizada, em ambiente apartado.
   [MySQL 8]  10 schemas · 75 tabelas · mapa de escopo documentado (seção 3)
-     ├─ gatilhos: atualizado_em + trilha de exclusões          (base do incremental)
+     ├─ atualizado_em nativo e indexado + trilha de exclusões  (base do incremental)
      ├─ DCL: papéis por perfil (GRANT/REVOKE) com teste de bloqueio
      └─ cifra em repouso do dado pessoal                        (LGPD)
   [Python]   gerador determinístico (semente fixa), 6 etapas, 2018 a 2026:
@@ -33,7 +33,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 2 · INGESTÃO: três naturezas de fonte, todas desembocam na bronze
 ═══════════════════════════════════════════════════════════════════════════════
-  2a relacional ─ [Python + ADBC]  backfill desde 2018 + incremental diário
+  2a relacional ─ [Python + Arrow] backfill desde 2018 + incremental diário
                                    a partir do MySQL (marca d'água por tabela,
                                    exclusão lógica)
   2b API REST   ─ [Python + httpx] municípios (IBGE) e feriados (BrasilAPI)
@@ -109,7 +109,7 @@
 | infraestrutura | **Docker Compose** | sobe os 7 serviços com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
 | versionamento | **Git + Gitflow** | ramo por funcionalidade, `develop` de integração, versão marcada em `main` | é o fluxo que as equipes de dados maiores exigem |
 | staging | **MySQL 8** | a réplica autorizada do sistema do cliente, de onde o pipeline lê | é o motor mais provável do sistema próprio de uma PME, e o que o mercado pede é saber **ingerir de** MySQL. Fecha a terceira técnica de carga incremental da série (Fictitur: coluna temporal; Fictoria: `rowversion`; Fictalent: a partir de MySQL). [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) |
-| ingestão relacional | **ADBC** (Arrow) | traz o dado do MySQL em lotes colunares | não estoura a memória e preserva os tipos |
+| ingestão relacional | **leitor com saída Arrow** (ADBC, se houver driver MySQL maduro; senão ConnectorX) | traz o dado do MySQL em lotes colunares | não estoura a memória e preserva os tipos. A escolha é medida e registrada em ADR na v0.5.0 |
 | ingestão de API | **httpx** | consome as APIs públicas do IBGE e da BrasilAPI | cliente HTTP moderno, com timeout e retry controlados |
 | ingestão de arquivo | **pandas + pandera** | lê Excel e CSV contra um esquema declarado | arquivo sem esquema é o começo de todo relatório que não bate |
 | orquestração | **Dagster** | decide quando e em que ordem cada etapa roda, repete o que falha, guarda o histórico | trabalha com **ativos de dado**, não só tarefas: a dependência entre tabelas vira desenho |
@@ -134,7 +134,7 @@ Três motivos para modelar a réplica inteira em vez de partir de planilhas: o c
 
 **Réplica parcial por pertinência.** A regra da casa é replicar **só os schemas e tabelas ligados à dor contratada**, nunca o banco inteiro: é menos volume, menos custo, menos superfície de ataque, e é a minimização de dados que a LGPD pede. Um cliente com 10 schemas e 650 tabelas que contrata projeção financeira e margem recebe no staging o schema financeiro e as tabelas dos outros schemas diretamente ligadas à movimentação financeira; recrutamento e seleção ficam de fora. Toda réplica exige, por isso, um **mapa de escopo**: o que entra e a que pergunta de negócio cada parte serve.
 
-**O mapa de escopo deste caso.** A Fictalent contratou a resposta a uma pergunta que atravessa a empresa inteira (qual cliente dá margem e qual só dá trabalho), e a margem por posto nasce no funil, passa pela folha e termina no título a receber. Por isso o cliente autorizou a **réplica completa**, e o gestor de TI dele preferiu assim: a réplica passa a absorver toda a leitura analítica e desafoga o sistema produtivo por inteiro. O mapa, mesmo com tudo dentro, existe:
+**O mapa de escopo deste caso.** A Fictalent contratou a resposta a uma pergunta que atravessa a empresa inteira (qual cliente dá margem e qual só dá trabalho), e a margem por posto nasce no funil, passa pela folha e termina no título a receber. Por isso o cliente autorizou a **réplica completa**, e o gestor de TI dele preferiu assim: a réplica passa a absorver toda a leitura analítica e desafoga o sistema produtivo por inteiro. Ele foi além: **nem os relatórios do próprio sistema batem no produtivo**. O produtivo fica só com o CRUD e os selects simples de tela; todo relatório com filtro e histórico é apontado para a réplica, trabalho dos desenvolvedores do cliente. A réplica tem, portanto, dois consumidores, o pipeline e os relatórios do sistema, e é por isso que o controle de acesso por perfil (seção 5) inclui um papel só de leitura para esses relatórios, sem as colunas sensíveis. O mapa, mesmo com tudo dentro, existe:
 
 | schema | tabelas | a que pergunta serve |
 |---|---|---|
@@ -154,7 +154,7 @@ Três motivos para modelar a réplica inteira em vez de partir de planilhas: o c
 
 **Backfill histórico (uma vez).** Traz da réplica para a bronze tudo o que existe desde 2018. É a resposta à pergunta do dono: não, ele não recomeça do zero. Sem backfill não existe comparação ano a ano, e sem ela não é possível responder por que a empresa perdeu contratos.
 
-**Carga incremental (todo dia, agendada no Dagster).** Traz só o que mudou desde a última carga. Cada tabela da réplica carrega `criado_em` e `atualizado_em` mantidos por gatilho, e o pipeline guarda, por tabela, a **marca d'água** da última carga. A carga seguinte pede apenas o que está acima dela.
+**Carga incremental (todo dia, agendada no Dagster).** Traz só o que mudou desde a última carga. Cada tabela da réplica carrega `criado_em` e `atualizado_em` mantidos pelo próprio motor (`ON UPDATE`) e indexados, e o pipeline guarda, por tabela, a **marca d'água** da última carga. A carga seguinte pede apenas o que está acima dela.
 
 **Exclusões.** Uma linha apagada no sistema do cliente some da réplica quando a replicação aplica o `DELETE`, e uma linha que sumiu não tem `atualizado_em` para ser encontrada. Por isso a réplica mantém uma **trilha de exclusões** alimentada por gatilho de `DELETE` (`meta.exclusao_auditoria`), e a carga incremental aplica essas exclusões na bronze como **marcação lógica**, nunca com apagamento físico: o dado apagado continua no histórico analítico, marcado e datado. Se a replicação do cliente for por binlog, a alternativa de ler as exclusões direto dele fica registrada em ADR quando a ingestão for construída (v0.5.0).
 
@@ -191,7 +191,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | camada | situação |
 |---|---|
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
-| 1 · staging (réplica) | motor definido (MySQL 8, ADR-0001), modelo relacional aprovado, DDL a iniciar |
+| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, card 2.2). Gatilhos, DCL e cifra a seguir |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |
 | 4 · lake | a iniciar |

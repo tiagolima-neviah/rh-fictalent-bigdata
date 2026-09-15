@@ -29,6 +29,8 @@ dev = [
     "nbclient>=0.11.0",
     "nbformat>=5.11.1",
     "ipykernel>=7.3.0",
+    "pymysql>=1.2.0",
+    "types-pymysql>=1.2.0.20260807",
 ]
 
 [project.scripts]

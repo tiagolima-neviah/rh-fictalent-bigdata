@@ -47,14 +47,17 @@ services:
       - --collation-server=utf8mb4_0900_ai_ci
       - --local-infile=0
       - --skip-name-resolve
+      - --default-time-zone=+00:00
     environment:
       # em MySQL, schema e database são a mesma coisa: os 10 módulos viram 10 databases,
-      # criados pela DDL (card 2.2); os usuários por perfil vêm com o DCL (card 2.4)
+      # criados pela DDL em staging/ddl na primeira inicialização; os usuários por perfil
+      # vêm com o DCL (card 2.4)
       MYSQL_ROOT_PASSWORD: ${STAGING_ROOT_PASSWORD:?defina STAGING_ROOT_PASSWORD no .env}
     ports:
       - "127.0.0.1:${STAGING_PORT:-3316}:3306"
     volumes:
       - mysql_staging:/var/lib/mysql
+      - ./staging/ddl:/docker-entrypoint-initdb.d:ro
     healthcheck:
       <<: *saude
       start_period: 60s
