@@ -35,10 +35,25 @@ def _longa_duracao() -> list[str]:
 
 def test_servicos_esperados_existem() -> None:
     esperados = {
-        "pg-origem", "pg-staging", "pg-dagster", "s3", "s3-init",
-        "mysql-dw", "dagster-web", "dagster-daemon", "grafana",
+        "mysql-staging",
+        "pg-dw",
+        "pg-dagster",
+        "s3",
+        "s3-init",
+        "dagster-web",
+        "dagster-daemon",
+        "grafana",
     }
     assert set(_servicos()) == esperados
+
+
+def test_motores_de_banco_conforme_adr_0001() -> None:
+    """MySQL na réplica do cliente (staging), Postgres no warehouse: docs/adr/0001."""
+    assert _servicos()["mysql-staging"]["image"].startswith("mysql:")
+    assert _servicos()["pg-dw"]["image"].startswith("postgres:")
+    assert "pg-origem" not in _servicos(), (
+        "a consultoria não toca o sistema do cliente: não existe origem aqui"
+    )
 
 
 @pytest.mark.parametrize("nome", _longa_duracao())

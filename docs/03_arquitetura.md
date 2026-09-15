@@ -1,6 +1,6 @@
 <a id="topo"></a>
 
-# Arquitetura · do banco de origem ao painel
+# Arquitetura · da réplica do sistema do cliente ao painel
 
 <!-- nav:start -->
 [Home](../README.md) | [← Entendimento dos Dados](02_entendimento_dados.md) | [Manual de Operação →](08_manual_de_operacao.md)
@@ -18,28 +18,29 @@
   Git com Gitflow: feature → develop → release → main, tags SemVer
 
 ═══════════════════════════════════════════════════════════════════════════════
- CAMADA 1 · ORIGEM: o sistema que a empresa não tem                (simulado)
+ CAMADA 1 · STAGING: a réplica do sistema do cliente                  (MySQL 8)
 ═══════════════════════════════════════════════════════════════════════════════
-  [Postgres 16]  db_fictalent · 10 schemas · 75 tabelas
+  O sistema produtivo do cliente fica FORA deste ambiente: a consultoria nunca
+  o toca. O que existe aqui é a réplica autorizada, em ambiente apartado.
+  [MySQL 8]  10 schemas · 75 tabelas · mapa de escopo documentado (seção 3)
      ├─ gatilhos: atualizado_em + trilha de exclusões          (base do incremental)
      ├─ DCL: papéis por perfil (GRANT/REVOKE) com teste de bloqueio
-     ├─ RLS: cada filial enxerga só as próprias linhas         (autoatendimento)
-     └─ pgcrypto: CPF e dados sensíveis cifrados em repouso    (LGPD)
-  [Python]       gerador determinístico (semente fixa), 6 etapas, 2018 a 2026
-  [Python]       régua de validação: bandas da história, reprovou regenera
+     └─ cifra em repouso do dado pessoal                        (LGPD)
+  [Python]   gerador determinístico (semente fixa), 6 etapas, 2018 a 2026:
+             faz o papel do sistema do cliente e da replicação que chega dele
+  [Python]   régua de validação: bandas da história, reprovou regenera
 
 ═══════════════════════════════════════════════════════════════════════════════
- CAMADA 2 · INGESTÃO: três naturezas de fonte
+ CAMADA 2 · INGESTÃO: três naturezas de fonte, todas desembocam na bronze
 ═══════════════════════════════════════════════════════════════════════════════
   2a relacional ─ [Python + ADBC]  backfill desde 2018 + incremental diário
-                                   (marca d'água por tabela, exclusão lógica)
+                                   a partir do MySQL (marca d'água por tabela,
+                                   exclusão lógica)
   2b API REST   ─ [Python + httpx] municípios (IBGE) e feriados (BrasilAPI)
                                    paginação, retry, limite de taxa
   2c arquivo    ─ [pandas + pandera] consolidado gerencial em Excel e
                                    índices sazonais do Novo CAGED em CSV,
                                    ambos com esquema declarado
-        ▼
-  [Postgres 16]  stg_fictalent · espelho + colunas de linhagem + marca d'água
 
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 3 · ORQUESTRAÇÃO                              (rege todas as camadas)
@@ -53,7 +54,8 @@
  CAMADA 4 · LAKE                                  (parquet, storage abstraído)
 ═══════════════════════════════════════════════════════════════════════════════
   [SeaweedFS]  S3 em container · [fsspec] mesmo código em file:// ou s3://
-  BRONZE  ─ [DuckDB]  espelho fiel do staging, linhagem, conferência de contagem
+  BRONZE  ─ [DuckDB]  espelho fiel da réplica, linhagem, marca d'água por
+                      tabela, conferência de contagem
   QUALIDADE [pandera + régua + Jupyter]  auditoria por domínio, catálogo de achados
   SILVER  ─ [DuckDB]  regras aprovadas, prestação de contas auto-reprovável,
                       pseudonimização (o candidato vira chave, não nome)
@@ -63,9 +65,10 @@
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 5 · OLAP                                                  (warehouse)
 ═══════════════════════════════════════════════════════════════════════════════
-  [MySQL 8]  dw_fictalent · schemas dim e fato · carga por partição idempotente
-             DCL no warehouse: perfil de leitura por área, sem acesso a PII
-             destino em nuvem compatível com MySQL (previsto, a medir)
+  [Postgres 16]  dw_fictalent · schemas dim e fato · carga por partição idempotente
+                 DCL no warehouse: perfil de leitura por área, sem dado pessoal
+                 RLS: cada filial enxerga só as próprias linhas
+                 destino gratuito em nuvem Postgres (previsto, a medir)
 
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 6 · SERVIR
@@ -79,7 +82,7 @@
   [logs JSON]    estruturados, com id de execução
   [Grafana]      painéis como código: execuções do Dagster, duração, linhas,
                  falhas e frescor dos dados; alertas (só observabilidade)
-  [auditoria]    log de acesso e alteração na origem, trilha de exclusões,
+  [auditoria]    log de acesso e alteração na réplica, trilha de exclusões,
                  histórico de runs, prestação de contas da silver
   [CI]           ruff · mypy · pytest · bandit · pip-audit · gitleaks · trivy
   [LGPD]         classificação de sensibilidade por coluna, retenção e
@@ -89,7 +92,7 @@
  CAMADA 8 · CONSUMO                              (projeto rh-fictalent-dashboard)
 ═══════════════════════════════════════════════════════════════════════════════
   Painel web  [FastAPI + HTMX + ECharts + DuckDB]  sobre o parquet da gold
-  Power BI    sobre o MySQL, publicado na web
+  Power BI    sobre o warehouse Postgres, publicado na web
   Tableau     [Tableau Public] sobre extrato da gold, publicado na web
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -103,10 +106,10 @@
 
 | etapa | ferramenta | o que ela faz aqui | por que ela, e não outra |
 |---|---|---|---|
-| infraestrutura | **Docker Compose** | sobe os 8 serviços com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
+| infraestrutura | **Docker Compose** | sobe os 7 serviços com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
 | versionamento | **Git + Gitflow** | ramo por funcionalidade, `develop` de integração, versão marcada em `main` | é o fluxo que as equipes de dados maiores exigem |
-| origem e staging | **Postgres 16** | o banco transacional e o espelho de onde o pipeline lê | banco livre mais usado em PME, com RLS e pgcrypto nativos |
-| ingestão relacional | **ADBC** (Arrow) | traz o dado do Postgres em lotes colunares | não estoura a memória e preserva os tipos |
+| staging | **MySQL 8** | a réplica autorizada do sistema do cliente, de onde o pipeline lê | é o motor mais provável do sistema próprio de uma PME, e o que o mercado pede é saber **ingerir de** MySQL. Fecha a terceira técnica de carga incremental da série (Fictitur: coluna temporal; Fictoria: `rowversion`; Fictalent: a partir de MySQL). [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) |
+| ingestão relacional | **ADBC** (Arrow) | traz o dado do MySQL em lotes colunares | não estoura a memória e preserva os tipos |
 | ingestão de API | **httpx** | consome as APIs públicas do IBGE e da BrasilAPI | cliente HTTP moderno, com timeout e retry controlados |
 | ingestão de arquivo | **pandas + pandera** | lê Excel e CSV contra um esquema declarado | arquivo sem esquema é o começo de todo relatório que não bate |
 | orquestração | **Dagster** | decide quando e em que ordem cada etapa roda, repete o que falha, guarda o histórico | trabalha com **ativos de dado**, não só tarefas: a dependência entre tabelas vira desenho |
@@ -114,36 +117,56 @@
 | transformação | **DuckDB** | SQL sobre parquet, sem servidor | rápido no laptop; o volume deste caso não justifica cluster |
 | formato | **parquet** (zstd, partição por ano) | armazena cada camada | colunar, compacto, lido por qualquer ferramenta |
 | qualidade | **pandera + régua própria** | valida esquema e bandas de negócio | pandera é a linguagem de mercado; a régua carrega a história |
-| OLAP | **MySQL 8** | o warehouse que as ferramentas de BI consultam | o cenário do caso: o cliente já tem MySQL em casa e quer consumir o warehouse de lá, com as ferramentas que já usa. É o banco relacional mais presente em PME, e o repositório passa a mostrar Postgres e MySQL juntos |
+| OLAP | **Postgres 16** | o warehouse que a API e as ferramentas de BI consultam | banco analítico de verdade para o volume do caso: *row level security* nativa, visão materializada, consulta paralela, schemas para separar `dim` e `fato`, e destino gratuito em nuvem já provado na série. [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) |
 | servir | **FastAPI** | API REST dos indicadores | tipagem, validação e documentação OpenAPI geradas do código |
 | observabilidade | **Grafana** | painéis de execução, falha e frescor, com alerta | painel é arquivo versionado e existe plano gratuito na nuvem. Fica só na observabilidade: painel de negócio é papel do painel web, do Power BI e do Tableau, e duplicá-lo criaria uma quarta versão do mesmo número |
 | segurança no CI | **bandit, pip-audit, gitleaks, trivy** | código, dependências, segredos e imagens | cada um olha um vetor diferente; juntos cobrem o básico de supply chain |
 
+**Decisões registradas.** Cada tecnologia deste projeto tem um registro de decisão ligando-a a uma necessidade do caso, em [`docs/adr`](adr/README.md). Se a única justificativa fosse "o mercado pede", a ferramenta iria para um laboratório separado, não para cá.
+
 **Dagster e Airflow.** São os dois orquestradores mais pedidos no mercado. O Airflow organiza **tarefas**; o Dagster organiza **ativos** (a tabela, o arquivo, o modelo) e deduz a ordem a partir das dependências entre eles, o que casa com o jeito medallion de pensar. Quem aprende um lê o outro: um *asset* do Dagster corresponde a uma tarefa que produz um dado no Airflow, um *job* a uma DAG, um *schedule* a um `schedule_interval`.
 
-## 3. Por que uma origem simulada, e o que ela representa
+## 3. Por que o staging é uma réplica, e o que ela representa
 
-Num cliente real, a origem é o sistema dele. Aqui a origem é **um Postgres que o projeto cria e popula**, com o modelo relacional completo dos 10 módulos. Três motivos: o caso pede (a Fictalent tem quatro sistemas desconectados, e modelar o que ela deveria ter é o que permite mostrar o pipeline inteiro); ensina o contraste entre um banco **transacional normalizado** e um banco **analítico dimensional**, com as mesmas informações e desenhos opostos; e não expõe ninguém, porque nenhum dado real entra em etapa alguma.
+Num cliente real, o sistema produtivo é dele, e a consultoria **não o toca**: nenhuma consulta analítica roda no banco que emite a folha e fecha o caixa. O que a consultoria recebe é uma **réplica** em ambiente apartado, alimentada pela replicação que o cliente autoriza. Neste projeto, essa réplica é o staging: um MySQL 8 que o projeto cria e popula com o modelo relacional completo dos 10 módulos. Como a Fictalent é fictícia, o gerador faz o papel do sistema dela e da replicação: escreve na réplica como se fosse a carga diária chegando do cliente.
 
-**Origem e staging são bancos separados**, porque é a separação que torna a carga incremental honesta: o pipeline nunca lê a origem, exatamente como num cliente onde tocar a produção é proibido.
+Três motivos para modelar a réplica inteira em vez de partir de planilhas: o caso pede (a Fictalent tem quatro sistemas desconectados, e modelar o que ela deveria ter é o que permite mostrar o pipeline inteiro); ensina o contraste entre um banco **transacional normalizado** e um banco **analítico dimensional**, com as mesmas informações e desenhos opostos; e não expõe ninguém, porque nenhum dado real entra em etapa alguma.
+
+**Réplica parcial por pertinência.** A regra da casa é replicar **só os schemas e tabelas ligados à dor contratada**, nunca o banco inteiro: é menos volume, menos custo, menos superfície de ataque, e é a minimização de dados que a LGPD pede. Um cliente com 10 schemas e 650 tabelas que contrata projeção financeira e margem recebe no staging o schema financeiro e as tabelas dos outros schemas diretamente ligadas à movimentação financeira; recrutamento e seleção ficam de fora. Toda réplica exige, por isso, um **mapa de escopo**: o que entra e a que pergunta de negócio cada parte serve.
+
+**O mapa de escopo deste caso.** A Fictalent contratou a resposta a uma pergunta que atravessa a empresa inteira (qual cliente dá margem e qual só dá trabalho), e a margem por posto nasce no funil, passa pela folha e termina no título a receber. Por isso o cliente autorizou a **réplica completa**, e o gestor de TI dele preferiu assim: a réplica passa a absorver toda a leitura analítica e desafoga o sistema produtivo por inteiro. O mapa, mesmo com tudo dentro, existe:
+
+| schema | tabelas | a que pergunta serve |
+|---|---|---|
+| `cadastro` | 12 | as regras do jogo: filiais, cargos, postos, parâmetros (base de toda dimensão) |
+| `comercial` | 8 | a carteira que gera receita: clientes, contratos e preço por posto |
+| `ats` | 9 | o funil de colocação: quanto custa e quanto demora preencher uma vaga |
+| `pessoas` | 8 | quem foi admitido, onde está e por que saiu: headcount e rotatividade |
+| `ponto` | 5 | o dia a dia de quem está em campo: horas, faltas e extras (o que se fatura e o que se paga) |
+| `folha` | 7 | o custo por cabeça: a outra metade da margem |
+| `financeiro` | 10 | receita, títulos, inadimplência e impostos: a margem realizada |
+| `treinamento` | 5 | turmas com validade: compliance e o custo de manter a habilitação |
+| `sst` | 6 | saúde, segurança e compliance: exames, afastamentos e o custo de cada um |
+| `seguranca` | 5 | quem pode ver o quê: perfis e trilha de auditoria |
+| `meta` | 2 | infraestrutura da carga (trilha de exclusões); não é módulo de negócio |
 
 ## 4. Backfill e carga incremental
 
-**Backfill histórico (uma vez).** Traz tudo o que existe na origem desde 2018. É a resposta à pergunta do dono: não, ele não recomeça do zero. Sem backfill não existe comparação ano a ano, e sem ela não é possível responder por que a empresa perdeu contratos.
+**Backfill histórico (uma vez).** Traz da réplica para a bronze tudo o que existe desde 2018. É a resposta à pergunta do dono: não, ele não recomeça do zero. Sem backfill não existe comparação ano a ano, e sem ela não é possível responder por que a empresa perdeu contratos.
 
-**Carga incremental (todo dia, agendada no Dagster).** Traz só o que mudou desde a última carga. Cada tabela da origem carrega `criado_em` e `atualizado_em` mantidos por gatilho, e o staging guarda, por tabela, a **marca d'água** da última carga. A carga seguinte pede apenas o que está acima dela.
+**Carga incremental (todo dia, agendada no Dagster).** Traz só o que mudou desde a última carga. Cada tabela da réplica carrega `criado_em` e `atualizado_em` mantidos por gatilho, e o pipeline guarda, por tabela, a **marca d'água** da última carga. A carga seguinte pede apenas o que está acima dela.
 
-**Exclusões.** Uma linha apagada na origem não tem `atualizado_em` para ser encontrada. Por isso a origem mantém uma **trilha de exclusões** alimentada por gatilho de `DELETE`, e a carga incremental aplica essas exclusões no staging como **marcação lógica**, nunca com apagamento físico: o dado apagado continua no histórico analítico, marcado e datado.
+**Exclusões.** Uma linha apagada no sistema do cliente some da réplica quando a replicação aplica o `DELETE`, e uma linha que sumiu não tem `atualizado_em` para ser encontrada. Por isso a réplica mantém uma **trilha de exclusões** alimentada por gatilho de `DELETE` (`meta.exclusao_auditoria`), e a carga incremental aplica essas exclusões na bronze como **marcação lógica**, nunca com apagamento físico: o dado apagado continua no histórico analítico, marcado e datado. Se a replicação do cliente for por binlog, a alternativa de ler as exclusões direto dele fica registrada em ADR quando a ingestão for construída (v0.5.0).
 
 ## 5. Segurança e LGPD por desenho
 
 RH é o domínio do dado pessoal por excelência, e este projeto trata isso como requisito de arquitetura, não como apêndice.
 
-- **Minimização.** Cada camada carrega só o que o indicador precisa. A gold não tem nome nem CPF.
+- **Minimização.** Cada camada carrega só o que o indicador precisa, e a réplica só entra completa porque o cliente autorizou (seção 3). A gold não tem nome nem CPF.
 - **Pseudonimização.** A partir da silver, pessoa é identificada por uma chave derivada, estável e irreversível sem o segredo, que fica fora do repositório.
-- **Cifra em repouso.** Colunas sensíveis da origem são cifradas com `pgcrypto`.
-- **Controle de acesso por perfil.** Papéis de banco com `GRANT` e `REVOKE` explícitos para sócio, gerente-geral, coordenação, assistente e financeiro, e **testes automatizados que provam o bloqueio**: o teste passa quando o acesso indevido falha.
-- **Isolamento por filial.** Políticas de *row level security* fazem a assistente de Extrema enxergar só as linhas de Extrema, no próprio banco, sem depender da aplicação.
+- **Cifra em repouso.** O dado pessoal da réplica é cifrado em repouso, com a chave fora do repositório. O mecanismo (cifra de tablespace do InnoDB ou cifra de coluna) é decidido e medido no card próprio, com ADR.
+- **Controle de acesso por perfil.** Papéis de banco com `GRANT` e `REVOKE` explícitos para sócio, gerente-geral, coordenação, assistente e financeiro, na réplica e no warehouse, e **testes automatizados que provam o bloqueio**: o teste passa quando o acesso indevido falha.
+- **Isolamento por filial.** Políticas de *row level security* no warehouse fazem a coordenadora de Extrema enxergar só as linhas de Extrema, no próprio banco, sem depender da aplicação.
 - **Trilha de auditoria.** Quem acessou e quem alterou o quê, com data.
 - **Retenção e descarte.** Candidato não contratado tem prazo declarado de retenção, e um job do Dagster executa o descarte e registra o que foi descartado.
 - **Classificação por coluna.** O dicionário de dados marca cada coluna como pública, interna, pessoal ou pessoal sensível.
@@ -167,12 +190,12 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 
 | camada | situação |
 |---|---|
-| 0 · infraestrutura | Compose com 8 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, card 2.1) |
-| 1 · origem | modelo relacional aprovado, DDL a iniciar |
+| 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
+| 1 · staging (réplica) | motor definido (MySQL 8, ADR-0001), modelo relacional aprovado, DDL a iniciar |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |
 | 4 · lake | a iniciar |
-| 5 · OLAP | a iniciar |
+| 5 · OLAP | motor definido (Postgres 16, ADR-0001), modelo dimensional a iniciar |
 | 6 · servir | a iniciar |
 | 7 · observabilidade, segurança e auditoria | a iniciar |
 | 8 · consumo | projeto separado, a iniciar |
