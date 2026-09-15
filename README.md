@@ -43,7 +43,7 @@ Origem: Postgres (10 módulos, DCL por perfil, RLS por filial, pgcrypto)
    ▼
 Staging: Postgres (espelho + linhagem + marca d'água)
    ▼
-Lake em MinIO/S3 (parquet, fsspec) ── Bronze ► Silver ► Gold  [DuckDB]
+Lake em SeaweedFS/S3 (parquet, fsspec) ── Bronze ► Silver ► Gold  [DuckDB]
    ▼
 OLAP: MySQL (star schema, carga por partição, perfis de leitura)
    ▼
@@ -73,18 +73,28 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 
 ## Requisitos
 
-O projeto sobe oito serviços em containers. Referência inicial, a confirmar com medição na versão v0.3.0: 4 núcleos, **8 GB de RAM no mínimo (16 GB recomendado)** e cerca de 20 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
+O projeto sobe oito serviços em containers. Em repouso, a plataforma inteira ocupou **cerca de 1,5 GB de RAM** (medido na v0.2.0, ainda sem dados); com o volume completo e o pipeline rodando, a referência é **8 GB de RAM no mínimo (16 GB recomendado)**, 4 núcleos e cerca de 20 GB livres em disco, a confirmar quando a base existir. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. O guia de reprodução, com o passo a passo completo do clone ao warehouse, entra junto com o primeiro marco (staging validado pela régua).
+O projeto está em construção. Nesta etapa já é possível subir a plataforma inteira (bancos, lake, warehouse, Dagster e Grafana) e conferir a saúde de cada serviço:
+
+```bash
+cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
+docker compose up -d --build
+bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
+```
+
+O passo a passo completo, com geração das senhas, verificação de saúde, parada, reinício e solução de problemas, está no [Manual de Operação](docs/08_manual_de_operacao.md).
 
 ## Estrutura de diretórios
 
 ```
 rh-fictalent-bigdata/
 ├── docs/                    # a documentação navegável (leia na ordem)
-├── staging/                 # docker compose e DDL do banco relacional
+├── compose.yaml             # a plataforma inteira: 8 serviços com healthcheck
+├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, provisionamento do Grafana
+├── staging/                 # DDL do banco relacional
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
@@ -104,7 +114,9 @@ rh-fictalent-bigdata/
 - [02 · Entendimento dos Dados](docs/02_entendimento_dados.md): o banco relacional em 10 módulos, o que cada um guarda e o que esperar da qualidade desses dados.
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 
-Os manuais operacionais (instalação, operação, monitoramento e healthcheck, segurança e LGPD, auditoria, backup e solução de problemas) entram com as versões em que cada assunto passa a existir.
+- [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma.
+
+Os demais manuais (instalação, monitoramento, segurança e LGPD, auditoria, backup e solução de problemas) entram com as versões em que cada assunto passa a existir.
 
 </details>
 
