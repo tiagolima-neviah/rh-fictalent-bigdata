@@ -1,0 +1,122 @@
+<a id="topo"></a>
+
+# Modelo de Dados · a réplica do sistema do cliente
+
+<!-- nav:start -->
+[Home](../README.md) | [← Arquitetura](03_arquitetura.md) | [Manual de Operação →](08_manual_de_operacao.md)
+<!-- nav:end -->
+
+> O banco relacional de onde o pipeline lê: 10 módulos, 75 tabelas de negócio e uma de infraestrutura, em MySQL 8, com comentário em toda tabela e etiqueta LGPD em toda coluna de dado pessoal. A DDL está em [`staging/ddl`](../staging/ddl), um arquivo por módulo, na ordem das dependências. Este documento explica as convenções, o papel de cada módulo e as decisões de desenho; o dicionário coluna a coluna, gerado do próprio banco, entra na v0.2.0 (card 2.7).
+
+## 1. O que este banco é, e o que não é
+
+É a **réplica autorizada** do sistema da Fictalent, em ambiente apartado (a decisão está no [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) e o mapa de escopo na [Arquitetura, seção 3](03_arquitetura.md#3-por-que-o-staging-é-uma-réplica-e-o-que-ela-representa)). Modela o que uma empresa de gestão de mão de obra **deveria ter** num sistema só: o funil comercial, o funil de colocação, o vínculo CLT, o ponto, a folha, o financeiro, os treinamentos e a SST, com as três decisões que atravessam tudo ([Entendimento dos Dados](02_entendimento_dados.md)): candidato e colaborador são coisas diferentes; o **posto** é a unidade de receita; **vigência** no lugar de estado.
+
+Não é um banco analítico: é normalizado, transacional, com as chaves e regras que um sistema de verdade teria. O contraste com o star schema do warehouse é parte do que o projeto ensina.
+
+## 2. Convenções que valem para as 76 tabelas
+
+| convenção | como | por quê |
+|---|---|---|
+| chave primária | `id BIGINT UNSIGNED AUTO_INCREMENT` em toda tabela | relacionamento sempre por `id`; a chave natural (CPF, matrícula, número) existe e tem índice único, mas não é a chave |
+| carimbos | `criado_em` e `atualizado_em` em `DATETIME(6)`, UTC, mantidos pelo próprio motor (`ON UPDATE CURRENT_TIMESTAMP`) | `atualizado_em` é a **marca d'água** da carga incremental; o relógio do servidor é fixado em UTC no compose |
+| índice na marca d'água | `ix_<tabela>_atualizado_em` em toda tabela de negócio | a carga incremental pergunta "o que mudou desde X" em 75 tabelas todo dia; sem índice, isso é varredura completa |
+| vigência | `vigencia_inicio` e `vigencia_fim`, `NULL` = vigente | permite reconstruir a foto de qualquer dia sem coluna de status |
+| competência | `DATE` no primeiro dia do mês | folha, provisão, fatura, rateio e consolidado falam a mesma língua |
+| domínios fechados | `CHECK (coluna IN (...))`, nunca `ENUM` | `ENUM` é extensão do MySQL, difícil de evoluir e invisível para quem lê o dicionário; o `CHECK` é padrão SQL e o motor o aplica desde a 8.0.16 |
+| dinheiro e percentual | `DECIMAL(14,2)` e `DECIMAL(7,4)` | nunca ponto flutuante em valor |
+| chaves estrangeiras | declaradas em toda coluna `_id`, inclusive entre databases | o InnoDB aceita FK entre databases da mesma instância; os dois ciclos (`centro_custo` ↔ `contrato`, `entrevista` → `usuario`) fecham com `ALTER` guardado por `information_schema`, idempotente |
+| exclusão | nenhuma FK com `ON DELETE CASCADE` | o `DELETE` é um evento que a trilha de exclusões precisa ver (card 2.3), não um efeito em cadeia |
+| comentário | `COMMENT` em toda tabela e nas colunas que precisam de explicação | o dicionário de dados é gerado da `information_schema`, não escrito à mão |
+| etiqueta LGPD | `[LGPD:pessoal]` ou `[LGPD:sensivel]` no comentário da coluna | classificação por coluna nasce no banco; a pseudonimização da silver e o DCL leem daqui |
+| databases | um por módulo, com o nome do módulo | em MySQL, *schema* e *database* são a mesma coisa |
+
+Um teste estático (`tests/test_ddl.py`) confere as convenções em cada arquivo sem precisar de banco; outro (`tests/test_ddl_aplicada.py`) confere a réplica de verdade quando ela está de pé.
+
+## 3. Os módulos
+
+| módulo | tabelas | o que guarda | a tabela que importa |
+|---|---|---|---|
+| `cadastro` | 12 | filiais, municípios, endereços, funções, convenções e pisos, feriados, escalas, motivos, parâmetros, centros de custo | `piso_salarial`: a base do custo por cabeça, com vigência |
+| `comercial` | 8 | clientes e contatos, contratos e aditivos, postos e preços, SLAs, ocorrências | `posto`: o cliente contrata postos, não pessoas |
+| `ats` | 9 | requisições, vagas, candidatos e experiências, fontes, etapas, candidaturas e suas passagens, entrevistas | `candidatura_etapa`: cada passagem com data, de onde saem conversão e tempo por etapa |
+| `pessoas` | 8 | colaboradores, documentos, dependentes, contratos de trabalho e prorrogações, alocações, afastamentos, desligamentos | `alocacao`: headcount, ocupação, dias descobertos e custo por contrato saem dela |
+| `ponto` | 5 | escala por pessoa, marcações brutas, apontamento do dia, ocorrências, banco de horas | `marcacao`: 4 batidas por dia, o registro bruto do relógio; a maior tabela do banco |
+| `folha` | 7 | eventos, benefícios, competências, itens, provisões, benefícios por pessoa, rateio de custo | `rateio_custo`: leva o custo de cada pessoa até o posto onde ela trabalhou |
+| `financeiro` | 10 | regime e tributos, alíquotas por município, fornecedores, faturas e itens, títulos a receber e a pagar, impostos apurados, consolidado gerencial | `consolidado_gerencial`: a planilha que diverge da operação a partir de 2022 |
+| `treinamento` | 5 | cursos, exigência por função, turmas, participantes, certificados | `certificado`: o documento com prazo, que vira alerta |
+| `sst` | 6 | tipos de exame, ASOs, programas legais, riscos por posto, acidentes, CATs | `aso`: ASO vencido com pessoa alocada é o alerta mais caro do painel |
+| `seguranca` | 5 | usuários, perfis, escopo por filial, matriz de permissão, log de auditoria | `usuario_perfil`: a assistente vê a filial dela, a coordenadora vê o setor |
+| `meta` | 1 | trilha de exclusões | `exclusao_auditoria`: o `DELETE` que a marca d'água não veria |
+
+A finalidade de cada tabela está no `COMMENT` dela, dentro da DDL. Para ler direto do banco:
+
+```sql
+SELECT table_schema, table_name, table_comment
+  FROM information_schema.tables
+ WHERE table_schema IN ('cadastro','comercial','ats','pessoas','ponto','folha','financeiro','treinamento','sst','seguranca','meta')
+ ORDER BY 1, 2;
+```
+
+## 4. O espinhaço: de onde vem a margem por cliente
+
+As 76 tabelas orbitam uma cadeia curta. O cliente firma um contrato, o contrato contrata postos, a requisição abre vagas, a candidatura aprovada vira colaborador, o colaborador é alocado num posto, o apontamento do dia vira item de folha, a folha é rateada até o posto, e o posto é medido na fatura. Receita e custo se encontram no posto.
+
+```mermaid
+erDiagram
+    cliente ||--o{ contrato : firma
+    contrato ||--o{ posto : contrata
+    contrato ||--o{ requisicao : abre
+    requisicao ||--o{ vaga : gera
+    vaga ||--o{ candidatura : recebe
+    candidato ||--o{ candidatura : faz
+    candidato |o--o| colaborador : "vira, se admitido"
+    colaborador ||--o{ contrato_trabalho : assina
+    contrato_trabalho ||--o{ alocacao : sustenta
+    posto ||--o{ alocacao : ocupa
+    alocacao ||--o{ apontamento : "dia a dia"
+    colaborador ||--o{ folha_item : recebe
+    alocacao ||--o{ rateio_custo : custa
+    posto ||--o{ rateio_custo : "custo por posto"
+    posto ||--o{ fatura_item : "receita por posto"
+    fatura ||--o{ fatura_item : detalha
+    fatura ||--o{ titulo_receber : cobra
+```
+
+O diagrama completo, módulo a módulo, entra com o dicionário de dados (card 2.9).
+
+## 5. Como a DDL é aplicada e conferida
+
+**Na primeira subida** a DDL roda sozinha: o compose monta `staging/ddl` em `/docker-entrypoint-initdb.d`, e o MySQL executa os arquivos em ordem ao criar o volume. Nada a fazer.
+
+**Num volume que já existia** antes da DDL entrar no repositório, ou depois de uma mudança na DDL:
+
+```bash
+bash scripts/aplicar_ddl.sh
+```
+
+O script aplica os arquivos em ordem e imprime a contagem de tabelas por módulo. Pode rodar quantas vezes quiser: tudo é `IF NOT EXISTS` e os dois `ALTER` de ciclo conferem a `information_schema` antes de agir.
+
+**Conferir** que a réplica está como a DDL descreve:
+
+```bash
+.venv/bin/pytest -q tests/test_ddl_aplicada.py
+```
+
+Resultado esperado: os testes passam (contagem por módulo, `id` e carimbos em toda tabela, comentário em toda tabela, índice na marca d'água nas 75 de negócio, mais de 120 chaves estrangeiras e 50 regras `CHECK`, os dois ciclos fechados, etiquetas LGPD presentes, relógio em UTC). Se a réplica não estiver de pé, os testes são pulados, não falham.
+
+## 6. Decisões que valem a pena explicar
+
+- **`atualizado_em` pelo motor, não por gatilho.** O plano original previa gatilhos; o `ON UPDATE CURRENT_TIMESTAMP` do MySQL faz o mesmo sem código, e o gerador pode sobrescrever o valor quando precisa datar o passado. Gatilho fica só para o que o motor não faz sozinho: registrar o `DELETE`.
+- **CPF sem `UNIQUE` em `ats.candidato`, com `UNIQUE` em `pessoas.colaborador`.** O funil recebe duplicados e CPF inválido, como na vida real; a admissão não pode. A diferença entre os dois é medida na auditoria de qualidade.
+- **`ponto.marcacao` sem chave única.** Batida duplicada é sujeira de origem e precisa poder existir para ser detectada e tratada na silver.
+- **Nenhum `ON DELETE CASCADE`.** Cada exclusão é um evento que a trilha precisa ver individualmente.
+- **A marca d'água não mora aqui.** A réplica é do cliente; o estado da carga (até onde o pipeline leu cada tabela) é do pipeline e fica no lake.
+
+## 7. O que ainda não existe neste banco
+
+Gatilhos da trilha de exclusões (card 2.3), papéis e `GRANT`/`REVOKE` por perfil com testes de bloqueio (2.4), cifra em repouso do dado pessoal (2.5), dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
+
+---
+
+[Início](#topo)

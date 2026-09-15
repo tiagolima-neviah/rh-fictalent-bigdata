@@ -56,6 +56,11 @@ def test_motores_de_banco_conforme_adr_0001() -> None:
     )
 
 
+def test_replica_aplica_a_ddl_na_primeira_subida() -> None:
+    assert "./staging/ddl:/docker-entrypoint-initdb.d:ro" in _servicos()["mysql-staging"]["volumes"]
+    assert "--default-time-zone=+00:00" in _servicos()["mysql-staging"]["command"]
+
+
 @pytest.mark.parametrize("nome", _longa_duracao())
 def test_todo_servico_de_longa_duracao_tem_healthcheck(nome: str) -> None:
     saude = _servicos()[nome].get("healthcheck")

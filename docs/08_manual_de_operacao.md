@@ -3,7 +3,7 @@
 # Manual de Operação · subir, verificar, parar e recuperar
 
 <!-- nav:start -->
-[Home](../README.md) | [← Arquitetura](03_arquitetura.md)
+[Home](../README.md) | [← Modelo de Dados](04_modelo_dados_staging.md)
 <!-- nav:end -->
 
 > O manual de quem opera a plataforma no dia a dia. Todo comando aqui foi executado e conferido na versão em que a seção entrou. Rode todos a partir da **raiz do repositório**. Este documento cresce com o projeto: nesta versão (v0.2.0) ele cobre a infraestrutura; execução de pipelines, agendas e reprocessamento entram com a Fase 3.
@@ -50,6 +50,14 @@ bash scripts/saude.sh
 ```
 
 O script espera cada serviço ficar saudável e o bucket do lake ser criado, e termina com `OK` ou com a lista do que falhou.
+
+**4. A réplica já nasce com as tabelas.** Na primeira inicialização o MySQL executa a DDL de `staging/ddl` (10 módulos, 76 tabelas). Se o volume da réplica já existia antes da DDL entrar no repositório, aplique por cima:
+
+```bash
+bash scripts/aplicar_ddl.sh
+```
+
+O detalhe do modelo, e como conferir a réplica, está no [Modelo de Dados](04_modelo_dados_staging.md).
 
 ## 3. Verificar a saúde
 
@@ -135,6 +143,7 @@ Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários
 | `mysql-staging` fica em `health: starting` por mais de um minuto | primeira inicialização do MySQL | normal na primeira subida; acompanhe com `docker compose logs -f mysql-staging` |
 | `dagster-daemon` `unhealthy` logo depois de subir | o daemon ainda não publicou o primeiro sinal de vida | espere o `start_period` (60 s); se persistir, `docker compose logs dagster-daemon` |
 | Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
+| a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
 
 ---
 
