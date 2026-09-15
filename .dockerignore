@@ -1,0 +1,17 @@
+# O que nunca entra numa imagem: contexto interno, segredos, dados locais, caches e o git.
+.contexto/
+.git/
+.github/
+.env
+.env.*
+.venv/
+data/
+notebooks/
+docs/
+tests/
+**/__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.parquet
+*.duckdb

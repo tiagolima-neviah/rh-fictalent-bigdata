@@ -3,7 +3,7 @@
 # Arquitetura · do banco de origem ao painel
 
 <!-- nav:start -->
-[Home](../README.md) | [← Entendimento dos Dados](02_entendimento_dados.md)
+[Home](../README.md) | [← Entendimento dos Dados](02_entendimento_dados.md) | [Manual de Operação →](08_manual_de_operacao.md)
 <!-- nav:end -->
 
 > Como este pipeline é montado, peça por peça, com a ferramenta de cada etapa e o **porquê** de cada escolha. Documento vivo: cada etapa que entra atualiza a sua linha com o que foi medido de verdade; o que ainda não existe aparece como **previsto**, nunca como entregue. Números sem medição não entram aqui.
@@ -52,7 +52,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 4 · LAKE                                  (parquet, storage abstraído)
 ═══════════════════════════════════════════════════════════════════════════════
-  [MinIO]  S3 em container · [fsspec] mesmo código em file:// ou s3://
+  [SeaweedFS]  S3 em container · [fsspec] mesmo código em file:// ou s3://
   BRONZE  ─ [DuckDB]  espelho fiel do staging, linhagem, conferência de contagem
   QUALIDADE [pandera + régua + Jupyter]  auditoria por domínio, catálogo de achados
   SILVER  ─ [DuckDB]  regras aprovadas, prestação de contas auto-reprovável,
@@ -78,7 +78,7 @@
   [healthcheck]  em cada container do Compose + endpoint /saude na API
   [logs JSON]    estruturados, com id de execução
   [Grafana]      painéis como código: execuções do Dagster, duração, linhas,
-                 falhas, frescor dos dados e um recorte de negócio; alertas
+                 falhas e frescor dos dados; alertas (só observabilidade)
   [auditoria]    log de acesso e alteração na origem, trilha de exclusões,
                  histórico de runs, prestação de contas da silver
   [CI]           ruff · mypy · pytest · bandit · pip-audit · gitleaks · trivy
@@ -103,20 +103,20 @@
 
 | etapa | ferramenta | o que ela faz aqui | por que ela, e não outra |
 |---|---|---|---|
-| infraestrutura | **Docker Compose** | sobe os 8 serviços com um comando | o analista roda o projeto inteiro na própria máquina |
+| infraestrutura | **Docker Compose** | sobe os 8 serviços com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
 | versionamento | **Git + Gitflow** | ramo por funcionalidade, `develop` de integração, versão marcada em `main` | é o fluxo que as equipes de dados maiores exigem |
 | origem e staging | **Postgres 16** | o banco transacional e o espelho de onde o pipeline lê | banco livre mais usado em PME, com RLS e pgcrypto nativos |
 | ingestão relacional | **ADBC** (Arrow) | traz o dado do Postgres em lotes colunares | não estoura a memória e preserva os tipos |
 | ingestão de API | **httpx** | consome as APIs públicas do IBGE e da BrasilAPI | cliente HTTP moderno, com timeout e retry controlados |
 | ingestão de arquivo | **pandas + pandera** | lê Excel e CSV contra um esquema declarado | arquivo sem esquema é o começo de todo relatório que não bate |
 | orquestração | **Dagster** | decide quando e em que ordem cada etapa roda, repete o que falha, guarda o histórico | trabalha com **ativos de dado**, não só tarefas: a dependência entre tabelas vira desenho |
-| storage | **MinIO + fsspec** | um S3 dentro do Compose | o mesmo código vai para AWS, GCP ou disco local só trocando o endereço |
+| storage | **SeaweedFS + fsspec** | um S3 dentro do Compose | o mesmo código vai para AWS, GCP ou disco local só trocando o endereço. O MinIO, escolha óbvia até 2025, deixou de publicar a imagem da edição comunitária; a última disponível não recebe atualização de segurança há um ano. O SeaweedFS é Apache 2.0, ativo e fala a mesma API S3 |
 | transformação | **DuckDB** | SQL sobre parquet, sem servidor | rápido no laptop; o volume deste caso não justifica cluster |
 | formato | **parquet** (zstd, partição por ano) | armazena cada camada | colunar, compacto, lido por qualquer ferramenta |
 | qualidade | **pandera + régua própria** | valida esquema e bandas de negócio | pandera é a linguagem de mercado; a régua carrega a história |
-| OLAP | **MySQL 8** | o warehouse que as ferramentas de BI consultam | muito presente em PME; o repositório mostra Postgres e MySQL juntos |
+| OLAP | **MySQL 8** | o warehouse que as ferramentas de BI consultam | o cenário do caso: o cliente já tem MySQL em casa e quer consumir o warehouse de lá, com as ferramentas que já usa. É o banco relacional mais presente em PME, e o repositório passa a mostrar Postgres e MySQL juntos |
 | servir | **FastAPI** | API REST dos indicadores | tipagem, validação e documentação OpenAPI geradas do código |
-| observabilidade | **Grafana** | painéis de execução e de negócio, com alerta | painel é arquivo versionado, e existe plano gratuito na nuvem |
+| observabilidade | **Grafana** | painéis de execução, falha e frescor, com alerta | painel é arquivo versionado e existe plano gratuito na nuvem. Fica só na observabilidade: painel de negócio é papel do painel web, do Power BI e do Tableau, e duplicá-lo criaria uma quarta versão do mesmo número |
 | segurança no CI | **bandit, pip-audit, gitleaks, trivy** | código, dependências, segredos e imagens | cada um olha um vetor diferente; juntos cobrem o básico de supply chain |
 
 **Dagster e Airflow.** São os dois orquestradores mais pedidos no mercado. O Airflow organiza **tarefas**; o Dagster organiza **ativos** (a tabela, o arquivo, o modelo) e deduz a ordem a partir das dependências entre eles, o que casa com o jeito medallion de pensar. Quem aprende um lê o outro: um *asset* do Dagster corresponde a uma tarefa que produz um dado no Airflow, um *job* a uma DAG, um *schedule* a um `schedule_interval`.
@@ -148,11 +148,11 @@ RH é o domínio do dado pessoal por excelência, e este projeto trata isso como
 - **Retenção e descarte.** Candidato não contratado tem prazo declarado de retenção, e um job do Dagster executa o descarte e registra o que foi descartado.
 - **Classificação por coluna.** O dicionário de dados marca cada coluna como pública, interna, pessoal ou pessoal sensível.
 
-O detalhe, com os comandos e os testes, fica no [manual de segurança e LGPD](05_seguranca_e_lgpd.md) (previsto).
+O detalhe, com os comandos e os testes, fica no manual de segurança e LGPD (`docs/05`, versão v0.2.0).
 
 ## 6. Operação: como se liga, se verifica e se recupera
 
-Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as dependências (bancos antes do Dagster, Dagster antes da API). Os manuais cobrem, com o comando exato de cada situação:
+Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as dependências (bancos antes do Dagster, Dagster antes da API). O [Manual de Operação](08_manual_de_operacao.md) já cobre subir, verificar, parar e recuperar a infraestrutura. Os manuais cobrem, com o comando exato de cada situação:
 
 | manual | cobre |
 |---|---|
@@ -167,7 +167,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 
 | camada | situação |
 |---|---|
-| 0 · infraestrutura | esqueleto criado, repositório público aberto |
+| 0 · infraestrutura | Compose com 8 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, card 2.1) |
 | 1 · origem | modelo relacional aprovado, DDL a iniciar |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |

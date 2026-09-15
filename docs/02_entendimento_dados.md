@@ -6,7 +6,7 @@
 [Home](../README.md) | [← Entendimento do Negócio](01_entendimento_negocio.md) | [Arquitetura →](03_arquitetura.md)
 <!-- nav:end -->
 
-> O banco deste projeto foi desenhado como **o sistema que a Fictalent não tem**: um único banco relacional normalizado que cobre o que hoje mora em quatro lugares desconectados (recrutamento, folha, financeiro e planilhas). Ele existe para servir hoje ao BI e amanhã a um sistema com telas. Este documento explica o que cada módulo guarda e por quê; o detalhe coluna a coluna está no [Modelo de Dados](04_modelo_dados_staging.md).
+> O banco deste projeto foi desenhado como **o sistema que a Fictalent não tem**: um único banco relacional normalizado que cobre o que hoje mora em quatro lugares desconectados (recrutamento, folha, financeiro e planilhas). Ele existe para servir hoje ao BI e amanhã a um sistema com telas. Este documento explica o que cada módulo guarda e por quê; o detalhe coluna a coluna entra no Modelo de Dados (`docs/04`, versão v0.2.0).
 
 ## 1. Visão geral
 

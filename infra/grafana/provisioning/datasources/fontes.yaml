@@ -1,0 +1,31 @@
+# Fontes de dados do Grafana, provisionadas como código.
+# As senhas chegam por variável de ambiente ($GRAFANA_LEITOR_PASSWORD), nunca escritas aqui.
+# Ambas usam usuários SÓ DE LEITURA criados na inicialização dos bancos (infra/postgres, infra/mysql).
+apiVersion: 1
+
+datasources:
+  - name: Dagster (metadados de execução)
+    uid: dagster-metadados
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: pg-dagster:5432
+    user: grafana_leitor
+    editable: false
+    jsonData:
+      database: ${DAGSTER_PG_DB}
+      sslmode: disable
+      postgresVersion: 1600
+    secureJsonData:
+      password: ${GRAFANA_LEITOR_PASSWORD}
+
+  - name: Warehouse (MySQL)
+    uid: warehouse-mysql
+    type: mysql
+    access: proxy
+    url: mysql-dw:3306
+    user: grafana_leitor
+    editable: false
+    jsonData:
+      database: ${DW_DB}
+    secureJsonData:
+      password: ${GRAFANA_LEITOR_PASSWORD}

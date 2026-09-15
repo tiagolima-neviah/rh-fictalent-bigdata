@@ -1,0 +1,5 @@
+# Onde o Dagster encontra as definições do projeto.
+load_from:
+  - python_module:
+      module_name: rh_fictalent.orquestracao.definicoes
+      working_directory: /opt/dagster/app

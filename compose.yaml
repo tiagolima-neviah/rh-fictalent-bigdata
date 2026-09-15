@@ -1,0 +1,263 @@
+# Fictalent RH · a plataforma de dados inteira em containers.
+#
+# Oito serviços de longa duração e um job de inicialização:
+#   pg-origem       Postgres · o sistema de origem simulado (10 módulos)
+#   pg-staging      Postgres · o espelho de onde o pipeline lê
+#   pg-dagster      Postgres · metadados do Dagster (execuções, eventos, agendas)
+#   s3              SeaweedFS · armazenamento compatível com S3 para o lake
+#   s3-init         job único · cria o bucket do lake e termina
+#   mysql-dw        MySQL · o warehouse dimensional (OLAP)
+#   dagster-web     Dagster · interface web e API GraphQL
+#   dagster-daemon  Dagster · agendas, sensores e fila de execuções
+#   grafana         Grafana · monitoramento e alertas
+#
+# Regras deste arquivo (conferidas por tests/test_compose.py):
+#   - toda imagem com versão exata, nunca "latest";
+#   - todo serviço de longa duração com healthcheck e política de reinício;
+#   - portas publicadas só em 127.0.0.1 (nada fica exposto na rede);
+#   - nenhuma senha escrita aqui: tudo vem do .env, e a falta derruba a subida;
+#   - containers sem ganho de privilégio (no-new-privileges).
+#
+# Operação (subir, parar, reiniciar, verificar): docs/08_manual_de_operacao.md
+
+name: fictalent
+
+x-seguranca: &seguranca
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+x-saude: &saude
+  interval: 10s
+  timeout: 5s
+  retries: 12
+  start_period: 30s
+
+services:
+  # ─────────────────────────────── bancos Postgres ───────────────────────────────
+  pg-origem:
+    <<: *seguranca
+    image: postgres:16.15-alpine
+    container_name: fictalent_pg_origem
+    environment:
+      POSTGRES_DB: ${ORIGEM_DB:-db_fictalent}
+      POSTGRES_USER: ${ORIGEM_ADMIN_USER:-fictalent_admin}
+      POSTGRES_PASSWORD: ${ORIGEM_ADMIN_PASSWORD:?defina ORIGEM_ADMIN_PASSWORD no .env}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --data-checksums"
+    ports:
+      - "127.0.0.1:${ORIGEM_PORT:-5441}:5432"
+    volumes:
+      - pg_origem:/var/lib/postgresql/data
+    healthcheck:
+      <<: *saude
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  pg-staging:
+    <<: *seguranca
+    image: postgres:16.15-alpine
+    container_name: fictalent_pg_staging
+    environment:
+      POSTGRES_DB: ${STAGING_DB:-stg_fictalent}
+      POSTGRES_USER: ${STAGING_ADMIN_USER:-fictalent_admin}
+      POSTGRES_PASSWORD: ${STAGING_ADMIN_PASSWORD:?defina STAGING_ADMIN_PASSWORD no .env}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --data-checksums"
+    ports:
+      - "127.0.0.1:${STAGING_PORT:-5442}:5432"
+    volumes:
+      - pg_staging:/var/lib/postgresql/data
+    healthcheck:
+      <<: *saude
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  pg-dagster:
+    <<: *seguranca
+    image: postgres:16.15-alpine
+    container_name: fictalent_pg_dagster
+    environment:
+      POSTGRES_DB: ${DAGSTER_PG_DB:-dagster}
+      POSTGRES_USER: ${DAGSTER_PG_USER:-dagster}
+      POSTGRES_PASSWORD: ${DAGSTER_PG_PASSWORD:?defina DAGSTER_PG_PASSWORD no .env}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      GRAFANA_LEITOR_PASSWORD: ${GRAFANA_LEITOR_PASSWORD:?defina GRAFANA_LEITOR_PASSWORD no .env}
+    # sem porta publicada: só o Dagster e o Grafana conversam com ele, pela rede interna
+    volumes:
+      - pg_dagster:/var/lib/postgresql/data
+      - ./infra/postgres/dagster:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      <<: *saude
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # ─────────────────────────────── lake (S3) ───────────────────────────────
+  s3:
+    <<: *seguranca
+    image: chrislusf/seaweedfs:4.47
+    container_name: fictalent_s3
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?defina S3_ACCESS_KEY no .env}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?defina S3_SECRET_KEY no .env}
+    # a identidade S3 é gerada no arranque a partir do .env, fora de qualquer arquivo versionado
+    entrypoint: ["/bin/sh", "/infra/iniciar.sh"]
+    ports:
+      - "127.0.0.1:${S3_PORT:-8333}:8333"
+    volumes:
+      - s3_dados:/data
+      - ./infra/seaweedfs/iniciar.sh:/infra/iniciar.sh:ro
+    healthcheck:
+      <<: *saude
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/healthz"]
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  s3-init:
+    image: chrislusf/seaweedfs:4.47
+    container_name: fictalent_s3_init
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    environment:
+      S3_BUCKET: ${S3_BUCKET:-fictalent-lake}
+    entrypoint: ["/bin/sh", "/infra/criar_bucket.sh"]
+    volumes:
+      - ./infra/seaweedfs/criar_bucket.sh:/infra/criar_bucket.sh:ro
+    depends_on:
+      s3:
+        condition: service_healthy
+
+  # ─────────────────────────────── warehouse (OLAP) ───────────────────────────────
+  mysql-dw:
+    <<: *seguranca
+    image: mysql:8.4.11
+    container_name: fictalent_mysql_dw
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --local-infile=0
+      - --skip-name-resolve
+    environment:
+      MYSQL_DATABASE: ${DW_DB:-dw_fictalent}
+      MYSQL_ROOT_PASSWORD: ${DW_ROOT_PASSWORD:?defina DW_ROOT_PASSWORD no .env}
+      MYSQL_USER: ${DW_CARGA_USER:-fictalent_carga}
+      MYSQL_PASSWORD: ${DW_CARGA_PASSWORD:?defina DW_CARGA_PASSWORD no .env}
+      GRAFANA_LEITOR_PASSWORD: ${GRAFANA_LEITOR_PASSWORD:?defina GRAFANA_LEITOR_PASSWORD no .env}
+    ports:
+      - "127.0.0.1:${DW_PORT:-3316}:3306"
+    volumes:
+      - mysql_dw:/var/lib/mysql
+      - ./infra/mysql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      <<: *saude
+      start_period: 60s
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  # ─────────────────────────────── orquestração ───────────────────────────────
+  dagster-web:
+    <<: *seguranca
+    build:
+      context: .
+      dockerfile: infra/dagster/Dockerfile
+    image: fictalent/dagster:0.2.0
+    container_name: fictalent_dagster_web
+    command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/app/workspace.yaml"]
+    environment: &ambiente_dagster
+      DAGSTER_PG_HOST: pg-dagster
+      DAGSTER_PG_DB: ${DAGSTER_PG_DB:-dagster}
+      DAGSTER_PG_USER: ${DAGSTER_PG_USER:-dagster}
+      DAGSTER_PG_PASSWORD: ${DAGSTER_PG_PASSWORD:?defina DAGSTER_PG_PASSWORD no .env}
+    ports:
+      - "127.0.0.1:${DAGSTER_PORT:-3010}:3000"
+    volumes:
+      - dagster_logs:/opt/dagster/home/logs
+    healthcheck:
+      <<: *saude
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/server_info', timeout=4)"]
+    depends_on:
+      pg-dagster:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  dagster-daemon:
+    <<: *seguranca
+    image: fictalent/dagster:0.2.0
+    container_name: fictalent_dagster_daemon
+    command: ["dagster-daemon", "run", "-w", "/opt/dagster/app/workspace.yaml"]
+    environment: *ambiente_dagster
+    volumes:
+      - dagster_logs:/opt/dagster/home/logs
+    healthcheck:
+      <<: *saude
+      start_period: 60s
+      test: ["CMD", "dagster-daemon", "liveness-check"]
+    depends_on:
+      pg-dagster:
+        condition: service_healthy
+      dagster-web:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  # ─────────────────────────────── observabilidade ───────────────────────────────
+  grafana:
+    <<: *seguranca
+    image: grafana/grafana-oss:13.0.2
+    container_name: fictalent_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?defina GRAFANA_ADMIN_PASSWORD no .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_LOG_MODE: console
+      DAGSTER_PG_DB: ${DAGSTER_PG_DB:-dagster}
+      DW_DB: ${DW_DB:-dw_fictalent}
+      GRAFANA_LEITOR_PASSWORD: ${GRAFANA_LEITOR_PASSWORD:?defina GRAFANA_LEITOR_PASSWORD no .env}
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3011}:3000"
+    volumes:
+      - grafana_dados:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    healthcheck:
+      <<: *saude
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health"]
+    depends_on:
+      pg-dagster:
+        condition: service_healthy
+      mysql-dw:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+volumes:
+  pg_origem:
+  pg_staging:
+  pg_dagster:
+  s3_dados:
+  mysql_dw:
+  dagster_logs:
+  grafana_dados:
