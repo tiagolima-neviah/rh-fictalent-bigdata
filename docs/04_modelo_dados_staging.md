@@ -26,12 +26,12 @@ Não é um banco analítico: é normalizado, transacional, com as chaves e regra
 | domínios fechados | `CHECK (coluna IN (...))`, nunca `ENUM` | `ENUM` é extensão do MySQL, difícil de evoluir e invisível para quem lê o dicionário; o `CHECK` é padrão SQL e o motor o aplica desde a 8.0.16 |
 | dinheiro e percentual | `DECIMAL(14,2)` e `DECIMAL(7,4)` | nunca ponto flutuante em valor |
 | chaves estrangeiras | declaradas em toda coluna `_id`, inclusive entre databases | o InnoDB aceita FK entre databases da mesma instância; os dois ciclos (`centro_custo` ↔ `contrato`, `entrevista` → `usuario`) fecham com `ALTER` guardado por `information_schema`, idempotente |
-| exclusão | nenhuma FK com `ON DELETE CASCADE` | o `DELETE` é um evento que a trilha de exclusões precisa ver (card 2.3), não um efeito em cadeia |
+| exclusão | nenhuma FK com `ON DELETE CASCADE`; gatilho `BEFORE DELETE` em toda tabela de negócio | o `DELETE` é um evento que a trilha de exclusões precisa ver (seção 6), não um efeito em cadeia |
 | comentário | `COMMENT` em toda tabela e nas colunas que precisam de explicação | o dicionário de dados é gerado da `information_schema`, não escrito à mão |
 | etiqueta LGPD | `[LGPD:pessoal]` ou `[LGPD:sensivel]` no comentário da coluna | classificação por coluna nasce no banco; a pseudonimização da silver e o DCL leem daqui |
 | databases | um por módulo, com o nome do módulo | em MySQL, *schema* e *database* são a mesma coisa |
 
-Um teste estático (`tests/test_ddl.py`) confere as convenções em cada arquivo sem precisar de banco; outro (`tests/test_ddl_aplicada.py`) confere a réplica de verdade quando ela está de pé.
+Um teste estático (`tests/test_ddl.py`) confere as convenções em cada arquivo sem precisar de banco; outro (`tests/test_ddl_aplicada.py`) confere a réplica de verdade quando ela está de pé, inclusive apagando uma linha para ver o rastro aparecer na trilha.
 
 ## 3. Os módulos
 
@@ -105,17 +105,50 @@ O script aplica os arquivos em ordem e imprime a contagem de tabelas por módulo
 
 Resultado esperado: os testes passam (contagem por módulo, `id` e carimbos em toda tabela, comentário em toda tabela, índice na marca d'água nas 75 de negócio, mais de 120 chaves estrangeiras e 50 regras `CHECK`, os dois ciclos fechados, etiquetas LGPD presentes, relógio em UTC). Se a réplica não estiver de pé, os testes são pulados, não falham.
 
-## 6. Decisões que valem a pena explicar
+## 6. A trilha de exclusões
+
+A marca d'água encontra o que foi criado ou alterado; **não encontra o que foi apagado**, porque a linha apagada não tem mais `atualizado_em` para ser lida. Por isso toda tabela de negócio tem um gatilho `BEFORE DELETE` que grava em `meta.exclusao_auditoria` o database, a tabela, o `id` e o usuário de banco, antes de a linha sumir. A carga incremental lê essa trilha e aplica a exclusão na bronze como marcação lógica (`fl_excluido` com a data), nunca como apagamento físico.
+
+Os 75 gatilhos são **gerados a partir da própria DDL** por `src/rh_fictalent/staging/gatilhos.py` e versionados em [`staging/ddl/12_gatilhos_exclusao.sql`](../staging/ddl/12_gatilhos_exclusao.sql). Um teste falha se o arquivo estiver diferente do que o gerador produz: uma tabela nova sem gatilho não passa na esteira. Para regenerar depois de mudar a DDL:
+
+```bash
+.venv/bin/python -m rh_fictalent.staging.gatilhos
+```
+
+O gatilho corre na mesma transação do `DELETE`: uma exclusão barrada por chave estrangeira é desfeita junto com o rastro, então a trilha nunca registra o que não aconteceu. A tabela `meta` não tem gatilho: a trilha não vigia a si mesma.
+
+Conferir na réplica que os 75 existem:
+
+```sql
+SELECT trigger_schema, COUNT(*)
+  FROM information_schema.triggers
+ WHERE event_manipulation = 'DELETE' AND action_timing = 'BEFORE'
+ GROUP BY trigger_schema;
+```
+
+Ver o que foi apagado hoje:
+
+```sql
+SELECT banco, tabela, registro_id, dt_exclusao, usuario_banco
+  FROM meta.exclusao_auditoria
+ WHERE dt_exclusao >= CURRENT_DATE
+ ORDER BY dt_exclusao;
+```
+
+**Limite honesto.** Neste ambiente o gerador escreve direto na réplica, e o gatilho vê cada `DELETE`. Numa replicação real por binlog em formato de linha, os gatilhos da réplica **não disparam** para eventos replicados; nesse cenário a trilha vem do próprio binlog. A escolha entre as duas fontes é medida e registrada em ADR quando a ingestão for construída (v0.5.0).
+
+## 7. Decisões que valem a pena explicar
 
 - **`atualizado_em` pelo motor, não por gatilho.** O plano original previa gatilhos; o `ON UPDATE CURRENT_TIMESTAMP` do MySQL faz o mesmo sem código, e o gerador pode sobrescrever o valor quando precisa datar o passado. Gatilho fica só para o que o motor não faz sozinho: registrar o `DELETE`.
 - **CPF sem `UNIQUE` em `ats.candidato`, com `UNIQUE` em `pessoas.colaborador`.** O funil recebe duplicados e CPF inválido, como na vida real; a admissão não pode. A diferença entre os dois é medida na auditoria de qualidade.
 - **`ponto.marcacao` sem chave única.** Batida duplicada é sujeira de origem e precisa poder existir para ser detectada e tratada na silver.
 - **Nenhum `ON DELETE CASCADE`.** Cada exclusão é um evento que a trilha precisa ver individualmente.
+- **Gatilhos gerados, não escritos.** Setenta e cinco blocos iguais escritos à mão são setenta e cinco chances de esquecer um; gerar da DDL e testar a igualdade transforma o esquecimento em falha de esteira.
 - **A marca d'água não mora aqui.** A réplica é do cliente; o estado da carga (até onde o pipeline leu cada tabela) é do pipeline e fica no lake.
 
-## 7. O que ainda não existe neste banco
+## 8. O que ainda não existe neste banco
 
-Gatilhos da trilha de exclusões (card 2.3), papéis e `GRANT`/`REVOKE` por perfil com testes de bloqueio (2.4), cifra em repouso do dado pessoal (2.5), dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
+Papéis e `GRANT`/`REVOKE` por perfil com testes de bloqueio (2.4), cifra em repouso do dado pessoal (2.5), dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
 
 ---
 
