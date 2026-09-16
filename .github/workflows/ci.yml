@@ -1,9 +1,17 @@
+# Esteira do repositório. Três trilhos independentes:
+#   qualidade  lint, formato, tipos e testes (os de integração pulam sem réplica)
+#   replica    sobe a réplica MySQL no runner e prova DDL, gatilhos, DCL, cifra e dicionário
+#   seguranca  bandit (código), pip-audit (dependências), gitleaks (segredos), trivy (repo)
+# O espelho local é scripts/esteira.sh.
 name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   qualidade:
@@ -13,11 +21,80 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
-      - name: Instalar dependências
-        run: uv sync --group dev
+      - name: Instalar dependências (lock manda)
+        run: uv sync --frozen --group dev
       - name: Lint (ruff)
         run: uv run ruff check .
+      - name: Formato (ruff)
+        run: uv run ruff format --check .
       - name: Tipos (mypy)
         run: uv run mypy
       - name: Testes (pytest)
         run: uv run pytest -q
+
+  replica:
+    name: réplica provada
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependências
+        run: uv sync --frozen --group dev
+      - name: .env descartável com senhas geradas
+        run: |
+          cp .env.example .env
+          for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do
+            sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env
+          done
+          sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
+      - name: Subir só a réplica (keyring e MySQL)
+        run: docker compose up -d keyring-init mysql-staging
+      - name: Esperar a réplica ficar saudável
+        run: |
+          for i in $(seq 1 60); do
+            estado=$(docker inspect -f '{{.State.Health.Status}}' fictalent_mysql_staging 2>/dev/null || echo ausente)
+            [ "$estado" = "healthy" ] && break
+            sleep 3
+          done
+          [ "$estado" = "healthy" ] || { docker compose logs mysql-staging; exit 1; }
+      - name: Provar a réplica (DDL, gatilhos, DCL, cifra no disco, dicionário)
+        run: uv run pytest -q tests/test_ddl_aplicada.py tests/test_dcl_aplicada.py tests/test_cifra_aplicada.py tests/test_dicionario.py -rs
+      - name: Logs da réplica (só quando falha)
+        if: failure()
+        run: docker compose logs mysql-staging keyring-init
+      - name: Derrubar
+        if: always()
+        run: docker compose down -v
+
+  seguranca:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # o gitleaks olha o histórico inteiro
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependências
+        run: uv sync --frozen --group dev
+      - name: Código (bandit)
+        run: uv run bandit -c pyproject.toml -r src -q
+      - name: Dependências (pip-audit sobre o lock)
+        run: |
+          uv export --frozen --no-dev --no-hashes --no-emit-project -o requisitos-auditoria.txt
+          uv run pip-audit -r requisitos-auditoria.txt --no-deps --disable-pip --strict
+      - name: Segredos no histórico (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Repositório (trivy: vulnerabilidade, segredo, má configuração)"
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
