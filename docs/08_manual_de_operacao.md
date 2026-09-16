@@ -32,7 +32,7 @@ cp .env.example .env
 ```
 
 ```bash
-for v in STAGING_ROOT_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
+for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
 ```
 
 **2. Construa a imagem do Dagster e suba tudo:**
@@ -106,6 +106,8 @@ Estes comportamentos foram testados na subida da versão v0.2.0. Os comandos de 
 | esse usuário não consegue criar nem apagar nada no banco do Dagster | tentativa de `CREATE TABLE` e de `DELETE FROM runs` com `grafana_leitor` | `permission denied for schema public` e `permission denied for table runs` |
 | e nem no warehouse | tentativa de `CREATE TABLE` no Postgres do warehouse com `grafana_leitor` | `permission denied for schema public` |
 | a réplica não aceita conexão sem senha | `docker exec fictalent_mysql_staging mysql -uroot -e "select 1"` | `Access denied for user 'root'` |
+| os relatórios do cliente não leem dado pessoal | `.venv/bin/pytest -q tests/test_dcl_aplicada.py` | todos passam: `SELECT cpf` e `SELECT *` em `pessoas.colaborador` negados para `relatorios_cliente` |
+| o pipeline não escreve e a replicação não faz DDL | mesmo teste | `INSERT` negado para `pipeline`; `CREATE`, `DROP`, `ALTER` e `GRANT` negados para `replicador` |
 | o lake exige credencial | listar buckets com chave errada | `InvalidAccessKeyId` |
 | Dagster e Grafana não rodam como root | `docker exec fictalent_dagster_web id -u` | `10001` (Dagster) e `472` (Grafana) |
 
@@ -132,7 +134,7 @@ Apaga **todos os dados**: bancos, lake, histórico do Dagster e configurações 
 docker compose down -v
 ```
 
-Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero.
+Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
 
 ## 6. Quando algo não sobe
 

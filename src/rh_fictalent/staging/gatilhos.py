@@ -41,6 +41,8 @@ CABECALHO = """\
 -- Cada gatilho grava em meta.exclusao_auditoria o database, a tabela, o id e o usuário de
 -- banco, antes de a linha sumir. Corre na mesma transação do DELETE: uma exclusão barrada
 -- por chave estrangeira é desfeita junto com o rastro. meta não tem gatilho (só insere).
+-- USER() é quem executou o DELETE (CURRENT_USER() seria o definidor do gatilho).
+-- DROP + CREATE: reaplicar troca o gatilho pelo da versão atual, sem passo manual.
 """
 
 
@@ -55,10 +57,11 @@ def tabelas_por_modulo(ddl: Path = DDL) -> dict[str, list[str]]:
 
 def gatilho(modulo: str, tabela: str) -> str:
     return (
-        f"CREATE TRIGGER IF NOT EXISTS {modulo}.trg_{tabela}_exclusao\n"
+        f"DROP TRIGGER IF EXISTS {modulo}.trg_{tabela}_exclusao;\n"
+        f"CREATE TRIGGER {modulo}.trg_{tabela}_exclusao\n"
         f"  BEFORE DELETE ON {modulo}.{tabela} FOR EACH ROW\n"
         f"  INSERT INTO meta.exclusao_auditoria (banco, tabela, registro_id, usuario_banco)\n"
-        f"  VALUES ('{modulo}', '{tabela}', OLD.id, CURRENT_USER());\n"
+        f"  VALUES ('{modulo}', '{tabela}', OLD.id, USER());\n"
     )
 
 

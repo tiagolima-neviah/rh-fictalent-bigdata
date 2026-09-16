@@ -20,6 +20,18 @@ for arquivo in staging/ddl/*.sql; do
   echo ok
 done
 
+for script in staging/ddl/*.sh; do
+  printf '%s ... ' "$script"
+  docker exec fictalent_mysql_staging sh "/docker-entrypoint-initdb.d/$(basename "$script")"
+  echo ok
+done
+
+for script in staging/ddl/*.sh; do
+  printf '%s ... ' "$script"
+  docker exec fictalent_mysql_staging sh "/docker-entrypoint-initdb.d/$(basename "$script")"
+  echo ok
+done
+
 echo "tabelas por módulo:"
 docker exec -e MYSQL_PWD="$senha" fictalent_mysql_staging mysql -uroot -e \
   "SELECT table_schema AS modulo, COUNT(*) AS tabelas
