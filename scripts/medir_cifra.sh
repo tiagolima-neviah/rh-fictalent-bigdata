@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 senha=$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2-)
 LINHAS="${LINHAS:-200000}"
 
-sql() { docker exec -i -e MYSQL_PWD="$senha" fictalent_mysql_staging mysql -uroot -N; }
+sql() { docker exec -i -e MYSQL_PWD="$senha" fictalent_mysql_staging mysql -uroot -N --default-character-set=utf8mb4; }
 mede() {
   local inicio fim
   inicio=$(date +%s%N)

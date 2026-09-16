@@ -106,6 +106,7 @@ def test_replica_cifra_em_repouso() -> None:
     assert "./infra/mysql/mysqld.my:/usr/sbin/mysqld.my:ro" in replica["volumes"]
     assert replica["depends_on"]["keyring-init"]["condition"] == "service_completed_successfully"
     assert replica["user"] == "999:999", "a réplica não roda como root"
+    assert replica["environment"]["LANG"] == "C.UTF-8", "DDL acentuada exige cliente em utf8mb4"
 
 
 def test_banco_de_metadados_nao_publica_porta() -> None:

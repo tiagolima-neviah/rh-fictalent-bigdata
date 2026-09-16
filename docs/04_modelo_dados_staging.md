@@ -28,7 +28,7 @@ Não é um banco analítico: é normalizado, transacional, com as chaves e regra
 | chaves estrangeiras | declaradas em toda coluna `_id`, inclusive entre databases | o InnoDB aceita FK entre databases da mesma instância; os dois ciclos (`centro_custo` ↔ `contrato`, `entrevista` → `usuario`) fecham com `ALTER` guardado por `information_schema`, idempotente |
 | exclusão | nenhuma FK com `ON DELETE CASCADE`; gatilho `BEFORE DELETE` em toda tabela de negócio | o `DELETE` é um evento que a trilha de exclusões precisa ver (seção 6), não um efeito em cadeia |
 | comentário | `COMMENT` em toda tabela e nas colunas que precisam de explicação | o dicionário de dados é gerado da `information_schema`, não escrito à mão |
-| etiqueta LGPD | `[LGPD:pessoal]` ou `[LGPD:sensivel]` no comentário da coluna | classificação por coluna nasce no banco; a pseudonimização da silver e o DCL leem daqui |
+| etiqueta LGPD | `[LGPD:pessoal]` ou `[LGPD:sensivel]` no comentário da coluna; `[LGPD:publica]` no comentário das tabelas de referência | classificação por coluna nasce no banco; o DCL, a pseudonimização da silver e o [dicionário de dados](dicionario/README.md) leem daqui |
 | databases | um por módulo, com o nome do módulo | em MySQL, *schema* e *database* são a mesma coisa |
 | cifra em repouso | `ENCRYPTION='Y'` em toda tabela e `DEFAULT ENCRYPTION='Y'` em todo database | o disco, o volume e o dump não expõem dado pessoal em claro (seção 8) |
 
@@ -50,7 +50,7 @@ Um teste estático (`tests/test_ddl.py`) confere as convenções em cada arquivo
 | `seguranca` | 5 | usuários, perfis, escopo por filial, matriz de permissão, log de auditoria | `usuario_perfil`: a assistente vê a filial dela, a coordenadora vê o setor |
 | `meta` | 1 | trilha de exclusões | `exclusao_auditoria`: o `DELETE` que a marca d'água não veria |
 
-A finalidade de cada tabela está no `COMMENT` dela, dentro da DDL. Para ler direto do banco:
+A finalidade de cada tabela está no `COMMENT` dela, dentro da DDL, e o [dicionário de dados](dicionario/README.md), gerado da `information_schema`, traz coluna a coluna (tipo, nulo, chave, padrão, classe LGPD e descrição), aberto pelo inventário de dado pessoal. Para ler direto do banco:
 
 ```sql
 SELECT table_schema, table_name, table_comment
@@ -96,7 +96,7 @@ O diagrama completo, módulo a módulo, entra com o dicionário de dados (card 2
 bash scripts/aplicar_ddl.sh
 ```
 
-O script aplica os arquivos em ordem e imprime a contagem de tabelas por módulo. Pode rodar quantas vezes quiser: tudo é `IF NOT EXISTS` e os dois `ALTER` de ciclo conferem a `information_schema` antes de agir.
+O script aplica os arquivos em ordem e imprime a contagem de tabelas por módulo. Pode rodar quantas vezes quiser: tudo é `IF NOT EXISTS` e os dois `ALTER` de ciclo conferem a `information_schema` antes de agir. Um limite honesto: `CREATE TABLE IF NOT EXISTS` não altera tabela que já existe, então mudança de coluna ou de comentário num volume antigo pede `ALTER TABLE` (ou recomeçar do zero enquanto a réplica não tem dado, como neste estágio).
 
 **Conferir** que a réplica está como a DDL descreve:
 
@@ -199,9 +199,15 @@ O keyring é parte do backup: **sem ele, o dado cifrado é irrecuperável**. O m
 - **Gatilhos gerados, não escritos.** Setenta e cinco blocos iguais escritos à mão são setenta e cinco chances de esquecer um; gerar da DDL e testar a igualdade transforma o esquecimento em falha de esteira.
 - **A marca d'água não mora aqui.** A réplica é do cliente; o estado da carga (até onde o pipeline leu cada tabela) é do pipeline e fica no lake.
 
-## 10. O que ainda não existe neste banco
+## 10. O dicionário de dados
 
-Dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
+O [dicionário](dicionario/README.md) é gerado da `information_schema` da réplica por `src/rh_fictalent/staging/dicionario.py`: o banco descrevendo a si mesmo, sem uma linha escrita à mão. Regenerar depois de mudar a DDL, com a réplica de pé:
+
+```bash
+.venv/bin/python -m rh_fictalent.staging.dicionario
+```
+
+Um teste de integração falha se o arquivo versionado divergir do que a réplica produz, e um estático confere que toda etiqueta LGPD da DDL aparece no inventário e que nenhum comentário acentuado virou lixo (o cliente `mysql` do container escolhe o charset pela `LANG`; sem ela, a DDL em UTF-8 é gravada como latin1, e foi o dicionário que denunciou). O dicionário fecha o que a fundação da réplica prometeu: modelo, trilha de exclusões, controle de acesso, cifra em repouso e classificação por coluna, tudo gerado ou provado.
 
 ---
 

@@ -10,7 +10,7 @@ set -eu
 : "${RELATORIOS_PASSWORD:?defina RELATORIOS_PASSWORD no .env}"
 : "${REPLICADOR_PASSWORD:?defina REPLICADOR_PASSWORD no .env}"
 
-MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --protocol=socket -uroot <<SQL
+MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --protocol=socket -uroot --default-character-set=utf8mb4 <<SQL
 CREATE USER IF NOT EXISTS 'pipeline'@'%'           IDENTIFIED BY '${PIPELINE_PASSWORD}';
 CREATE USER IF NOT EXISTS 'relatorios_cliente'@'%' IDENTIFIED BY '${RELATORIOS_PASSWORD}';
 CREATE USER IF NOT EXISTS 'replicador'@'%'         IDENTIFIED BY '${REPLICADOR_PASSWORD}';

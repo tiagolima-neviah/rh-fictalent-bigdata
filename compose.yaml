@@ -78,6 +78,9 @@ services:
       # em MySQL, schema e database são a mesma coisa: os 10 módulos viram 10 databases,
       # criados pela DDL em staging/ddl na primeira inicialização; os usuários por perfil
       # vêm com o DCL (card 2.4)
+      # o cliente mysql que aplica a DDL na inicialização escolhe o charset pela LANG; sem ela
+      # cai em latin1 e os comentários acentuados viram lixo no banco
+      LANG: C.UTF-8
       MYSQL_ROOT_PASSWORD: ${STAGING_ROOT_PASSWORD:?defina STAGING_ROOT_PASSWORD no .env}
       # usuários de serviço criados por staging/ddl/14_usuarios.sh, cada um com o seu papel
       PIPELINE_PASSWORD: ${PIPELINE_PASSWORD:?defina PIPELINE_PASSWORD no .env}

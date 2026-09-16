@@ -93,13 +93,14 @@ O passo a passo completo, com geração das senhas, verificação de saúde, par
 ```
 rh-fictalent-bigdata/
 ├── docs/                    # a documentação navegável (leia na ordem)
-│   └── adr/                 # registros de decisão: que necessidade do caso cada tecnologia atende
+│   ├── adr/                 # registros de decisão: que necessidade do caso cada tecnologia atende
+│   └── dicionario/          # dicionário de dados gerado da information_schema
 ├── compose.yaml             # a plataforma inteira: 7 serviços com healthcheck
 ├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, keyring da réplica, provisionamento do Grafana
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
-│   ├── staging/             # geradores da DDL: gatilhos e papéis (o que deriva das tabelas nasce aqui)
+│   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
 │   ├── bronze/  silver/  gold/   # as camadas do lake
@@ -117,6 +118,7 @@ rh-fictalent-bigdata/
 - [02 · Entendimento dos Dados](docs/02_entendimento_dados.md): o banco relacional em 10 módulos, o que cada um guarda e o que esperar da qualidade desses dados.
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
+- [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
 
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma.
