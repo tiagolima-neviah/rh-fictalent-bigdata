@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS cliente (
   CONSTRAINT fk_cliente_endereco FOREIGN KEY (endereco_id) REFERENCES cadastro.endereco (id),
   CONSTRAINT ck_cliente_porte CHECK (porte IN ('MEI', 'ME', 'EPP', 'MEDIA', 'GRANDE')),
   CONSTRAINT ck_cliente_origem CHECK (origem IN ('INDICACAO', 'PROSPECCAO', 'LICITACAO', 'SITE', 'RETORNO'))
-) COMMENT='Cerca de 90 clientes ao longo do arco, cerca de 45 ativos hoje';
+) ENCRYPTION='Y' COMMENT='Cerca de 90 clientes ao longo do arco, cerca de 45 ativos hoje';
 
 CREATE TABLE IF NOT EXISTS cliente_contato (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS cliente_contato (
   PRIMARY KEY (id),
   KEY ix_cliente_contato_atualizado_em (atualizado_em),
   CONSTRAINT fk_cliente_contato_cliente FOREIGN KEY (cliente_id) REFERENCES cliente (id)
-) COMMENT='Quem cobra o SLA do outro lado';
+) ENCRYPTION='Y' COMMENT='Quem cobra o SLA do outro lado';
 
 CREATE TABLE IF NOT EXISTS contrato (
   id                       BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS contrato (
   CONSTRAINT fk_contrato_motivo FOREIGN KEY (motivo_encerramento_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_contrato_tipo CHECK (tipo_servico IN ('TEMPORARIO', 'TERCEIRIZACAO', 'RECRUTAMENTO', 'TREINAMENTO')),
   CONSTRAINT ck_contrato_status CHECK (status IN ('ATIVO', 'SUSPENSO', 'ENCERRADO'))
-) COMMENT='O vínculo comercial; o encerramento com motivo é o que responde por que a empresa perdeu contratos';
+) ENCRYPTION='Y' COMMENT='O vínculo comercial; o encerramento com motivo é o que responde por que a empresa perdeu contratos';
 
 -- fecha o ciclo centro_custo <-> contrato (a coluna existe desde 01_cadastro.sql)
 SET @existe = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS contrato_aditivo (
   KEY ix_contrato_aditivo_atualizado_em (atualizado_em),
   CONSTRAINT fk_contrato_aditivo_contrato FOREIGN KEY (contrato_id) REFERENCES contrato (id),
   CONSTRAINT ck_contrato_aditivo_tipo CHECK (tipo IN ('PRORROGACAO', 'REAJUSTE', 'ESCOPO'))
-) COMMENT='A linha do tempo do contrato: prorrogações, reajustes e mudanças de escopo';
+) ENCRYPTION='Y' COMMENT='A linha do tempo do contrato: prorrogações, reajustes e mudanças de escopo';
 
 CREATE TABLE IF NOT EXISTS posto (
   id              BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS posto (
   CONSTRAINT fk_posto_escala FOREIGN KEY (escala_id) REFERENCES cadastro.escala (id),
   CONSTRAINT fk_posto_endereco FOREIGN KEY (endereco_id) REFERENCES cadastro.endereco (id),
   CONSTRAINT ck_posto_turno CHECK (turno IN ('MANHA', 'TARDE', 'NOITE', 'COMERCIAL', 'REVEZAMENTO'))
-) COMMENT='A unidade de receita: o cliente contrata postos, não pessoas';
+) ENCRYPTION='Y' COMMENT='A unidade de receita: o cliente contrata postos, não pessoas';
 
 CREATE TABLE IF NOT EXISTS posto_preco (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS posto_preco (
   PRIMARY KEY (id),
   KEY ix_posto_preco_atualizado_em (atualizado_em),
   CONSTRAINT fk_posto_preco_posto FOREIGN KEY (posto_id) REFERENCES posto (id)
-) COMMENT='Preço do posto com vigência própria, para o reajuste não reescrever o passado';
+) ENCRYPTION='Y' COMMENT='Preço do posto com vigência própria, para o reajuste não reescrever o passado';
 
 CREATE TABLE IF NOT EXISTS sla_contrato (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS sla_contrato (
   KEY ix_sla_contrato_atualizado_em (atualizado_em),
   CONSTRAINT fk_sla_contrato_contrato FOREIGN KEY (contrato_id) REFERENCES contrato (id),
   CONSTRAINT ck_sla_indicador CHECK (indicador IN ('TIME_TO_FILL', 'REPOSICAO', 'ABSENTEISMO'))
-) COMMENT='Metas contratuais: é o que permite dizer se o cliente saiu por mercado ou por serviço';
+) ENCRYPTION='Y' COMMENT='Metas contratuais: é o que permite dizer se o cliente saiu por mercado ou por serviço';
 
 CREATE TABLE IF NOT EXISTS contrato_ocorrencia (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -163,4 +163,4 @@ CREATE TABLE IF NOT EXISTS contrato_ocorrencia (
   CONSTRAINT fk_contrato_ocorrencia_posto FOREIGN KEY (posto_id) REFERENCES posto (id),
   CONSTRAINT fk_contrato_ocorrencia_motivo FOREIGN KEY (motivo_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_contrato_ocorrencia_tipo CHECK (tipo IN ('RECLAMACAO', 'ELOGIO', 'ADVERTENCIA', 'AVISO_RESCISAO'))
-) COMMENT='A curva de reclamações que antecede a saída do cliente em 6 a 9 meses';
+) ENCRYPTION='Y' COMMENT='A curva de reclamações que antecede a saída do cliente em 6 a 9 meses';

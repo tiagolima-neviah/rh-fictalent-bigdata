@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS curso (
   UNIQUE KEY uq_curso_codigo (codigo),
   KEY ix_curso_atualizado_em (atualizado_em),
   CONSTRAINT ck_curso_tipo CHECK (tipo IN ('NR', 'TECNICO', 'COMPORTAMENTAL'))
-) COMMENT='Catálogo de cursos, com validade quando a norma exige reciclagem';
+) ENCRYPTION='Y' COMMENT='Catálogo de cursos, com validade quando a norma exige reciclagem';
 
 CREATE TABLE IF NOT EXISTS curso_funcao (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS curso_funcao (
   KEY ix_curso_funcao_atualizado_em (atualizado_em),
   CONSTRAINT fk_curso_funcao_curso FOREIGN KEY (curso_id) REFERENCES curso (id),
   CONSTRAINT fk_curso_funcao_funcao FOREIGN KEY (funcao_id) REFERENCES cadastro.funcao (id)
-) COMMENT='Quais treinamentos são exigidos para qual função';
+) ENCRYPTION='Y' COMMENT='Quais treinamentos são exigidos para qual função';
 
 CREATE TABLE IF NOT EXISTS turma (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS turma (
   CONSTRAINT fk_turma_filial FOREIGN KEY (filial_id) REFERENCES cadastro.filial (id),
   CONSTRAINT fk_turma_cliente FOREIGN KEY (cliente_id) REFERENCES comercial.cliente (id),
   CONSTRAINT fk_turma_fornecedor FOREIGN KEY (fornecedor_id) REFERENCES financeiro.fornecedor (id)
-) COMMENT='Turma interna ou treinamento vendido ao cliente';
+) ENCRYPTION='Y' COMMENT='Turma interna ou treinamento vendido ao cliente';
 
 CREATE TABLE IF NOT EXISTS turma_participante (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS turma_participante (
   KEY ix_turma_participante_atualizado_em (atualizado_em),
   CONSTRAINT fk_turma_participante_turma FOREIGN KEY (turma_id) REFERENCES turma (id),
   CONSTRAINT fk_turma_participante_colaborador FOREIGN KEY (colaborador_id) REFERENCES pessoas.colaborador (id)
-) COMMENT='Quem fez a turma';
+) ENCRYPTION='Y' COMMENT='Quem fez a turma';
 
 CREATE TABLE IF NOT EXISTS certificado (
   id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -81,4 +81,4 @@ CREATE TABLE IF NOT EXISTS certificado (
   KEY ix_certificado_validade (dt_validade),
   KEY ix_certificado_atualizado_em (atualizado_em),
   CONSTRAINT fk_certificado_participante FOREIGN KEY (turma_participante_id) REFERENCES turma_participante (id)
-) COMMENT='O documento com prazo, que é o que vira alerta';
+) ENCRYPTION='Y' COMMENT='O documento com prazo, que é o que vira alerta';

@@ -1,11 +1,12 @@
 # Fictalent RH · a plataforma de dados inteira em containers.
 #
-# Sete serviços de longa duração e um job de inicialização:
+# Sete serviços de longa duração e dois jobs de inicialização:
 #   mysql-staging   MySQL · a réplica autorizada do sistema do cliente, de onde o pipeline lê
 #   pg-dw           Postgres · o warehouse dimensional (OLAP)
 #   pg-dagster      Postgres · metadados do Dagster (execuções, eventos, agendas)
 #   s3              SeaweedFS · armazenamento compatível com S3 para o lake
 #   s3-init         job único · cria o bucket do lake e termina
+#   keyring-init    job único · prepara o volume da chave de cifra da réplica e termina
 #   dagster-web     Dagster · interface web e API GraphQL
 #   dagster-daemon  Dagster · agendas, sensores e fila de execuções
 #   grafana         Grafana · monitoramento e alertas
@@ -38,16 +39,41 @@ x-saude: &saude
 
 services:
   # ─────────────────────────── staging: a réplica do cliente ───────────────────────────
+  keyring-init:
+    # a chave mestra da cifra em repouso vive num volume próprio, fora do diretório de
+    # dados; este job só garante que o volume pertence ao usuário do MySQL antes de ele subir
+    image: mysql:8.4.11
+    container_name: fictalent_keyring_init
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    # um keyring de tamanho zero é inválido (sobra de uma subida interrompida) e é descartado;
+    # um keyring válido nunca é tocado
+    entrypoint: ["sh", "-c", "mkdir -p /keyring && chown 999:999 /keyring && chmod 700 /keyring && find /keyring -maxdepth 1 -name keyring -size 0 -delete"]
+    volumes:
+      - mysql_keyring:/keyring
+
   mysql-staging:
     <<: *seguranca
     image: mysql:8.4.11
     container_name: fictalent_mysql_staging
+    # sem root dentro do container: o entrypoint da imagem, quando roda como root, executa o
+    # mysqld uma vez antes de trocar de usuário, e o componente de keyring criaria a chave
+    # com dono root. Como 999 (mysql) desde o início, a chave nasce do dono certo.
+    user: "999:999"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
       - --local-infile=0
       - --skip-name-resolve
       - --default-time-zone=+00:00
+      # cifra em repouso: tabelas por padrão, redo, undo e binlog; só TABLE_ENCRYPTION_ADMIN
+      # cria tabela em claro (docs/04, seção 8; docs/adr/0002)
+      - --default-table-encryption=ON
+      - --table-encryption-privilege-check=ON
+      - --innodb-redo-log-encrypt=ON
+      - --innodb-undo-log-encrypt=ON
+      - --binlog-encryption=ON
     environment:
       # em MySQL, schema e database são a mesma coisa: os 10 módulos viram 10 databases,
       # criados pela DDL em staging/ddl na primeira inicialização; os usuários por perfil
@@ -61,11 +87,18 @@ services:
       - "127.0.0.1:${STAGING_PORT:-3316}:3306"
     volumes:
       - mysql_staging:/var/lib/mysql
+      - mysql_keyring:/var/lib/mysql-keyring
       - ./staging/ddl:/docker-entrypoint-initdb.d:ro
+      # manifesto que carrega o componente de keyring e a configuração dele (só leitura)
+      - ./infra/mysql/mysqld.my:/usr/sbin/mysqld.my:ro
+      - ./infra/mysql/component_keyring_file.cnf:/usr/lib64/mysql/plugin/component_keyring_file.cnf:ro
     healthcheck:
       <<: *saude
       start_period: 60s
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+    depends_on:
+      keyring-init:
+        condition: service_completed_successfully
     deploy:
       resources:
         limits:
@@ -243,6 +276,7 @@ services:
 
 volumes:
   mysql_staging:
+  mysql_keyring:
   pg_dw:
   pg_dagster:
   s3_dados:

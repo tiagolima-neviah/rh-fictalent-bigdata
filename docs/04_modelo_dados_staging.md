@@ -30,6 +30,7 @@ Não é um banco analítico: é normalizado, transacional, com as chaves e regra
 | comentário | `COMMENT` em toda tabela e nas colunas que precisam de explicação | o dicionário de dados é gerado da `information_schema`, não escrito à mão |
 | etiqueta LGPD | `[LGPD:pessoal]` ou `[LGPD:sensivel]` no comentário da coluna | classificação por coluna nasce no banco; a pseudonimização da silver e o DCL leem daqui |
 | databases | um por módulo, com o nome do módulo | em MySQL, *schema* e *database* são a mesma coisa |
+| cifra em repouso | `ENCRYPTION='Y'` em toda tabela e `DEFAULT ENCRYPTION='Y'` em todo database | o disco, o volume e o dump não expõem dado pessoal em claro (seção 8) |
 
 Um teste estático (`tests/test_ddl.py`) confere as convenções em cada arquivo sem precisar de banco; outro (`tests/test_ddl_aplicada.py`) confere a réplica de verdade quando ela está de pé, inclusive apagando uma linha para ver o rastro aparecer na trilha.
 
@@ -165,19 +166,42 @@ SHOW GRANTS FOR 'relatorios_cliente'@'%' USING papel_relatorios;
 
 **Uma consequência prática.** Com `GRANT` de coluna, `SELECT *` não passa em tabela com dado pessoal: o relatório precisa nomear as colunas. É desconforto de propósito: é o dado pessoal deixando de vazar por preguiça de digitar.
 
-## 8. Decisões que valem a pena explicar
+## 8. Cifra em repouso
+
+**O que ela protege, e o que não protege.** A cifra em repouso protege o **disco**: um volume copiado, um backup extraviado, um arquivo `.ibd` lido fora do servidor. Ela não protege contra um usuário do banco com `SELECT`, porque o servidor decifra para quem tem direito de ler; disso cuidam o controle de acesso (seção 7) e a pseudonimização na silver. As duas camadas se completam, e nenhuma substitui a outra.
+
+**Como está feita.** Toda tabela nasce com `ENCRYPTION='Y'` e todo database com `DEFAULT ENCRYPTION='Y'` (está na DDL, não numa configuração escondida); o servidor sobe com `default_table_encryption=ON` e `table_encryption_privilege_check=ON`, então só quem tem `TABLE_ENCRYPTION_ADMIN` consegue criar tabela em claro. Redo log, undo log e binlog também são cifrados: o dado passa por eles antes de chegar ao tablespace. A chave mestra vive no **keyring** (`component_keyring_file`), carregado por manifesto (`infra/mysql/mysqld.my`) e gravado num volume próprio, `mysql_keyring`, montado em `/var/lib/mysql-keyring`: fora do repositório e fora do diretório de dados, para que um backup do dado não carregue a chave junto. O job `keyring-init` só garante que esse volume pertence ao usuário do MySQL antes de o servidor subir, e o container da réplica roda inteiro como esse usuário (`999`), sem root: foi assim que a chave deixou de nascer com dono errado. Para um volume que já existia antes da cifra, `staging/ddl/15_cifra.sql` (gerado por `src/rh_fictalent/staging/cifra.py`) reescreve cada database e tabela cifrados.
+
+**A prova.** `tests/test_cifra_aplicada.py` confere as variáveis do servidor, o componente ativo e o caminho do keyring, os 76 tablespaces com `encryption = 'Y'`, que uma tabela nova nasce cifrada, que a rotação da chave mestra funciona, e a prova que importa: grava um CPF conhecido em `pessoas.colaborador`, força a escrita em disco (`FLUSH TABLES ... FOR EXPORT`) e procura o CPF dentro do `.ibd`: **zero ocorrências**; a mesma busca numa tabela de controle criada em claro encontra o CPF. Rodar:
+
+```bash
+.venv/bin/pytest -q tests/test_cifra_aplicada.py
+```
+
+**Rotação e backup.** A chave mestra se troca sem parar o servidor e sem reescrever dados:
+
+```sql
+ALTER INSTANCE ROTATE INNODB MASTER KEY;
+```
+
+O keyring é parte do backup: **sem ele, o dado cifrado é irrecuperável**. O manual de backup (v1.0.0) cobre os dois juntos; até lá, `docker compose down -v` apaga chave e dados ao mesmo tempo, de propósito.
+
+**O custo, medido.** `bash scripts/medir_cifra.sh` escreve e lê 200 mil linhas numa tabela cifrada e numa em claro; os números estão no [ADR-0002](adr/0002-cifra-em-repouso-tablespace.md).
+
+## 9. Decisões que valem a pena explicar
 
 - **`atualizado_em` pelo motor, não por gatilho.** O plano original previa gatilhos; o `ON UPDATE CURRENT_TIMESTAMP` do MySQL faz o mesmo sem código, e o gerador pode sobrescrever o valor quando precisa datar o passado. Gatilho fica só para o que o motor não faz sozinho: registrar o `DELETE`.
 - **CPF sem `UNIQUE` em `ats.candidato`, com `UNIQUE` em `pessoas.colaborador`.** O funil recebe duplicados e CPF inválido, como na vida real; a admissão não pode. A diferença entre os dois é medida na auditoria de qualidade.
 - **`ponto.marcacao` sem chave única.** Batida duplicada é sujeira de origem e precisa poder existir para ser detectada e tratada na silver.
 - **Nenhum `ON DELETE CASCADE`.** Cada exclusão é um evento que a trilha precisa ver individualmente.
+- **Cifra de tablespace, não de coluna.** Cifrar a coluna do CPF com `AES_ENCRYPT` exigiria a chave em cada consumidor e destruiria o índice único; a cifra de tablespace protege o disco de todas as 76 tabelas de uma vez, é transparente para pipeline e relatórios, e deixa o acesso por usuário com o DCL, que é o lugar dele ([ADR-0002](adr/0002-cifra-em-repouso-tablespace.md)).
 - **Direitos derivados das etiquetas.** A classificação LGPD nasce no comentário da coluna e o `GRANT` do relatório é gerado dela: classificar e proteger viram o mesmo gesto.
 - **Gatilhos gerados, não escritos.** Setenta e cinco blocos iguais escritos à mão são setenta e cinco chances de esquecer um; gerar da DDL e testar a igualdade transforma o esquecimento em falha de esteira.
 - **A marca d'água não mora aqui.** A réplica é do cliente; o estado da carga (até onde o pipeline leu cada tabela) é do pipeline e fica no lake.
 
-## 9. O que ainda não existe neste banco
+## 10. O que ainda não existe neste banco
 
-Cifra em repouso do dado pessoal (2.5), dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
+Dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
 
 ---
 

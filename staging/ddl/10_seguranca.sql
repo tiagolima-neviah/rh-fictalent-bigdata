@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS perfil (
   UNIQUE KEY uq_perfil_codigo (codigo),
   KEY ix_perfil_atualizado_em (atualizado_em),
   CONSTRAINT ck_perfil_codigo CHECK (codigo IN ('SOCIO', 'GERENTE', 'COORDENADOR', 'ASSISTENTE', 'FINANCEIRO', 'TI'))
-) COMMENT='Os níveis do autoatendimento';
+) ENCRYPTION='Y' COMMENT='Os níveis do autoatendimento';
 
 CREATE TABLE IF NOT EXISTS usuario (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS usuario (
   KEY ix_usuario_atualizado_em (atualizado_em),
   CONSTRAINT fk_usuario_colaborador FOREIGN KEY (colaborador_id) REFERENCES pessoas.colaborador (id),
   CONSTRAINT fk_usuario_filial FOREIGN KEY (filial_id) REFERENCES cadastro.filial (id)
-) COMMENT='Cerca de 40 usuários internos ao longo do arco';
+) ENCRYPTION='Y' COMMENT='Cerca de 40 usuários internos ao longo do arco';
 
 -- fecha a referência de ats.entrevista.usuario_id (a coluna existe desde 03_ats.sql)
 SET @existe = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS usuario_perfil (
   CONSTRAINT fk_usuario_perfil_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id),
   CONSTRAINT fk_usuario_perfil_perfil FOREIGN KEY (perfil_id) REFERENCES perfil (id),
   CONSTRAINT fk_usuario_perfil_filial FOREIGN KEY (filial_id) REFERENCES cadastro.filial (id)
-) COMMENT='O escopo: a assistente vê a filial dela, a coordenadora vê o setor';
+) ENCRYPTION='Y' COMMENT='O escopo: a assistente vê a filial dela, a coordenadora vê o setor';
 
 CREATE TABLE IF NOT EXISTS permissao (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS permissao (
   KEY ix_permissao_atualizado_em (atualizado_em),
   CONSTRAINT fk_permissao_perfil FOREIGN KEY (perfil_id) REFERENCES perfil (id),
   CONSTRAINT ck_permissao_acao CHECK (acao IN ('LER', 'CRIAR', 'EDITAR', 'EXCLUIR', 'EXPORTAR'))
-) COMMENT='Matriz de permissão por módulo';
+) ENCRYPTION='Y' COMMENT='Matriz de permissão por módulo';
 
 CREATE TABLE IF NOT EXISTS log_auditoria (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -90,4 +90,4 @@ CREATE TABLE IF NOT EXISTS log_auditoria (
   KEY ix_log_auditoria_atualizado_em (atualizado_em),
   CONSTRAINT fk_log_auditoria_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id),
   CONSTRAINT ck_log_auditoria_acao CHECK (acao IN ('CRIAR', 'EDITAR', 'EXCLUIR', 'EXPORTAR', 'LOGIN'))
-) COMMENT='Quem alterou o quê, com data: a trilha que o sistema futuro vai usar';
+) ENCRYPTION='Y' COMMENT='Quem alterou o quê, com data: a trilha que o sistema futuro vai usar';

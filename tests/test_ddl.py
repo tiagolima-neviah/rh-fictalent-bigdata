@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from rh_fictalent.staging import gatilhos, papeis
+from rh_fictalent.staging import cifra, gatilhos, papeis
 
 RAIZ = Path(__file__).resolve().parents[1]
 DDL = RAIZ / "staging" / "ddl"
@@ -29,7 +29,9 @@ ESPERADO = {
     "meta": 1,
 }
 SO_INSERE = {"meta"}  # trilha de exclusões: sem atualizado_em de propósito
-CRIA_TABELA = re.compile(r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\n\) COMMENT='([^']*)';", re.S)
+CRIA_TABELA = re.compile(
+    r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\n\) ENCRYPTION='Y' COMMENT='([^']*)';", re.S
+)
 
 
 def _arquivo(modulo: str) -> Path:
@@ -50,6 +52,7 @@ def _casos() -> list[tuple[str, str, str, str]]:
 
 def test_todo_modulo_nasce_em_00_databases() -> None:
     texto = (DDL / "00_databases.sql").read_text(encoding="utf-8")
+    assert texto.count("DEFAULT ENCRYPTION='Y';") == len(ESPERADO), "todo database nasce cifrado"
     faltando = [m for m in ESPERADO if f"CREATE DATABASE IF NOT EXISTS {m} " not in texto]
     assert not faltando, faltando
 
@@ -161,6 +164,15 @@ def test_papeis_gerados_e_sem_dado_pessoal_para_relatorios() -> None:
                 assert m and not set(pessoais) & {c.strip() for c in m.group(1).split(",")}, (
                     f"{modulo}.{nome}"
                 )
+
+
+def test_cifra_gerada_para_todo_database_e_tabela() -> None:
+    texto = (DDL / "15_cifra.sql").read_text(encoding="utf-8")
+    assert texto == cifra.gerar_sql(), (
+        "arquivo diverge do gerador: python -m rh_fictalent.staging.cifra"
+    )
+    assert texto.count("ALTER DATABASE") == len(ESPERADO)
+    assert texto.count("ALTER TABLE") == 76
 
 
 def test_dado_pessoal_etiquetado() -> None:

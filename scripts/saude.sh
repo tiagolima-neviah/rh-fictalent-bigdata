@@ -15,7 +15,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 LONGA_DURACAO=(mysql-staging pg-dw pg-dagster s3 dagster-web dagster-daemon grafana)
-JOBS=(s3-init)
+JOBS=(s3-init keyring-init)
 TEMPO_MAXIMO="${TEMPO_MAXIMO:-300}"
 inicio=$(date +%s)
 
@@ -55,7 +55,7 @@ while true; do
     exit 1
   fi
   if [ ${#pendentes[@]} -eq 0 ]; then
-    echo "OK: ${#LONGA_DURACAO[@]} serviços saudáveis e ${#JOBS[@]} job de inicialização concluído ($(( $(date +%s) - inicio )) s)."
+    echo "OK: ${#LONGA_DURACAO[@]} serviços saudáveis e ${#JOBS[@]} jobs de inicialização concluídos ($(( $(date +%s) - inicio )) s)."
     exit 0
   fi
   if [ $(( $(date +%s) - inicio )) -ge "$TEMPO_MAXIMO" ]; then

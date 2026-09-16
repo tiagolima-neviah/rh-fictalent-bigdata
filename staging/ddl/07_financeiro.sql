@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS regime_tributario (
   PRIMARY KEY (id),
   KEY ix_regime_tributario_atualizado_em (atualizado_em),
   CONSTRAINT ck_regime_tributario_regime CHECK (regime IN ('LUCRO_PRESUMIDO', 'LUCRO_REAL'))
-) COMMENT='O regime tributário é parâmetro por competência';
+) ENCRYPTION='Y' COMMENT='O regime tributário é parâmetro por competência';
 
 CREATE TABLE IF NOT EXISTS tributo (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS tributo (
   UNIQUE KEY uq_tributo_codigo (codigo),
   KEY ix_tributo_atualizado_em (atualizado_em),
   CONSTRAINT ck_tributo_esfera CHECK (esfera IN ('FEDERAL', 'ESTADUAL', 'MUNICIPAL'))
-) COMMENT='Catálogo de tributos';
+) ENCRYPTION='Y' COMMENT='Catálogo de tributos';
 
 CREATE TABLE IF NOT EXISTS aliquota (
   id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS aliquota (
   KEY ix_aliquota_atualizado_em (atualizado_em),
   CONSTRAINT fk_aliquota_tributo FOREIGN KEY (tributo_id) REFERENCES tributo (id),
   CONSTRAINT fk_aliquota_municipio FOREIGN KEY (municipio_id) REFERENCES cadastro.municipio (id)
-) COMMENT='Alíquota por tributo, município e vigência: ISS de Atibaia e Bragança difere do de Extrema';
+) ENCRYPTION='Y' COMMENT='Alíquota por tributo, município e vigência: ISS de Atibaia e Bragança difere do de Extrema';
 
 CREATE TABLE IF NOT EXISTS fornecedor (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS fornecedor (
   UNIQUE KEY uq_fornecedor_cnpj (cnpj),
   KEY ix_fornecedor_atualizado_em (atualizado_em),
   CONSTRAINT ck_fornecedor_tipo CHECK (tipo IN ('EXAMES', 'TREINAMENTO', 'BENEFICIOS', 'SERVICOS'))
-) COMMENT='A outra ponta do contas a pagar';
+) ENCRYPTION='Y' COMMENT='A outra ponta do contas a pagar';
 
 CREATE TABLE IF NOT EXISTS fatura (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS fatura (
   CONSTRAINT fk_fatura_cliente FOREIGN KEY (cliente_id) REFERENCES comercial.cliente (id),
   CONSTRAINT fk_fatura_contrato FOREIGN KEY (contrato_id) REFERENCES comercial.contrato (id),
   CONSTRAINT ck_fatura_status CHECK (status IN ('EMITIDA', 'EM_ABERTO', 'QUITADA', 'CANCELADA'))
-) COMMENT='A nota de serviço do mês';
+) ENCRYPTION='Y' COMMENT='A nota de serviço do mês';
 
 CREATE TABLE IF NOT EXISTS fatura_item (
   id                    BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS fatura_item (
   KEY ix_fatura_item_atualizado_em (atualizado_em),
   CONSTRAINT fk_fatura_item_fatura FOREIGN KEY (fatura_id) REFERENCES fatura (id),
   CONSTRAINT fk_fatura_item_posto FOREIGN KEY (posto_id) REFERENCES comercial.posto (id)
-) COMMENT='Cerca de 52 mil: a medição do mês, posto a posto';
+) ENCRYPTION='Y' COMMENT='Cerca de 52 mil: a medição do mês, posto a posto';
 
 CREATE TABLE IF NOT EXISTS titulo_receber (
   id             BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS titulo_receber (
   CONSTRAINT fk_titulo_receber_fatura FOREIGN KEY (fatura_id) REFERENCES fatura (id),
   CONSTRAINT fk_titulo_receber_cliente FOREIGN KEY (cliente_id) REFERENCES comercial.cliente (id),
   CONSTRAINT ck_titulo_receber_status CHECK (status IN ('ABERTO', 'PAGO', 'ATRASADO', 'CANCELADO'))
-) COMMENT='Inadimplência e prazo médio de recebimento';
+) ENCRYPTION='Y' COMMENT='Inadimplência e prazo médio de recebimento';
 
 CREATE TABLE IF NOT EXISTS titulo_pagar (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS titulo_pagar (
   CONSTRAINT fk_titulo_pagar_centro_custo FOREIGN KEY (centro_custo_id) REFERENCES cadastro.centro_custo (id),
   CONSTRAINT ck_titulo_pagar_tipo CHECK (tipo IN ('FOLHA', 'ENCARGOS', 'IMPOSTOS', 'FORNECEDOR', 'BENEFICIOS')),
   CONSTRAINT ck_titulo_pagar_status CHECK (status IN ('ABERTO', 'PAGO', 'ATRASADO', 'CANCELADO'))
-) COMMENT='O que sai';
+) ENCRYPTION='Y' COMMENT='O que sai';
 
 CREATE TABLE IF NOT EXISTS imposto_apurado (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS imposto_apurado (
   CONSTRAINT fk_imposto_apurado_tributo FOREIGN KEY (tributo_id) REFERENCES tributo (id),
   CONSTRAINT fk_imposto_apurado_municipio FOREIGN KEY (municipio_id) REFERENCES cadastro.municipio (id),
   CONSTRAINT fk_imposto_apurado_titulo_pagar FOREIGN KEY (titulo_pagar_id) REFERENCES titulo_pagar (id)
-) COMMENT='Apuração mês a mês conforme o regime vigente';
+) ENCRYPTION='Y' COMMENT='Apuração mês a mês conforme o regime vigente';
 
 CREATE TABLE IF NOT EXISTS consolidado_gerencial (
   id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -174,4 +174,4 @@ CREATE TABLE IF NOT EXISTS consolidado_gerencial (
   KEY ix_consolidado_gerencial_atualizado_em (atualizado_em),
   CONSTRAINT fk_consolidado_gerencial_filial FOREIGN KEY (filial_id) REFERENCES cadastro.filial (id),
   CONSTRAINT ck_consolidado_gerencial_origem CHECK (origem IN ('PLANILHA'))
-) COMMENT='A planilha gerencial carregada no sistema: diverge da operação a partir de 2022 e é o achado central da auditoria';
+) ENCRYPTION='Y' COMMENT='A planilha gerencial carregada no sistema: diverge da operação a partir de 2022 e é o achado central da auditoria';

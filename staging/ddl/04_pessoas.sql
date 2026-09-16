@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS colaborador (
   CONSTRAINT fk_colaborador_candidato FOREIGN KEY (candidato_id) REFERENCES ats.candidato (id),
   CONSTRAINT fk_colaborador_municipio FOREIGN KEY (municipio_id) REFERENCES cadastro.municipio (id),
   CONSTRAINT fk_colaborador_endereco FOREIGN KEY (endereco_id) REFERENCES cadastro.endereco (id)
-) COMMENT='O candidato depois de admitido. Uma pessoa, uma matrícula, vários contratos de trabalho ao longo do tempo';
+) ENCRYPTION='Y' COMMENT='O candidato depois de admitido. Uma pessoa, uma matrícula, vários contratos de trabalho ao longo do tempo';
 
 CREATE TABLE IF NOT EXISTS colaborador_documento (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS colaborador_documento (
   KEY ix_colaborador_documento_atualizado_em (atualizado_em),
   CONSTRAINT fk_colaborador_documento_colaborador FOREIGN KEY (colaborador_id) REFERENCES colaborador (id),
   CONSTRAINT ck_colaborador_documento_tipo CHECK (tipo IN ('RG', 'CTPS', 'TITULO', 'RESERVISTA', 'CNH'))
-) COMMENT='Documentação da admissão';
+) ENCRYPTION='Y' COMMENT='Documentação da admissão';
 
 CREATE TABLE IF NOT EXISTS dependente (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS dependente (
   KEY ix_dependente_atualizado_em (atualizado_em),
   CONSTRAINT fk_dependente_colaborador FOREIGN KEY (colaborador_id) REFERENCES colaborador (id),
   CONSTRAINT ck_dependente_parentesco CHECK (parentesco IN ('FILHO', 'CONJUGE', 'ENTEADO', 'PAI', 'MAE'))
-) COMMENT='Dependentes: salário-família e IR na folha';
+) ENCRYPTION='Y' COMMENT='Dependentes: salário-família e IR na folha';
 
 CREATE TABLE IF NOT EXISTS contrato_trabalho (
   id                  BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS contrato_trabalho (
   CONSTRAINT fk_contrato_trabalho_escala FOREIGN KEY (escala_id) REFERENCES cadastro.escala (id),
   CONSTRAINT ck_contrato_trabalho_tipo CHECK (tipo IN ('TEMPORARIO', 'EFETIVO', 'TERCEIRIZADO')),
   CONSTRAINT ck_contrato_trabalho_status CHECK (status IN ('ATIVO', 'ENCERRADO'))
-) COMMENT='O vínculo CLT: o prazo legal do temporário mora aqui';
+) ENCRYPTION='Y' COMMENT='O vínculo CLT: o prazo legal do temporário mora aqui';
 
 CREATE TABLE IF NOT EXISTS contrato_trabalho_prorrogacao (
   id                   BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS contrato_trabalho_prorrogacao (
   PRIMARY KEY (id),
   KEY ix_contrato_trabalho_prorrogacao_atualizado_em (atualizado_em),
   CONSTRAINT fk_prorrogacao_contrato_trabalho FOREIGN KEY (contrato_trabalho_id) REFERENCES contrato_trabalho (id)
-) COMMENT='A prorrogação legal do temporário; sua ausência com prazo estourado é irregularidade';
+) ENCRYPTION='Y' COMMENT='A prorrogação legal do temporário; sua ausência com prazo estourado é irregularidade';
 
 CREATE TABLE IF NOT EXISTS alocacao (
   id                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS alocacao (
   CONSTRAINT fk_alocacao_posto FOREIGN KEY (posto_id) REFERENCES comercial.posto (id),
   CONSTRAINT fk_alocacao_motivo FOREIGN KEY (motivo_fim_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT fk_alocacao_substituida FOREIGN KEY (substituindo_alocacao_id) REFERENCES alocacao (id)
-) COMMENT='A tabela mais importante do banco: headcount, ocupação, dias descobertos e custo por contrato saem dela';
+) ENCRYPTION='Y' COMMENT='A tabela mais importante do banco: headcount, ocupação, dias descobertos e custo por contrato saem dela';
 
 CREATE TABLE IF NOT EXISTS afastamento (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS afastamento (
   CONSTRAINT fk_afastamento_colaborador FOREIGN KEY (colaborador_id) REFERENCES colaborador (id),
   CONSTRAINT fk_afastamento_motivo FOREIGN KEY (motivo_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_afastamento_tipo CHECK (tipo IN ('ATESTADO', 'ACIDENTE', 'LICENCA', 'SUSPENSAO'))
-) COMMENT='Absenteísmo e vínculo com acidente';
+) ENCRYPTION='Y' COMMENT='Absenteísmo e vínculo com acidente';
 
 CREATE TABLE IF NOT EXISTS desligamento (
   id                   BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -151,4 +151,4 @@ CREATE TABLE IF NOT EXISTS desligamento (
   CONSTRAINT fk_desligamento_contrato_trabalho FOREIGN KEY (contrato_trabalho_id) REFERENCES contrato_trabalho (id),
   CONSTRAINT fk_desligamento_motivo FOREIGN KEY (motivo_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_desligamento_tipo CHECK (tipo IN ('VOLUNTARIO', 'INVOLUNTARIO', 'FIM_CONTRATO', 'EFETIVACAO_CLIENTE'))
-) COMMENT='Turnover por tipo; a efetivação pelo cliente é receita e perda ao mesmo tempo';
+) ENCRYPTION='Y' COMMENT='Turnover por tipo; a efetivação pelo cliente é receita e perda ao mesmo tempo';

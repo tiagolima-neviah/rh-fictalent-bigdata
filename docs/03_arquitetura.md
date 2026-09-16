@@ -26,7 +26,8 @@
      ├─ atualizado_em nativo e indexado + trilha de exclusões  (base do incremental)
      ├─ DCL: papéis por função (pipeline, relatórios sem PII, replicação)
      │       com GRANT gerado das etiquetas LGPD e teste de bloqueio
-     └─ cifra em repouso do dado pessoal                        (LGPD)
+     └─ cifra em repouso: tablespaces, redo, undo e binlog,     (LGPD)
+        chave mestra em keyring fora do repositório e dos dados
   [Python]   gerador determinístico (semente fixa), 6 etapas, 2018 a 2026:
              faz o papel do sistema do cliente e da replicação que chega dele
   [Python]   régua de validação: bandas da história, reprovou regenera
@@ -107,7 +108,7 @@
 
 | etapa | ferramenta | o que ela faz aqui | por que ela, e não outra |
 |---|---|---|---|
-| infraestrutura | **Docker Compose** | sobe os 7 serviços com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
+| infraestrutura | **Docker Compose** | sobe os 7 serviços e os 2 jobs de inicialização com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
 | versionamento | **Git + Gitflow** | ramo por funcionalidade, `develop` de integração, versão marcada em `main` | é o fluxo que as equipes de dados maiores exigem |
 | staging | **MySQL 8** | a réplica autorizada do sistema do cliente, de onde o pipeline lê | é o motor mais provável do sistema próprio de uma PME, e o que o mercado pede é saber **ingerir de** MySQL. Fecha a terceira técnica de carga incremental da série (Fictitur: coluna temporal; Fictoria: `rowversion`; Fictalent: a partir de MySQL). [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) |
 | ingestão relacional | **leitor com saída Arrow** (ADBC, se houver driver MySQL maduro; senão ConnectorX) | traz o dado do MySQL em lotes colunares | não estoura a memória e preserva os tipos. A escolha é medida e registrada em ADR na v0.5.0 |
@@ -165,7 +166,7 @@ RH é o domínio do dado pessoal por excelência, e este projeto trata isso como
 
 - **Minimização.** Cada camada carrega só o que o indicador precisa, e a réplica só entra completa porque o cliente autorizou (seção 3). A gold não tem nome nem CPF.
 - **Pseudonimização.** A partir da silver, pessoa é identificada por uma chave derivada, estável e irreversível sem o segredo, que fica fora do repositório.
-- **Cifra em repouso.** O dado pessoal da réplica é cifrado em repouso, com a chave fora do repositório. O mecanismo (cifra de tablespace do InnoDB ou cifra de coluna) é decidido e medido no card próprio, com ADR.
+- **Cifra em repouso.** Toda a réplica é cifrada pelo InnoDB (tablespaces, redo, undo e binlog), com a chave mestra num keyring fora do repositório e fora do diretório de dados, rotacionável. A escolha contra a cifra de coluna, e o custo medido, estão no [ADR-0002](adr/0002-cifra-em-repouso-tablespace.md); a prova de que o CPF não aparece em claro no disco é um teste.
 - **Controle de acesso.** Na réplica, papéis de banco **por função** (pipeline só lê; relatórios do cliente leem sem dado pessoal, coluna a coluna, com o `GRANT` gerado das etiquetas LGPD; a replicação escreve o negócio e nada mais). No warehouse, papéis **por perfil de negócio** (sócio, gerente-geral, coordenação, assistente, financeiro) com isolamento por filial. Nos dois, **testes automatizados que provam o bloqueio**: o teste passa quando o acesso indevido falha.
 - **Isolamento por filial.** Políticas de *row level security* no warehouse fazem a coordenadora de Extrema enxergar só as linhas de Extrema, no próprio banco, sem depender da aplicação.
 - **Trilha de auditoria.** Quem acessou e quem alterou o quê, com data.
@@ -192,7 +193,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | camada | situação |
 |---|---|
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
-| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.4). Cifra a seguir |
+| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste, e cifra em repouso de tudo com keyring próprio ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.5) |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |
 | 4 · lake | a iniciar |

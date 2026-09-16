@@ -23,7 +23,9 @@ from rh_fictalent.staging.gatilhos import DDL, MODULOS_DE_NEGOCIO, RAIZ
 
 DESTINO = DDL / "13_papeis.sql"
 PAPEIS = ("papel_pipeline", "papel_relatorios", "papel_replicador")
-CRIA_TABELA = re.compile(r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\n\) COMMENT=", re.S)
+CRIA_TABELA = re.compile(
+    r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\n\) ENCRYPTION='Y' COMMENT=", re.S
+)
 COLUNA = re.compile(r"^  (\w+)\s+\S")
 NAO_E_COLUNA = {"PRIMARY", "UNIQUE", "KEY", "CONSTRAINT"}
 CABECALHO = """\
