@@ -195,7 +195,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
 | 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste, cifra em repouso de tudo com keyring próprio e dicionário de dados gerado da `information_schema` ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.7) |
 | 2 · ingestão | a iniciar |
-| 3 · orquestração | a iniciar |
+| 3 · orquestração | projeto Dagster com recursos (réplica, lake, warehouse) configurados pelo ambiente, convenções de camada, chave e partição, e o job `verificar_plataforma` que prova os três alcances de dentro do Dagster (v0.3.0, card 3.1); assets de dado entram com as versões seguintes |
 | 4 · lake | a iniciar |
 | 5 · OLAP | motor definido (Postgres 16, ADR-0001), modelo dimensional a iniciar |
 | 6 · servir | a iniciar |

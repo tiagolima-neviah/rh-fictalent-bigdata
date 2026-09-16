@@ -109,6 +109,16 @@ def test_replica_cifra_em_repouso() -> None:
     assert replica["environment"]["LANG"] == "C.UTF-8", "DDL acentuada exige cliente em utf8mb4"
 
 
+def test_dagster_enxerga_replica_lake_e_warehouse_pelos_servicos() -> None:
+    ambiente = _servicos()["dagster-web"]["environment"]
+    assert ambiente["STAGING_HOST"] == "mysql-staging" and ambiente["STAGING_PORT"] == "3306"
+    assert ambiente["S3_ENDPOINT"] == "http://s3:8333"
+    assert ambiente["DW_HOST"] == "pg-dw" and ambiente["DW_PORT"] == "5432"
+    assert _servicos()["dagster-daemon"]["environment"] == ambiente, (
+        "web e daemon com o mesmo ambiente"
+    )
+
+
 def test_banco_de_metadados_nao_publica_porta() -> None:
     assert not _servicos()["pg-dagster"].get("ports")
 
