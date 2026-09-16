@@ -124,7 +124,7 @@
 | observabilidade | **Grafana** | painéis de execução, falha e frescor, com alerta | painel é arquivo versionado e existe plano gratuito na nuvem. Fica só na observabilidade: painel de negócio é papel do painel web, do Power BI e do Tableau, e duplicá-lo criaria uma quarta versão do mesmo número |
 | segurança no CI | **bandit, pip-audit, gitleaks, trivy** | código, dependências, segredos e imagens | cada um olha um vetor diferente; juntos cobrem o básico de supply chain |
 
-**Decisões registradas.** Cada tecnologia deste projeto tem um registro de decisão ligando-a a uma necessidade do caso, em [`docs/adr`](adr/README.md). Se a única justificativa fosse "o mercado pede", a ferramenta iria para um laboratório separado, não para cá.
+**Decisões registradas.** Cada tecnologia deste projeto tem um registro de decisão ligando-a a uma necessidade do caso, em [`docs/adr`](adr/README.md): bancos (0001), cifra (0002), Dagster (0003), SeaweedFS (0004), DuckDB (0005), pandera e régua (0006), Grafana (0007), Gitflow (0008) e FastAPI (0009). Se a única justificativa fosse "o mercado pede", a ferramenta iria para um laboratório separado, não para cá.
 
 **Dagster e Airflow.** São os dois orquestradores mais pedidos no mercado. O Airflow organiza **tarefas**; o Dagster organiza **ativos** (a tabela, o arquivo, o modelo) e deduz a ordem a partir das dependências entre eles, o que casa com o jeito medallion de pensar. Quem aprende um lê o outro: um *asset* do Dagster corresponde a uma tarefa que produz um dado no Airflow, um *job* a uma DAG, um *schedule* a um `schedule_interval`.
 
@@ -173,7 +173,7 @@ RH é o domínio do dado pessoal por excelência, e este projeto trata isso como
 - **Retenção e descarte.** Candidato não contratado tem prazo declarado de retenção, e um job do Dagster executa o descarte e registra o que foi descartado.
 - **Classificação por coluna.** O [dicionário de dados](dicionario/README.md), gerado da `information_schema`, marca cada coluna como pública, interna, pessoal ou pessoal sensível, a partir das etiquetas da DDL, e abre pelo inventário de dado pessoal.
 
-O detalhe, com os comandos e os testes, fica no manual de segurança e LGPD (`docs/05`, versão v0.2.0).
+O detalhe, com o modelo de ameaça, o comando de conferência de cada garantia e o que ainda não existe, está em [Segurança e LGPD](05_seguranca_e_lgpd.md).
 
 ## 6. Operação: como se liga, se verifica e se recupera
 

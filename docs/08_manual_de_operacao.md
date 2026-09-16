@@ -3,7 +3,7 @@
 # Manual de Operação · subir, verificar, parar e recuperar
 
 <!-- nav:start -->
-[Home](../README.md) | [← Modelo de Dados](04_modelo_dados_staging.md)
+[Home](../README.md) | [← Segurança e LGPD](05_seguranca_e_lgpd.md)
 <!-- nav:end -->
 
 > O manual de quem opera a plataforma no dia a dia. Todo comando aqui foi executado e conferido na versão em que a seção entrou. Rode todos a partir da **raiz do repositório**. Este documento cresce com o projeto: nesta versão (v0.2.0) ele cobre a infraestrutura; execução de pipelines, agendas e reprocessamento entram com a Fase 3.
