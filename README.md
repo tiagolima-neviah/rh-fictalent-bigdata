@@ -60,13 +60,13 @@ Detalhe de cada etapa, com as decisões e os porquês, em [Arquitetura](docs/03_
 
 ## Status do projeto
 
-O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inteiro, com código, testes e documentação.
+O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inteiro, com código, testes e documentação; o detalhe de cada uma está no [histórico de versões](CHANGELOG.md).
 
 | versão | bloco | situação |
 |---|---|---|
 | v0.1.0 | Entendimento do negócio e dos dados, arquitetura, modelo relacional | concluído |
-| v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, DCL, cifra em repouso, dicionário, CI de segurança | em andamento |
-| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | previsto |
+| v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, trilha de exclusões, DCL, cifra em repouso, dicionário, CI em três trilhos | concluído |
+| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | próxima |
 | v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | previsto |
 | v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | previsto |
 | v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
@@ -80,7 +80,7 @@ O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira oc
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Nesta etapa já é possível subir a plataforma inteira (réplica, warehouse, lake, Dagster e Grafana) e conferir a saúde de cada serviço:
+O projeto está em construção. Na v0.2.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster e Grafana), conferir a saúde de cada serviço e provar a fundação da réplica com os testes de integração:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
