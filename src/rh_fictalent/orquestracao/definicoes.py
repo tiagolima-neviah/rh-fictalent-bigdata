@@ -1,14 +1,25 @@
 """Ponto de entrada do Dagster para o projeto Fictalent RH.
 
-Nesta versão (v0.2.0, fundação) o Dagster sobe vazio: a plataforma existe, os
-metadados já vão para o Postgres dedicado, e os ativos de cada camada entram
-com os cards da Fase 3 em diante (geração, ingestão, bronze, silver, gold,
-warehouse). Declarar o ponto de entrada agora é o que permite validar a
-infraestrutura inteira antes de existir qualquer dado.
+Tudo o que o Dagster conhece passa por aqui: assets, jobs, recursos e, mais adiante,
+agendas e sensores. Na v0.3.0 entram os recursos (réplica, lake, warehouse) e o grupo de
+verificação da plataforma; os assets de dado (geração, ingestão, camadas do lake, warehouse)
+entram com as versões seguintes, sempre pelas convenções de rh_fictalent.orquestracao.convencoes.
 """
 
 from __future__ import annotations
 
 import dagster as dg
 
-defs = dg.Definitions(assets=[])
+from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
+from rh_fictalent.orquestracao.verificacao import (
+    lake_pronto,
+    replica_pronta,
+    verificar_plataforma,
+    warehouse_pronto,
+)
+
+defs = dg.Definitions(
+    assets=[replica_pronta, lake_pronto, warehouse_pronto],
+    jobs=[verificar_plataforma],
+    resources=recursos_do_ambiente(),
+)

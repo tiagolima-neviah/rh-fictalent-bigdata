@@ -1,6 +1,6 @@
 [project]
 name = "rh-fictalent-bigdata"
-version = "0.2.0"
+version = "0.3.0"
 description = "Pipeline de dados ponta a ponta da Fictalent RH (empresa ficticia, dados sinteticos): relacional modular -> backfill + incremental -> bronze/silver/gold -> multidimensional."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,6 +17,8 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pyarrow>=25.0.1",
     "python-dotenv>=1.0",
+    "pymysql>=1.2.0",
+    "s3fs>=2026.7.0",
 ]
 
 [dependency-groups]
@@ -29,7 +31,6 @@ dev = [
     "nbclient>=0.11.0",
     "nbformat>=5.11.1",
     "ipykernel>=7.3.0",
-    "pymysql>=1.2.0",
     "types-pymysql>=1.2.0.20260807",
     "bandit>=1.9.4",
     "pip-audit>=2.10.1",
@@ -59,7 +60,7 @@ files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
 # bibliotecas sem stubs publicados (py.typed ausente); o resto do projeto segue strict
-module = ["fsspec.*", "pyarrow.*", "adbc_driver_postgresql.*"]
+module = ["fsspec.*", "s3fs.*", "pyarrow.*", "adbc_driver_postgresql.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

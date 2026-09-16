@@ -83,7 +83,7 @@ Peça por peça:
 
 | incidente | resposta |
 |---|---|
-| a chave mestra da réplica foi exposta | `ALTER INSTANCE ROTATE INNODB MASTER KEY` (manual, seção 7); a chave antiga deixa de abrir os tablespaces |
+| a chave mestra da réplica foi exposta | `ALTER INSTANCE ROTATE INNODB MASTER KEY` (manual, seção 8); a chave antiga deixa de abrir os tablespaces |
 | a senha de um usuário de serviço vazou | troque no `.env` e rode `bash scripts/aplicar_ddl.sh`: as senhas de `pipeline`, `relatorios_cliente` e `replicador` acompanham o `.env` |
 | a senha do root vazou | troque dentro do banco (`ALTER USER 'root'@'%' ...` e `'root'@'localhost'`) e depois no `.env` |
 | um segredo entrou no git | o gitleaks barra o PR; se já foi mesclado, o segredo está comprometido: rotacione primeiro, reescreva o histórico depois |

@@ -66,7 +66,7 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 |---|---|---|
 | v0.1.0 | Entendimento do negócio e dos dados, arquitetura, modelo relacional | concluído |
 | v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, trilha de exclusões, DCL, cifra em repouso, dicionário, CI em três trilhos | concluído |
-| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | próxima |
+| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | em andamento |
 | v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | previsto |
 | v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | previsto |
 | v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
