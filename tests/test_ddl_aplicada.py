@@ -11,6 +11,7 @@ import socket
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import pymysql
 import pytest
@@ -144,6 +145,44 @@ def test_dado_pessoal_etiquetado_no_banco(con: pymysql.connections.Connection[An
     assert len(etiquetadas) >= 24
     assert ("pessoas", "colaborador", "cpf") in etiquetadas
     assert ("sst", "aso", "resultado") in etiquetadas
+
+
+def test_gatilho_de_exclusao_em_toda_tabela_de_negocio(
+    con: pymysql.connections.Connection[Any],
+) -> None:
+    linhas = _linhas(
+        con,
+        "SELECT trigger_schema, event_object_table FROM information_schema.triggers "
+        "WHERE event_manipulation = 'DELETE' AND action_timing = 'BEFORE' "
+        "AND trigger_schema IN %s",
+        tuple(m for m in MODULOS if m != "meta"),
+    )
+    assert len(linhas) == 75 and len(set(linhas)) == 75
+
+
+def test_delete_deixa_rastro_na_trilha(con: pymysql.connections.Connection[Any]) -> None:
+    """Insere, apaga e confere o rastro; depois apaga o próprio rastro para não sujar a réplica."""
+    nome = f"TRILHA_{uuid4().hex[:12]}"
+    with con.cursor() as cur:
+        cur.execute("INSERT INTO cadastro.regiao (nome) VALUES (%s)", (nome,))
+        novo_id = cur.lastrowid
+        cur.execute("DELETE FROM cadastro.regiao WHERE id = %s", (novo_id,))
+        cur.execute(
+            "SELECT banco, tabela, registro_id, usuario_banco FROM meta.exclusao_auditoria "
+            "WHERE banco = 'cadastro' AND tabela = 'regiao' AND registro_id = %s",
+            (novo_id,),
+        )
+        rastro = list(cur.fetchall())
+        cur.execute(
+            "DELETE FROM meta.exclusao_auditoria "
+            "WHERE banco = 'cadastro' AND tabela = 'regiao' AND registro_id = %s",
+            (novo_id,),
+        )
+    con.commit()
+    assert len(rastro) == 1, rastro
+    banco, tabela, registro_id, usuario = rastro[0]
+    assert (banco, tabela, int(registro_id)) == ("cadastro", "regiao", novo_id)
+    assert str(usuario).startswith("root@")
 
 
 def test_relogio_do_banco_em_utc(con: pymysql.connections.Connection[Any]) -> None:

@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from rh_fictalent.staging.gatilhos import gerar_sql
+
 RAIZ = Path(__file__).resolve().parents[1]
 DDL = RAIZ / "staging" / "ddl"
 ESPERADO = {
@@ -116,6 +118,16 @@ def test_ciclos_fechados_por_alter_idempotente() -> None:
     assert (
         "fk_entrevista_usuario" in seguranca and "information_schema.TABLE_CONSTRAINTS" in seguranca
     )
+
+
+def test_gatilhos_de_exclusao_gerados_e_atualizados() -> None:
+    texto = (DDL / "12_gatilhos_exclusao.sql").read_text(encoding="utf-8")
+    assert texto == gerar_sql(), (
+        "arquivo diverge do gerador: python -m rh_fictalent.staging.gatilhos"
+    )
+    assert texto.count("CREATE TRIGGER IF NOT EXISTS") == 75
+    assert texto.count("BEFORE DELETE ON") == 75
+    assert "ON meta." not in texto, "a trilha não vigia a si mesma"
 
 
 def test_dado_pessoal_etiquetado() -> None:

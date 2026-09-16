@@ -96,9 +96,10 @@ rh-fictalent-bigdata/
 │   └── adr/                 # registros de decisão: que necessidade do caso cada tecnologia atende
 ├── compose.yaml             # a plataforma inteira: 7 serviços com healthcheck
 ├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, provisionamento do Grafana
-├── staging/                 # DDL da réplica (MySQL), módulo a módulo
+├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
+│   ├── staging/             # geradores da DDL (o que deriva das tabelas nasce aqui)
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
 │   ├── bronze/  silver/  gold/   # as camadas do lake

@@ -191,7 +191,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | camada | situação |
 |---|---|
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
-| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, card 2.2). Gatilhos, DCL e cifra a seguir |
+| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna e trilha de exclusões por gatilho gerado da DDL ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 e 2.3). DCL e cifra a seguir |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |
 | 4 · lake | a iniciar |
