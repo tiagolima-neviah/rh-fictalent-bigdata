@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS tributo (
   UNIQUE KEY uq_tributo_codigo (codigo),
   KEY ix_tributo_atualizado_em (atualizado_em),
   CONSTRAINT ck_tributo_esfera CHECK (esfera IN ('FEDERAL', 'ESTADUAL', 'MUNICIPAL'))
-) ENCRYPTION='Y' COMMENT='Catálogo de tributos';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Catálogo de tributos';
 
 CREATE TABLE IF NOT EXISTS aliquota (
   id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS aliquota (
   KEY ix_aliquota_atualizado_em (atualizado_em),
   CONSTRAINT fk_aliquota_tributo FOREIGN KEY (tributo_id) REFERENCES tributo (id),
   CONSTRAINT fk_aliquota_municipio FOREIGN KEY (municipio_id) REFERENCES cadastro.municipio (id)
-) ENCRYPTION='Y' COMMENT='Alíquota por tributo, município e vigência: ISS de Atibaia e Bragança difere do de Extrema';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Alíquota por tributo, município e vigência: ISS de Atibaia e Bragança difere do de Extrema';
 
 CREATE TABLE IF NOT EXISTS fornecedor (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

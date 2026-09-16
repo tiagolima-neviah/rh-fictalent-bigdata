@@ -16,7 +16,7 @@ senha=$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2-)
 
 for arquivo in staging/ddl/*.sql; do
   printf '%s ... ' "$arquivo"
-  docker exec -i -e MYSQL_PWD="$senha" fictalent_mysql_staging mysql -uroot < "$arquivo"
+  docker exec -i -e MYSQL_PWD="$senha" fictalent_mysql_staging mysql -uroot --default-character-set=utf8mb4 < "$arquivo"
   echo ok
 done
 

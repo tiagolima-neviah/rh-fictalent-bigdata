@@ -16,7 +16,8 @@
 --   ENCRYPTION='Y' em toda tabela e DEFAULT ENCRYPTION='Y' em todo database: cifra em
 --   repouso pelo InnoDB, chave mestra no keyring (fora do repositório e do diretório de dados)
 --   comentário em toda tabela; colunas de dado pessoal etiquetadas [LGPD:pessoal] ou
---   [LGPD:sensivel] no próprio comentário, de onde o dicionário de dados é gerado
+--   [LGPD:sensivel] no próprio comentário, de onde o dicionário de dados é gerado;
+--   tabela de referência de domínio público leva [LGPD:publica] no comentário de tabela
 
 CREATE DATABASE IF NOT EXISTS cadastro    CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT ENCRYPTION='Y';
 CREATE DATABASE IF NOT EXISTS comercial   CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT ENCRYPTION='Y';

@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS tipo_exame (
   UNIQUE KEY uq_tipo_exame_codigo (codigo),
   KEY ix_tipo_exame_atualizado_em (atualizado_em),
   CONSTRAINT ck_tipo_exame_codigo CHECK (codigo IN ('ADMISSIONAL', 'PERIODICO', 'MUDANCA_FUNCAO', 'RETORNO', 'DEMISSIONAL'))
-) ENCRYPTION='Y' COMMENT='Catálogo de tipos de exame ocupacional';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Catálogo de tipos de exame ocupacional';
 
 CREATE TABLE IF NOT EXISTS aso (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

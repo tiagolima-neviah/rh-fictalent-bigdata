@@ -171,7 +171,7 @@ RH é o domínio do dado pessoal por excelência, e este projeto trata isso como
 - **Isolamento por filial.** Políticas de *row level security* no warehouse fazem a coordenadora de Extrema enxergar só as linhas de Extrema, no próprio banco, sem depender da aplicação.
 - **Trilha de auditoria.** Quem acessou e quem alterou o quê, com data.
 - **Retenção e descarte.** Candidato não contratado tem prazo declarado de retenção, e um job do Dagster executa o descarte e registra o que foi descartado.
-- **Classificação por coluna.** O dicionário de dados marca cada coluna como pública, interna, pessoal ou pessoal sensível.
+- **Classificação por coluna.** O [dicionário de dados](dicionario/README.md), gerado da `information_schema`, marca cada coluna como pública, interna, pessoal ou pessoal sensível, a partir das etiquetas da DDL, e abre pelo inventário de dado pessoal.
 
 O detalhe, com os comandos e os testes, fica no manual de segurança e LGPD (`docs/05`, versão v0.2.0).
 
@@ -193,7 +193,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | camada | situação |
 |---|---|
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
-| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste, e cifra em repouso de tudo com keyring próprio ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.5) |
+| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste, cifra em repouso de tudo com keyring próprio e dicionário de dados gerado da `information_schema` ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.7) |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |
 | 4 · lake | a iniciar |

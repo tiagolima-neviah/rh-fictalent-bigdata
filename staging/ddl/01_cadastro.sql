@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS regiao (
   PRIMARY KEY (id),
   UNIQUE KEY uq_regiao_nome (nome),
   KEY ix_regiao_atualizado_em (atualizado_em)
-) ENCRYPTION='Y' COMMENT='Agrupamento comercial de municípios (eixo Fernão Dias, Vale, etc.)';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Agrupamento comercial de municípios (eixo Fernão Dias, Vale, etc.)';
 
 CREATE TABLE IF NOT EXISTS municipio (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS municipio (
   UNIQUE KEY uq_municipio_ibge (codigo_ibge),
   KEY ix_municipio_atualizado_em (atualizado_em),
   CONSTRAINT fk_municipio_regiao FOREIGN KEY (regiao_id) REFERENCES regiao (id)
-) ENCRYPTION='Y' COMMENT='Município: usado por cliente, posto, colaborador e pela alíquota de ISS';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Município: usado por cliente, posto, colaborador e pela alíquota de ISS';
 
 CREATE TABLE IF NOT EXISTS endereco (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS funcao (
   PRIMARY KEY (id),
   UNIQUE KEY uq_funcao_codigo (codigo),
   KEY ix_funcao_atualizado_em (atualizado_em)
-) ENCRYPTION='Y' COMMENT='Cerca de 40 funções: auxiliar de produção, operador de empilhadeira, conferente, repositor';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Cerca de 40 funções: auxiliar de produção, operador de empilhadeira, conferente, repositor';
 
 CREATE TABLE IF NOT EXISTS convencao_coletiva (
   id              BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS feriado (
   KEY ix_feriado_atualizado_em (atualizado_em),
   CONSTRAINT fk_feriado_municipio FOREIGN KEY (municipio_id) REFERENCES municipio (id),
   CONSTRAINT ck_feriado_abrangencia CHECK (abrangencia IN ('NACIONAL', 'ESTADUAL', 'MUNICIPAL'))
-) ENCRYPTION='Y' COMMENT='Feriados (vêm da BrasilAPI e dos municípios): quase todo indicador é medido em dias úteis';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Feriados (vêm da BrasilAPI e dos municípios): quase todo indicador é medido em dias úteis';
 
 CREATE TABLE IF NOT EXISTS escala (
   id              BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS escala (
   PRIMARY KEY (id),
   UNIQUE KEY uq_escala_codigo (codigo),
   KEY ix_escala_atualizado_em (atualizado_em)
-) ENCRYPTION='Y' COMMENT='Escalas de trabalho: definem a jornada esperada no ponto';
+) ENCRYPTION='Y' COMMENT='[LGPD:publica] Escalas de trabalho: definem a jornada esperada no ponto';
 
 CREATE TABLE IF NOT EXISTS parametro (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
