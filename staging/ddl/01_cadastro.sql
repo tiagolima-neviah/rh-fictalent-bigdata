@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS regiao (
   PRIMARY KEY (id),
   UNIQUE KEY uq_regiao_nome (nome),
   KEY ix_regiao_atualizado_em (atualizado_em)
-) COMMENT='Agrupamento comercial de municípios (eixo Fernão Dias, Vale, etc.)';
+) ENCRYPTION='Y' COMMENT='Agrupamento comercial de municípios (eixo Fernão Dias, Vale, etc.)';
 
 CREATE TABLE IF NOT EXISTS municipio (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS municipio (
   UNIQUE KEY uq_municipio_ibge (codigo_ibge),
   KEY ix_municipio_atualizado_em (atualizado_em),
   CONSTRAINT fk_municipio_regiao FOREIGN KEY (regiao_id) REFERENCES regiao (id)
-) COMMENT='Município: usado por cliente, posto, colaborador e pela alíquota de ISS';
+) ENCRYPTION='Y' COMMENT='Município: usado por cliente, posto, colaborador e pela alíquota de ISS';
 
 CREATE TABLE IF NOT EXISTS endereco (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS endereco (
   KEY ix_endereco_atualizado_em (atualizado_em),
   CONSTRAINT fk_endereco_municipio FOREIGN KEY (municipio_id) REFERENCES municipio (id),
   CONSTRAINT ck_endereco_tipo CHECK (tipo IN ('FILIAL', 'CLIENTE', 'LOCAL_TRABALHO', 'COLABORADOR'))
-) COMMENT='Endereços de filial, cliente, local de trabalho e colaborador';
+) ENCRYPTION='Y' COMMENT='Endereços de filial, cliente, local de trabalho e colaborador';
 
 CREATE TABLE IF NOT EXISTS filial (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS filial (
   KEY ix_filial_atualizado_em (atualizado_em),
   CONSTRAINT fk_filial_endereco FOREIGN KEY (endereco_id) REFERENCES endereco (id),
   CONSTRAINT ck_filial_tipo CHECK (tipo IN ('MATRIZ', 'FILIAL'))
-) COMMENT='As três unidades: Atibaia (matriz), Bragança Paulista e Extrema';
+) ENCRYPTION='Y' COMMENT='As três unidades: Atibaia (matriz), Bragança Paulista e Extrema';
 
 CREATE TABLE IF NOT EXISTS motivo (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS motivo (
   UNIQUE KEY uq_motivo_tipo_codigo (tipo, codigo),
   KEY ix_motivo_atualizado_em (atualizado_em),
   CONSTRAINT ck_motivo_tipo CHECK (tipo IN ('DESLIGAMENTO', 'REPROVACAO', 'CANCELAMENTO_VAGA', 'PERDA_CONTRATO', 'AFASTAMENTO', 'FIM_ALOCACAO', 'OCORRENCIA'))
-) COMMENT='Catálogo único de motivos: desligamento, reprovação, cancelamento de vaga, perda de contrato, afastamento';
+) ENCRYPTION='Y' COMMENT='Catálogo único de motivos: desligamento, reprovação, cancelamento de vaga, perda de contrato, afastamento';
 
 CREATE TABLE IF NOT EXISTS funcao (
   id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS funcao (
   PRIMARY KEY (id),
   UNIQUE KEY uq_funcao_codigo (codigo),
   KEY ix_funcao_atualizado_em (atualizado_em)
-) COMMENT='Cerca de 40 funções: auxiliar de produção, operador de empilhadeira, conferente, repositor';
+) ENCRYPTION='Y' COMMENT='Cerca de 40 funções: auxiliar de produção, operador de empilhadeira, conferente, repositor';
 
 CREATE TABLE IF NOT EXISTS convencao_coletiva (
   id              BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS convencao_coletiva (
   KEY ix_convencao_coletiva_atualizado_em (atualizado_em),
   CONSTRAINT fk_convencao_municipio FOREIGN KEY (municipio_id) REFERENCES municipio (id),
   CONSTRAINT ck_convencao_mes CHECK (mes_data_base BETWEEN 1 AND 12)
-) COMMENT='Convenção coletiva por sindicato e município: explica por que o mesmo cargo custa diferente por cidade';
+) ENCRYPTION='Y' COMMENT='Convenção coletiva por sindicato e município: explica por que o mesmo cargo custa diferente por cidade';
 
 CREATE TABLE IF NOT EXISTS piso_salarial (
   id                           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS piso_salarial (
   KEY ix_piso_salarial_atualizado_em (atualizado_em),
   CONSTRAINT fk_piso_convencao FOREIGN KEY (convencao_id) REFERENCES convencao_coletiva (id),
   CONSTRAINT fk_piso_funcao FOREIGN KEY (funcao_id) REFERENCES funcao (id)
-) COMMENT='Piso por convenção e função, com vigência: a base do custo por cabeça';
+) ENCRYPTION='Y' COMMENT='Piso por convenção e função, com vigência: a base do custo por cabeça';
 
 CREATE TABLE IF NOT EXISTS feriado (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS feriado (
   KEY ix_feriado_atualizado_em (atualizado_em),
   CONSTRAINT fk_feriado_municipio FOREIGN KEY (municipio_id) REFERENCES municipio (id),
   CONSTRAINT ck_feriado_abrangencia CHECK (abrangencia IN ('NACIONAL', 'ESTADUAL', 'MUNICIPAL'))
-) COMMENT='Feriados (vêm da BrasilAPI e dos municípios): quase todo indicador é medido em dias úteis';
+) ENCRYPTION='Y' COMMENT='Feriados (vêm da BrasilAPI e dos municípios): quase todo indicador é medido em dias úteis';
 
 CREATE TABLE IF NOT EXISTS escala (
   id              BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS escala (
   PRIMARY KEY (id),
   UNIQUE KEY uq_escala_codigo (codigo),
   KEY ix_escala_atualizado_em (atualizado_em)
-) COMMENT='Escalas de trabalho: definem a jornada esperada no ponto';
+) ENCRYPTION='Y' COMMENT='Escalas de trabalho: definem a jornada esperada no ponto';
 
 CREATE TABLE IF NOT EXISTS parametro (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS parametro (
   PRIMARY KEY (id),
   UNIQUE KEY uq_parametro_chave_vigencia (chave, vigencia_inicio),
   KEY ix_parametro_atualizado_em (atualizado_em)
-) COMMENT='Parâmetros com vigência: prazos legais (180 e 90 dias), markup padrão, limites de alerta';
+) ENCRYPTION='Y' COMMENT='Parâmetros com vigência: prazos legais (180 e 90 dias), markup padrão, limites de alerta';
 
 CREATE TABLE IF NOT EXISTS centro_custo (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -177,4 +177,4 @@ CREATE TABLE IF NOT EXISTS centro_custo (
   KEY ix_centro_custo_atualizado_em (atualizado_em),
   CONSTRAINT fk_centro_custo_filial FOREIGN KEY (filial_id) REFERENCES filial (id),
   CONSTRAINT ck_centro_custo_tipo CHECK (tipo IN ('FILIAL', 'RETAGUARDA', 'CONTRATO'))
-) COMMENT='O eixo do rateio de custo e da apuração de resultado';
+) ENCRYPTION='Y' COMMENT='O eixo do rateio de custo e da apuração de resultado';

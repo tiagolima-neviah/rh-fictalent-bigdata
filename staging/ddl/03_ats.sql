@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS fonte_candidato (
   UNIQUE KEY uq_fonte_candidato_nome (nome),
   KEY ix_fonte_candidato_atualizado_em (atualizado_em),
   CONSTRAINT ck_fonte_candidato_nome CHECK (nome IN ('INDICACAO', 'PORTAL', 'REDES', 'BANCO_INTERNO', 'PRESENCIAL'))
-) COMMENT='De onde o candidato veio: base do custo por contratação por fonte';
+) ENCRYPTION='Y' COMMENT='De onde o candidato veio: base do custo por contratação por fonte';
 
 CREATE TABLE IF NOT EXISTS etapa_funil (
   id            BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS etapa_funil (
   PRIMARY KEY (id),
   UNIQUE KEY uq_etapa_funil_codigo (codigo),
   KEY ix_etapa_funil_atualizado_em (atualizado_em)
-) COMMENT='Triagem, entrevista interna, encaminhamento, entrevista no cliente, aprovação';
+) ENCRYPTION='Y' COMMENT='Triagem, entrevista interna, encaminhamento, entrevista no cliente, aprovação';
 
 CREATE TABLE IF NOT EXISTS requisicao (
   id                      BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS requisicao (
   CONSTRAINT fk_requisicao_motivo FOREIGN KEY (motivo_cancelamento_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_requisicao_prioridade CHECK (prioridade IN ('BAIXA', 'NORMAL', 'ALTA', 'URGENTE')),
   CONSTRAINT ck_requisicao_status CHECK (status IN ('ABERTA', 'EM_ATENDIMENTO', 'ATENDIDA', 'CANCELADA'))
-) COMMENT='O pedido do cliente: o começo de tudo';
+) ENCRYPTION='Y' COMMENT='O pedido do cliente: o começo de tudo';
 
 CREATE TABLE IF NOT EXISTS vaga (
   id                   BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS vaga (
   CONSTRAINT fk_vaga_funcao FOREIGN KEY (funcao_id) REFERENCES cadastro.funcao (id),
   CONSTRAINT fk_vaga_filial FOREIGN KEY (filial_id) REFERENCES cadastro.filial (id),
   CONSTRAINT ck_vaga_status CHECK (status IN ('ABERTA', 'EM_TRIAGEM', 'PREENCHIDA', 'CANCELADA'))
-) COMMENT='Cerca de 20 mil vagas no arco; o time-to-fill nasce de dt_abertura e dt_fechamento';
+) ENCRYPTION='Y' COMMENT='Cerca de 20 mil vagas no arco; o time-to-fill nasce de dt_abertura e dt_fechamento';
 
 CREATE TABLE IF NOT EXISTS candidato (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS candidato (
   CONSTRAINT fk_candidato_municipio FOREIGN KEY (municipio_id) REFERENCES cadastro.municipio (id),
   CONSTRAINT fk_candidato_fonte FOREIGN KEY (fonte_id) REFERENCES fonte_candidato (id),
   CONSTRAINT ck_candidato_sexo CHECK (sexo IN ('F', 'M', 'N'))
-) COMMENT='Cerca de 60 mil candidatos; é aqui que moram os duplicados e os CPF inválidos. Prazo de retenção para não contratado definido em cadastro.parametro';
+) ENCRYPTION='Y' COMMENT='Cerca de 60 mil candidatos; é aqui que moram os duplicados e os CPF inválidos. Prazo de retenção para não contratado definido em cadastro.parametro';
 
 CREATE TABLE IF NOT EXISTS candidato_experiencia (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS candidato_experiencia (
   KEY ix_candidato_experiencia_atualizado_em (atualizado_em),
   CONSTRAINT fk_candidato_experiencia_candidato FOREIGN KEY (candidato_id) REFERENCES candidato (id),
   CONSTRAINT fk_candidato_experiencia_funcao FOREIGN KEY (funcao_id) REFERENCES cadastro.funcao (id)
-) COMMENT='Experiências anteriores: matéria para triagem e para análise de aderência';
+) ENCRYPTION='Y' COMMENT='Experiências anteriores: matéria para triagem e para análise de aderência';
 
 CREATE TABLE IF NOT EXISTS candidatura (
   id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS candidatura (
   CONSTRAINT fk_candidatura_etapa FOREIGN KEY (etapa_atual_id) REFERENCES etapa_funil (id),
   CONSTRAINT fk_candidatura_motivo FOREIGN KEY (motivo_reprovacao_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_candidatura_status CHECK (status IN ('EM_ANDAMENTO', 'APROVADA', 'REPROVADA', 'DESISTENCIA', 'CANCELADA'))
-) COMMENT='Cerca de 300 mil: a linha do funil. Um candidato, várias candidaturas';
+) ENCRYPTION='Y' COMMENT='Cerca de 300 mil: a linha do funil. Um candidato, várias candidaturas';
 
 CREATE TABLE IF NOT EXISTS candidatura_etapa (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS candidatura_etapa (
   CONSTRAINT fk_candidatura_etapa_etapa FOREIGN KEY (etapa_id) REFERENCES etapa_funil (id),
   CONSTRAINT fk_candidatura_etapa_motivo FOREIGN KEY (motivo_id) REFERENCES cadastro.motivo (id),
   CONSTRAINT ck_candidatura_etapa_resultado CHECK (resultado IN ('APROVADO', 'REPROVADO', 'DESISTIU', 'PENDENTE'))
-) COMMENT='Cerca de 750 mil: cada passagem de etapa com data, o que produz conversão e tempo por etapa';
+) ENCRYPTION='Y' COMMENT='Cerca de 750 mil: cada passagem de etapa com data, o que produz conversão e tempo por etapa';
 
 CREATE TABLE IF NOT EXISTS entrevista (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -168,4 +168,4 @@ CREATE TABLE IF NOT EXISTS entrevista (
   CONSTRAINT fk_entrevista_candidatura FOREIGN KEY (candidatura_id) REFERENCES candidatura (id),
   CONSTRAINT ck_entrevista_tipo CHECK (tipo IN ('INTERNA', 'CLIENTE')),
   CONSTRAINT ck_entrevista_resultado CHECK (resultado IN ('APROVADO', 'REPROVADO', 'REAGENDAR', 'NAO_COMPARECEU'))
-) COMMENT='O no-show de entrevista mora aqui';
+) ENCRYPTION='Y' COMMENT='O no-show de entrevista mora aqui';

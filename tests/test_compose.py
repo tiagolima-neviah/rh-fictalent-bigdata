@@ -16,7 +16,7 @@ import yaml
 
 RAIZ = Path(__file__).resolve().parents[1]
 COMPOSE = RAIZ / "compose.yaml"
-JOBS_DE_INICIALIZACAO = {"s3-init"}
+JOBS_DE_INICIALIZACAO = {"s3-init", "keyring-init"}
 
 
 def _carregar() -> dict[str, Any]:
@@ -40,6 +40,7 @@ def test_servicos_esperados_existem() -> None:
         "pg-dagster",
         "s3",
         "s3-init",
+        "keyring-init",
         "dagster-web",
         "dagster-daemon",
         "grafana",
@@ -89,6 +90,22 @@ def test_sem_ganho_de_privilegio(nome: str) -> None:
 def test_portas_publicadas_so_em_localhost(nome: str) -> None:
     for porta in _servicos()[nome].get("ports", []):
         assert str(porta).startswith("127.0.0.1:"), f"{nome}: porta exposta na rede ({porta})"
+
+
+def test_replica_cifra_em_repouso() -> None:
+    replica = _servicos()["mysql-staging"]
+    for opcao in (
+        "--default-table-encryption=ON",
+        "--table-encryption-privilege-check=ON",
+        "--innodb-redo-log-encrypt=ON",
+        "--innodb-undo-log-encrypt=ON",
+        "--binlog-encryption=ON",
+    ):
+        assert opcao in replica["command"], opcao
+    assert "mysql_keyring:/var/lib/mysql-keyring" in replica["volumes"]
+    assert "./infra/mysql/mysqld.my:/usr/sbin/mysqld.my:ro" in replica["volumes"]
+    assert replica["depends_on"]["keyring-init"]["condition"] == "service_completed_successfully"
+    assert replica["user"] == "999:999", "a réplica não roda como root"
 
 
 def test_banco_de_metadados_nao_publica_porta() -> None:

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS evento_folha (
   UNIQUE KEY uq_evento_folha_codigo (codigo),
   KEY ix_evento_folha_atualizado_em (atualizado_em),
   CONSTRAINT ck_evento_folha_tipo CHECK (tipo IN ('PROVENTO', 'DESCONTO', 'ENCARGO', 'PROVISAO'))
-) COMMENT='Cerca de 30 eventos: salário, adicional noturno, HE 50 e 100, DSR, INSS, FGTS, VT, VR';
+) ENCRYPTION='Y' COMMENT='Cerca de 30 eventos: salário, adicional noturno, HE 50 e 100, DSR, INSS, FGTS, VT, VR';
 
 CREATE TABLE IF NOT EXISTS beneficio (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS beneficio (
   UNIQUE KEY uq_beneficio_codigo (codigo),
   KEY ix_beneficio_atualizado_em (atualizado_em),
   CONSTRAINT ck_beneficio_tipo CHECK (tipo IN ('VT', 'VR', 'VA', 'PLANO'))
-) COMMENT='Benefícios por convenção';
+) ENCRYPTION='Y' COMMENT='Benefícios por convenção';
 
 CREATE TABLE IF NOT EXISTS folha_competencia (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS folha_competencia (
   KEY ix_folha_competencia_atualizado_em (atualizado_em),
   CONSTRAINT fk_folha_competencia_filial FOREIGN KEY (filial_id) REFERENCES cadastro.filial (id),
   CONSTRAINT ck_folha_competencia_status CHECK (status IN ('ABERTA', 'FECHADA', 'REABERTA'))
-) COMMENT='O fechamento mensal da folha por filial';
+) ENCRYPTION='Y' COMMENT='O fechamento mensal da folha por filial';
 
 CREATE TABLE IF NOT EXISTS folha_item (
   id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS folha_item (
   CONSTRAINT fk_folha_item_colaborador FOREIGN KEY (colaborador_id) REFERENCES pessoas.colaborador (id),
   CONSTRAINT fk_folha_item_contrato_trabalho FOREIGN KEY (contrato_trabalho_id) REFERENCES pessoas.contrato_trabalho (id),
   CONSTRAINT fk_folha_item_evento FOREIGN KEY (evento_id) REFERENCES evento_folha (id)
-) COMMENT='Cerca de 860 mil: uma linha por pessoa e evento em cada competência';
+) ENCRYPTION='Y' COMMENT='Cerca de 860 mil: uma linha por pessoa e evento em cada competência';
 
 CREATE TABLE IF NOT EXISTS provisao (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS provisao (
   KEY ix_provisao_atualizado_em (atualizado_em),
   CONSTRAINT fk_provisao_colaborador FOREIGN KEY (colaborador_id) REFERENCES pessoas.colaborador (id),
   CONSTRAINT ck_provisao_tipo CHECK (tipo IN ('DECIMO_TERCEIRO', 'FERIAS', 'ENCARGOS'))
-) COMMENT='Cerca de 114 mil: a provisão aperta a margem exatamente no mês de maior receita';
+) ENCRYPTION='Y' COMMENT='Cerca de 114 mil: a provisão aperta a margem exatamente no mês de maior receita';
 
 CREATE TABLE IF NOT EXISTS colaborador_beneficio (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS colaborador_beneficio (
   KEY ix_colaborador_beneficio_atualizado_em (atualizado_em),
   CONSTRAINT fk_colaborador_beneficio_colaborador FOREIGN KEY (colaborador_id) REFERENCES pessoas.colaborador (id),
   CONSTRAINT fk_colaborador_beneficio_beneficio FOREIGN KEY (beneficio_id) REFERENCES beneficio (id)
-) COMMENT='Quem recebe o quê, e desde quando';
+) ENCRYPTION='Y' COMMENT='Quem recebe o quê, e desde quando';
 
 CREATE TABLE IF NOT EXISTS rateio_custo (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -125,4 +125,4 @@ CREATE TABLE IF NOT EXISTS rateio_custo (
   CONSTRAINT fk_rateio_custo_centro_custo FOREIGN KEY (centro_custo_id) REFERENCES cadastro.centro_custo (id),
   CONSTRAINT fk_rateio_custo_contrato FOREIGN KEY (contrato_id) REFERENCES comercial.contrato (id),
   CONSTRAINT fk_rateio_custo_posto FOREIGN KEY (posto_id) REFERENCES comercial.posto (id)
-) COMMENT='A tabela que torna a margem por cliente possível: leva o custo de cada pessoa até o posto onde ela trabalhou';
+) ENCRYPTION='Y' COMMENT='A tabela que torna a margem por cliente possível: leva o custo de cada pessoa até o posto onde ela trabalhou';

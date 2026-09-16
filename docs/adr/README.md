@@ -5,5 +5,6 @@ Cada tecnologia que entra neste projeto precisa de um registro dizendo **que nec
 | número | decisão | situação |
 |---|---|---|
 | [0001](0001-mysql-no-staging-postgres-no-olap.md) | MySQL na réplica do cliente (staging), Postgres no warehouse (OLAP) | aceito em 15/09/2026 |
+| [0002](0002-cifra-em-repouso-tablespace.md) | Cifra em repouso por tablespace do InnoDB com keyring próprio, não por coluna | aceito em 16/09/2026 |
 
 Os demais (Dagster, SeaweedFS, DuckDB, pandera, Grafana, FastAPI, Gitflow) entram com o card 2.9 da v0.2.0.

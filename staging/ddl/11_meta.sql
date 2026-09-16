@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS exclusao_auditoria (
   PRIMARY KEY (id),
   KEY ix_exclusao_auditoria_dt (dt_exclusao),
   KEY ix_exclusao_auditoria_tabela (banco, tabela, registro_id)
-) COMMENT='Captura o DELETE que a marca d agua não veria; só insere, nunca atualiza';
+) ENCRYPTION='Y' COMMENT='Captura o DELETE que a marca d agua não veria; só insere, nunca atualiza';

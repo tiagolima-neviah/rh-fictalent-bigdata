@@ -17,6 +17,7 @@
 | `pg-dagster` | Postgres · metadados do Dagster | sem porta (só rede interna) | não |
 | `s3` | SeaweedFS · lake compatível com S3 | `127.0.0.1:8333` | não |
 | `s3-init` | job único · cria o bucket do lake e termina | sem porta | não |
+| `keyring-init` | job único · prepara o volume da chave de cifra da réplica e termina | sem porta | não |
 | `dagster-web` | Dagster · interface web | <http://127.0.0.1:3010> | não |
 | `dagster-daemon` | Dagster · agendas, sensores e fila | sem porta | não |
 | `grafana` | Grafana · monitoramento e alertas | <http://127.0.0.1:3011> | não |
@@ -49,7 +50,7 @@ A primeira subida baixa as imagens e constrói a do Dagster (cerca de 1 minuto m
 bash scripts/saude.sh
 ```
 
-O script espera cada serviço ficar saudável e o bucket do lake ser criado, e termina com `OK` ou com a lista do que falhou.
+O script espera cada serviço ficar saudável e os dois jobs de inicialização terminarem, e termina com `OK` ou com a lista do que falhou.
 
 **4. A réplica já nasce com as tabelas.** Na primeira inicialização o MySQL executa a DDL de `staging/ddl` (10 módulos, 76 tabelas). Se o volume da réplica já existia antes da DDL entrar no repositório, aplique por cima:
 
@@ -67,7 +68,7 @@ Visão geral, com o estado de saúde de cada serviço:
 docker compose ps
 ```
 
-Resultado esperado: sete serviços com `(healthy)` e o `s3-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
+Resultado esperado: sete serviços com `(healthy)` e os jobs `s3-init` e `keyring-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
 
 Esperar até tudo ficar saudável, sem precisar ficar repetindo o comando:
 
@@ -108,8 +109,9 @@ Estes comportamentos foram testados na subida da versão v0.2.0. Os comandos de 
 | a réplica não aceita conexão sem senha | `docker exec fictalent_mysql_staging mysql -uroot -e "select 1"` | `Access denied for user 'root'` |
 | os relatórios do cliente não leem dado pessoal | `.venv/bin/pytest -q tests/test_dcl_aplicada.py` | todos passam: `SELECT cpf` e `SELECT *` em `pessoas.colaborador` negados para `relatorios_cliente` |
 | o pipeline não escreve e a replicação não faz DDL | mesmo teste | `INSERT` negado para `pipeline`; `CREATE`, `DROP`, `ALTER` e `GRANT` negados para `replicador` |
+| dado pessoal não aparece em claro no disco da réplica | `.venv/bin/pytest -q tests/test_cifra_aplicada.py` | todos passam: CPF gravado não é encontrado no `.ibd` cifrado, e é encontrado na tabela de controle em claro |
 | o lake exige credencial | listar buckets com chave errada | `InvalidAccessKeyId` |
-| Dagster e Grafana não rodam como root | `docker exec fictalent_dagster_web id -u` | `10001` (Dagster) e `472` (Grafana) |
+| Dagster, Grafana e a réplica não rodam como root | `docker exec fictalent_dagster_web id -u` (e o mesmo para `fictalent_grafana` e `fictalent_mysql_staging`) | `10001` (Dagster), `472` (Grafana) e `999` (MySQL) |
 
 ## 4. Parar, reiniciar e ver logs
 
@@ -128,7 +130,7 @@ Os serviços têm política `unless-stopped`: se o Docker ou a máquina reinicia
 
 ## 5. Recomeçar do zero (destrutivo)
 
-Apaga **todos os dados**: bancos, lake, histórico do Dagster e configurações do Grafana. Use só quando quiser uma instalação limpa.
+Apaga **todos os dados**: bancos, lake, histórico do Dagster, configurações do Grafana e a chave de cifra da réplica (sem ela o dado cifrado seria irrecuperável de qualquer jeito). Use só quando quiser uma instalação limpa.
 
 ```bash
 docker compose down -v
@@ -136,7 +138,23 @@ docker compose down -v
 
 Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
 
-## 6. Quando algo não sobe
+## 6. A chave de cifra da réplica
+
+A réplica é cifrada em repouso ([Modelo de Dados, seção 8](04_modelo_dados_staging.md#8-cifra-em-repouso)). A chave mestra fica no volume `mysql_keyring`, nunca no repositório. Trocar a chave mestra, sem parar nada:
+
+```bash
+docker exec -e MYSQL_PWD="$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2-)" fictalent_mysql_staging mysql -uroot -e "ALTER INSTANCE ROTATE INNODB MASTER KEY"
+```
+
+Conferir que o componente está ativo e onde está a chave:
+
+```bash
+docker exec -e MYSQL_PWD="$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2-)" fictalent_mysql_staging mysql -uroot -e "SELECT * FROM performance_schema.keyring_component_status"
+```
+
+Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manual de backup, v1.0.0).
+
+## 7. Quando algo não sobe
 
 | sintoma | causa provável | o que fazer |
 |---|---|---|
@@ -145,6 +163,7 @@ Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários
 | `mysql-staging` fica em `health: starting` por mais de um minuto | primeira inicialização do MySQL | normal na primeira subida; acompanhe com `docker compose logs -f mysql-staging` |
 | `dagster-daemon` `unhealthy` logo depois de subir | o daemon ainda não publicou o primeiro sinal de vida | espere o `start_period` (60 s); se persistir, `docker compose logs dagster-daemon` |
 | Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
+| `mysql-staging` não sobe e o log fala em `keyring` ou `Component_keyring_file` | o volume da chave não está acessível ao usuário do MySQL, ou o manifesto não foi montado | `docker compose logs keyring-init mysql-staging`; confira que `infra/mysql/mysqld.my` e `component_keyring_file.cnf` existem |
 | a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
 
 ---

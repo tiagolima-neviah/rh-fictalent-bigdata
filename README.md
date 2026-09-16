@@ -95,7 +95,7 @@ rh-fictalent-bigdata/
 ├── docs/                    # a documentação navegável (leia na ordem)
 │   └── adr/                 # registros de decisão: que necessidade do caso cada tecnologia atende
 ├── compose.yaml             # a plataforma inteira: 7 serviços com healthcheck
-├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, provisionamento do Grafana
+├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, keyring da réplica, provisionamento do Grafana
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
