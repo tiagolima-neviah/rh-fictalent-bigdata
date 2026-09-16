@@ -53,6 +53,10 @@ services:
       # criados pela DDL em staging/ddl na primeira inicialização; os usuários por perfil
       # vêm com o DCL (card 2.4)
       MYSQL_ROOT_PASSWORD: ${STAGING_ROOT_PASSWORD:?defina STAGING_ROOT_PASSWORD no .env}
+      # usuários de serviço criados por staging/ddl/14_usuarios.sh, cada um com o seu papel
+      PIPELINE_PASSWORD: ${PIPELINE_PASSWORD:?defina PIPELINE_PASSWORD no .env}
+      RELATORIOS_PASSWORD: ${RELATORIOS_PASSWORD:?defina RELATORIOS_PASSWORD no .env}
+      REPLICADOR_PASSWORD: ${REPLICADOR_PASSWORD:?defina REPLICADOR_PASSWORD no .env}
     ports:
       - "127.0.0.1:${STAGING_PORT:-3316}:3306"
     volumes:

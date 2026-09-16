@@ -99,7 +99,7 @@ rh-fictalent-bigdata/
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
-│   ├── staging/             # geradores da DDL (o que deriva das tabelas nasce aqui)
+│   ├── staging/             # geradores da DDL: gatilhos e papéis (o que deriva das tabelas nasce aqui)
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
 │   ├── bronze/  silver/  gold/   # as camadas do lake

@@ -115,7 +115,7 @@ Os 75 gatilhos são **gerados a partir da própria DDL** por `src/rh_fictalent/s
 .venv/bin/python -m rh_fictalent.staging.gatilhos
 ```
 
-O gatilho corre na mesma transação do `DELETE`: uma exclusão barrada por chave estrangeira é desfeita junto com o rastro, então a trilha nunca registra o que não aconteceu. A tabela `meta` não tem gatilho: a trilha não vigia a si mesma.
+O gatilho corre na mesma transação do `DELETE`: uma exclusão barrada por chave estrangeira é desfeita junto com o rastro, então a trilha nunca registra o que não aconteceu. A tabela `meta` não tem gatilho: a trilha não vigia a si mesma. Quem apagou é `USER()`, o usuário que executou o `DELETE`; `CURRENT_USER()` dentro de um gatilho devolveria o definidor, e o rastro diria sempre `root`. Cada gatilho é escrito como `DROP TRIGGER IF EXISTS` seguido de `CREATE`, então reaplicar a DDL troca o gatilho pelo da versão atual sem passo manual.
 
 Conferir na réplica que os 75 existem:
 
@@ -137,18 +137,47 @@ SELECT banco, tabela, registro_id, dt_exclusao, usuario_banco
 
 **Limite honesto.** Neste ambiente o gerador escreve direto na réplica, e o gatilho vê cada `DELETE`. Numa replicação real por binlog em formato de linha, os gatilhos da réplica **não disparam** para eventos replicados; nesse cenário a trilha vem do próprio binlog. A escolha entre as duas fontes é medida e registrada em ADR quando a ingestão for construída (v0.5.0).
 
-## 7. Decisões que valem a pena explicar
+## 7. Quem acessa a réplica, e com que direitos
+
+Os perfis de negócio da Fictalent (sócio, gerente, coordenação, assistente, financeiro, TI) são do **sistema do cliente**, que os aplica pela própria matriz `seguranca.permissao`; no warehouse eles voltam como papéis de leitura com isolamento por filial (v0.7.0). Na réplica, quem conecta são **três funções técnicas**, e cada uma tem um papel de banco com o mínimo que a função exige:
+
+| usuário | papel | pode | não pode | quem é |
+|---|---|---|---|---|
+| `pipeline` | `papel_pipeline` | `SELECT` nos 10 módulos e em `meta` | escrever, criar, apagar, conceder | o pipeline da Neviah (backfill, incremental, trilha de exclusões) |
+| `relatorios_cliente` | `papel_relatorios` | `SELECT` nas colunas **sem etiqueta LGPD**; tabelas sem dado pessoal inteiras | ler `cpf`, `nome`, `cid_grupo`, `resultado` do ASO...; `SELECT *` numa tabela com coluna etiquetada; ler `meta`; escrever | os relatórios do próprio sistema do cliente, apontados para a réplica para poupar o produtivo |
+| `replicador` | `papel_replicador` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` nos 10 módulos | DDL, `GRANT`, criar usuário, tocar em `meta` | a replicação que chega do cliente; neste projeto, o gerador |
+
+Os papéis e os `GRANT` estão em [`staging/ddl/13_papeis.sql`](../staging/ddl/13_papeis.sql), **gerado da DDL** por `src/rh_fictalent/staging/papeis.py`: para cada tabela com coluna etiquetada `[LGPD:...]`, o `GRANT` do `relatorios_cliente` é coluna a coluna, deixando as etiquetadas de fora. Uma coluna nova etiquetada fica fora do relatório sem ninguém precisar lembrar; uma coluna nova sem etiqueta entra. Regenerar: `.venv/bin/python -m rh_fictalent.staging.papeis`. Os usuários, com senha do `.env`, vêm de [`14_usuarios.sh`](../staging/ddl/14_usuarios.sh), que roda na primeira inicialização e em `scripts/aplicar_ddl.sh` (a senha desses três acompanha o `.env` a cada aplicação; a do root não).
+
+O `DELETE` do `replicador` dispara o gatilho da trilha, que grava em `meta` **com o direito do definidor do gatilho**, não do `replicador`: ele escreve na trilha sem poder lê-la nem apagá-la.
+
+**Os testes passam quando o acesso indevido falha.** `tests/test_dcl_aplicada.py` conecta como cada usuário e confere as duas colunas da tabela acima: o que pode, executa; o que não pode, recebe erro de permissão do MySQL (1044, 1142, 1143 ou 1227). Rodar:
+
+```bash
+.venv/bin/pytest -q tests/test_dcl_aplicada.py
+```
+
+Conferir os papéis direto no banco:
+
+```sql
+SHOW GRANTS FOR 'relatorios_cliente'@'%' USING papel_relatorios;
+```
+
+**Uma consequência prática.** Com `GRANT` de coluna, `SELECT *` não passa em tabela com dado pessoal: o relatório precisa nomear as colunas. É desconforto de propósito: é o dado pessoal deixando de vazar por preguiça de digitar.
+
+## 8. Decisões que valem a pena explicar
 
 - **`atualizado_em` pelo motor, não por gatilho.** O plano original previa gatilhos; o `ON UPDATE CURRENT_TIMESTAMP` do MySQL faz o mesmo sem código, e o gerador pode sobrescrever o valor quando precisa datar o passado. Gatilho fica só para o que o motor não faz sozinho: registrar o `DELETE`.
 - **CPF sem `UNIQUE` em `ats.candidato`, com `UNIQUE` em `pessoas.colaborador`.** O funil recebe duplicados e CPF inválido, como na vida real; a admissão não pode. A diferença entre os dois é medida na auditoria de qualidade.
 - **`ponto.marcacao` sem chave única.** Batida duplicada é sujeira de origem e precisa poder existir para ser detectada e tratada na silver.
 - **Nenhum `ON DELETE CASCADE`.** Cada exclusão é um evento que a trilha precisa ver individualmente.
+- **Direitos derivados das etiquetas.** A classificação LGPD nasce no comentário da coluna e o `GRANT` do relatório é gerado dela: classificar e proteger viram o mesmo gesto.
 - **Gatilhos gerados, não escritos.** Setenta e cinco blocos iguais escritos à mão são setenta e cinco chances de esquecer um; gerar da DDL e testar a igualdade transforma o esquecimento em falha de esteira.
 - **A marca d'água não mora aqui.** A réplica é do cliente; o estado da carga (até onde o pipeline leu cada tabela) é do pipeline e fica no lake.
 
-## 8. O que ainda não existe neste banco
+## 9. O que ainda não existe neste banco
 
-Papéis e `GRANT`/`REVOKE` por perfil com testes de bloqueio (2.4), cifra em repouso do dado pessoal (2.5), dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
+Cifra em repouso do dado pessoal (2.5), dicionário de dados gerado da `information_schema` (2.7). Cada um entra na v0.2.0 com a sua seção neste documento ou no manual de segurança.
 
 ---
 

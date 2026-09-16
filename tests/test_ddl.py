@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from rh_fictalent.staging.gatilhos import gerar_sql
+from rh_fictalent.staging import gatilhos, papeis
 
 RAIZ = Path(__file__).resolve().parents[1]
 DDL = RAIZ / "staging" / "ddl"
@@ -122,12 +122,45 @@ def test_ciclos_fechados_por_alter_idempotente() -> None:
 
 def test_gatilhos_de_exclusao_gerados_e_atualizados() -> None:
     texto = (DDL / "12_gatilhos_exclusao.sql").read_text(encoding="utf-8")
-    assert texto == gerar_sql(), (
+    assert texto == gatilhos.gerar_sql(), (
         "arquivo diverge do gerador: python -m rh_fictalent.staging.gatilhos"
     )
-    assert texto.count("CREATE TRIGGER IF NOT EXISTS") == 75
+    assert texto.count("DROP TRIGGER IF EXISTS") == 75
+    assert texto.count("CREATE TRIGGER ") == 75
+    assert texto.count("OLD.id, USER());") == 75, "quem apagou é USER(), não o definidor"
+    assert "CURRENT_USER());" not in texto
     assert texto.count("BEFORE DELETE ON") == 75
     assert "ON meta." not in texto, "a trilha não vigia a si mesma"
+
+
+def test_papeis_gerados_e_sem_dado_pessoal_para_relatorios() -> None:
+    texto = (DDL / "13_papeis.sql").read_text(encoding="utf-8")
+    assert texto == papeis.gerar_sql(), (
+        "arquivo diverge do gerador: python -m rh_fictalent.staging.papeis"
+    )
+    assert "GRANT ALL" not in texto and "WITH GRANT OPTION" not in texto
+    concessoes_meta = [
+        linha for linha in texto.splitlines() if linha.startswith("GRANT") and "meta." in linha
+    ]
+    assert concessoes_meta == ["GRANT SELECT ON meta.* TO papel_pipeline;"], concessoes_meta
+    colunas = re.search(
+        r"GRANT SELECT \(([^)]*)\) ON pessoas\.colaborador TO papel_relatorios", texto
+    )
+    assert colunas, "colaborador tem dado pessoal: o GRANT precisa ser coluna a coluna"
+    concedidas = {c.strip() for c in colunas.group(1).split(",")}
+    assert "matricula" in concedidas and {"cpf", "nome", "dt_nascimento", "pis"}.isdisjoint(
+        concedidas
+    )
+    # toda coluna etiquetada na DDL fica fora de algum GRANT de coluna
+    for modulo, tabelas in papeis.colunas_por_tabela().items():
+        for nome, _, pessoais in tabelas:
+            if pessoais:
+                m = re.search(
+                    rf"GRANT SELECT \(([^)]*)\) ON {modulo}\.{nome} TO papel_relatorios", texto
+                )
+                assert m and not set(pessoais) & {c.strip() for c in m.group(1).split(",")}, (
+                    f"{modulo}.{nome}"
+                )
 
 
 def test_dado_pessoal_etiquetado() -> None:

@@ -24,7 +24,8 @@
   o toca. O que existe aqui é a réplica autorizada, em ambiente apartado.
   [MySQL 8]  10 schemas · 75 tabelas · mapa de escopo documentado (seção 3)
      ├─ atualizado_em nativo e indexado + trilha de exclusões  (base do incremental)
-     ├─ DCL: papéis por perfil (GRANT/REVOKE) com teste de bloqueio
+     ├─ DCL: papéis por função (pipeline, relatórios sem PII, replicação)
+     │       com GRANT gerado das etiquetas LGPD e teste de bloqueio
      └─ cifra em repouso do dado pessoal                        (LGPD)
   [Python]   gerador determinístico (semente fixa), 6 etapas, 2018 a 2026:
              faz o papel do sistema do cliente e da replicação que chega dele
@@ -165,7 +166,7 @@ RH é o domínio do dado pessoal por excelência, e este projeto trata isso como
 - **Minimização.** Cada camada carrega só o que o indicador precisa, e a réplica só entra completa porque o cliente autorizou (seção 3). A gold não tem nome nem CPF.
 - **Pseudonimização.** A partir da silver, pessoa é identificada por uma chave derivada, estável e irreversível sem o segredo, que fica fora do repositório.
 - **Cifra em repouso.** O dado pessoal da réplica é cifrado em repouso, com a chave fora do repositório. O mecanismo (cifra de tablespace do InnoDB ou cifra de coluna) é decidido e medido no card próprio, com ADR.
-- **Controle de acesso por perfil.** Papéis de banco com `GRANT` e `REVOKE` explícitos para sócio, gerente-geral, coordenação, assistente e financeiro, na réplica e no warehouse, e **testes automatizados que provam o bloqueio**: o teste passa quando o acesso indevido falha.
+- **Controle de acesso.** Na réplica, papéis de banco **por função** (pipeline só lê; relatórios do cliente leem sem dado pessoal, coluna a coluna, com o `GRANT` gerado das etiquetas LGPD; a replicação escreve o negócio e nada mais). No warehouse, papéis **por perfil de negócio** (sócio, gerente-geral, coordenação, assistente, financeiro) com isolamento por filial. Nos dois, **testes automatizados que provam o bloqueio**: o teste passa quando o acesso indevido falha.
 - **Isolamento por filial.** Políticas de *row level security* no warehouse fazem a coordenadora de Extrema enxergar só as linhas de Extrema, no próprio banco, sem depender da aplicação.
 - **Trilha de auditoria.** Quem acessou e quem alterou o quê, com data.
 - **Retenção e descarte.** Candidato não contratado tem prazo declarado de retenção, e um job do Dagster executa o descarte e registra o que foi descartado.
@@ -191,7 +192,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | camada | situação |
 |---|---|
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
-| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna e trilha de exclusões por gatilho gerado da DDL ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 e 2.3). DCL e cifra a seguir |
+| 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.4). Cifra a seguir |
 | 2 · ingestão | a iniciar |
 | 3 · orquestração | a iniciar |
 | 4 · lake | a iniciar |
