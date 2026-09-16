@@ -2,6 +2,8 @@
 
 # Fictalent RH · Pipeline de dados ponta a ponta
 
+[![ci](https://github.com/tiagolima-neviah/rh-fictalent-bigdata/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/tiagolima-neviah/rh-fictalent-bigdata/actions/workflows/ci.yml)
+
 <!-- nav:start -->
 [Entendimento do Negócio](docs/01_entendimento_negocio.md) | [Entendimento dos Dados](docs/02_entendimento_dados.md) | [Arquitetura](docs/03_arquitetura.md) | [Modelo de Dados](docs/04_modelo_dados_staging.md)
 <!-- nav:end -->
@@ -88,6 +90,10 @@ bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 
 O passo a passo completo, com geração das senhas, verificação de saúde, parada, reinício e solução de problemas, está no [Manual de Operação](docs/08_manual_de_operacao.md).
 
+## Qualidade e segurança a cada mudança
+
+Todo PR passa por três trilhos no GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): **qualidade** (ruff, mypy, pytest), **réplica provada** (sobe o MySQL no runner com um `.env` descartável e roda os testes de integração: DDL, trilha de exclusões, controle de acesso, cifra no disco e dicionário) e **segurança** (bandit no código, pip-audit nas dependências do lock, gitleaks no histórico, trivy no repositório). O espelho local é `bash scripts/esteira.sh`.
+
 ## Estrutura de diretórios
 
 ```
@@ -106,7 +112,7 @@ rh-fictalent-bigdata/
 │   ├── bronze/  silver/  gold/   # as camadas do lake
 │   └── warehouse/           # carga do star schema no destino
 ├── notebooks/               # auditoria de qualidade e demonstrações
-└── tests/                   # esteira de qualidade (ruff, mypy, pytest)
+└── tests/                   # esteira de qualidade (ruff, mypy, pytest) e as provas da réplica
 ```
 
 ## Documentação

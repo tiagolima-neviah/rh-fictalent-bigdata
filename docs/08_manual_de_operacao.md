@@ -138,7 +138,17 @@ docker compose down -v
 
 Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
 
-## 6. A chave de cifra da réplica
+## 6. Antes de abrir um PR
+
+O mesmo que a CI vai fazer, na sua máquina:
+
+```bash
+bash scripts/esteira.sh
+```
+
+Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de pé), bandit e pip-audit; com docker disponível, também gitleaks e trivy por container. Termina com `ESTEIRA VERDE` ou com a contagem de falhas.
+
+## 7. A chave de cifra da réplica
 
 A réplica é cifrada em repouso ([Modelo de Dados, seção 8](04_modelo_dados_staging.md#8-cifra-em-repouso)). A chave mestra fica no volume `mysql_keyring`, nunca no repositório. Trocar a chave mestra, sem parar nada:
 
@@ -154,7 +164,7 @@ docker exec -e MYSQL_PWD="$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2
 
 Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manual de backup, v1.0.0).
 
-## 7. Quando algo não sobe
+## 8. Quando algo não sobe
 
 | sintoma | causa provável | o que fazer |
 |---|---|---|

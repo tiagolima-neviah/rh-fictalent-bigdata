@@ -32,6 +32,7 @@ MODULOS_DE_NEGOCIO = (
     "seguranca",
 )
 CRIA_TABELA = re.compile(r"CREATE TABLE IF NOT EXISTS (\w+) \(")
+IDENTIFICADOR = re.compile(r"^[a-z_][a-z0-9_]*$")
 CABECALHO = """\
 -- Trilha de exclusões · um gatilho BEFORE DELETE por tabela de negócio.
 --
@@ -51,13 +52,24 @@ def tabelas_por_modulo(ddl: Path = DDL) -> dict[str, list[str]]:
     saida: dict[str, list[str]] = {}
     for modulo in MODULOS_DE_NEGOCIO:
         (arquivo,) = sorted(ddl.glob(f"*_{modulo}.sql"))
-        saida[modulo] = CRIA_TABELA.findall(arquivo.read_text(encoding="utf-8"))
+        saida[modulo] = [
+            identificador(t) for t in CRIA_TABELA.findall(arquivo.read_text(encoding="utf-8"))
+        ]
     return saida
 
 
+def identificador(nome: str) -> str:
+    """Só um identificador SQL simples entra num gerador de DDL; qualquer outra coisa é erro."""
+    if not IDENTIFICADOR.match(nome):
+        raise ValueError(f"identificador inválido na DDL: {nome!r}")
+    return nome
+
+
 def gatilho(modulo: str, tabela: str) -> str:
+    modulo, tabela = identificador(modulo), identificador(tabela)
+    # gerador de DDL: os nomes vêm dos arquivos da própria DDL e passam pela validação acima
     return (
-        f"DROP TRIGGER IF EXISTS {modulo}.trg_{tabela}_exclusao;\n"
+        f"DROP TRIGGER IF EXISTS {modulo}.trg_{tabela}_exclusao;\n"  # nosec B608
         f"CREATE TRIGGER {modulo}.trg_{tabela}_exclusao\n"
         f"  BEFORE DELETE ON {modulo}.{tabela} FOR EACH ROW\n"
         f"  INSERT INTO meta.exclusao_auditoria (banco, tabela, registro_id, usuario_banco)\n"
