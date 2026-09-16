@@ -16,7 +16,7 @@ import yaml
 
 RAIZ = Path(__file__).resolve().parents[1]
 COMPOSE = RAIZ / "compose.yaml"
-JOBS_DE_INICIALIZACAO = {"s3-init"}
+JOBS_DE_INICIALIZACAO = {"s3-init", "keyring-init"}
 
 
 def _carregar() -> dict[str, Any]:
@@ -35,10 +35,31 @@ def _longa_duracao() -> list[str]:
 
 def test_servicos_esperados_existem() -> None:
     esperados = {
-        "pg-origem", "pg-staging", "pg-dagster", "s3", "s3-init",
-        "mysql-dw", "dagster-web", "dagster-daemon", "grafana",
+        "mysql-staging",
+        "pg-dw",
+        "pg-dagster",
+        "s3",
+        "s3-init",
+        "keyring-init",
+        "dagster-web",
+        "dagster-daemon",
+        "grafana",
     }
     assert set(_servicos()) == esperados
+
+
+def test_motores_de_banco_conforme_adr_0001() -> None:
+    """MySQL na réplica do cliente (staging), Postgres no warehouse: docs/adr/0001."""
+    assert _servicos()["mysql-staging"]["image"].startswith("mysql:")
+    assert _servicos()["pg-dw"]["image"].startswith("postgres:")
+    assert "pg-origem" not in _servicos(), (
+        "a consultoria não toca o sistema do cliente: não existe origem aqui"
+    )
+
+
+def test_replica_aplica_a_ddl_na_primeira_subida() -> None:
+    assert "./staging/ddl:/docker-entrypoint-initdb.d:ro" in _servicos()["mysql-staging"]["volumes"]
+    assert "--default-time-zone=+00:00" in _servicos()["mysql-staging"]["command"]
 
 
 @pytest.mark.parametrize("nome", _longa_duracao())
@@ -69,6 +90,23 @@ def test_sem_ganho_de_privilegio(nome: str) -> None:
 def test_portas_publicadas_so_em_localhost(nome: str) -> None:
     for porta in _servicos()[nome].get("ports", []):
         assert str(porta).startswith("127.0.0.1:"), f"{nome}: porta exposta na rede ({porta})"
+
+
+def test_replica_cifra_em_repouso() -> None:
+    replica = _servicos()["mysql-staging"]
+    for opcao in (
+        "--default-table-encryption=ON",
+        "--table-encryption-privilege-check=ON",
+        "--innodb-redo-log-encrypt=ON",
+        "--innodb-undo-log-encrypt=ON",
+        "--binlog-encryption=ON",
+    ):
+        assert opcao in replica["command"], opcao
+    assert "mysql_keyring:/var/lib/mysql-keyring" in replica["volumes"]
+    assert "./infra/mysql/mysqld.my:/usr/sbin/mysqld.my:ro" in replica["volumes"]
+    assert replica["depends_on"]["keyring-init"]["condition"] == "service_completed_successfully"
+    assert replica["user"] == "999:999", "a réplica não roda como root"
+    assert replica["environment"]["LANG"] == "C.UTF-8", "DDL acentuada exige cliente em utf8mb4"
 
 
 def test_banco_de_metadados_nao_publica_porta() -> None:
