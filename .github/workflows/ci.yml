@@ -86,11 +86,11 @@ jobs:
           uv export --frozen --no-dev --no-hashes --no-emit-project -o requisitos-auditoria.txt
           uv run pip-audit -r requisitos-auditoria.txt --no-deps --disable-pip --strict
       - name: Segredos no histórico (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: "Repositório (trivy: vulnerabilidade, segredo, má configuração)"
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: .
