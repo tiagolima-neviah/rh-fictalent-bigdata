@@ -5,7 +5,7 @@
 [![ci](https://github.com/tiagolima-neviah/rh-fictalent-bigdata/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/tiagolima-neviah/rh-fictalent-bigdata/actions/workflows/ci.yml)
 
 <!-- nav:start -->
-[Entendimento do Negócio](docs/01_entendimento_negocio.md) | [Entendimento dos Dados](docs/02_entendimento_dados.md) | [Arquitetura](docs/03_arquitetura.md) | [Modelo de Dados](docs/04_modelo_dados_staging.md)
+[Entendimento do Negócio](docs/01_entendimento_negocio.md) | [Entendimento dos Dados](docs/02_entendimento_dados.md) | [Arquitetura](docs/03_arquitetura.md) | [Modelo de Dados](docs/04_modelo_dados_staging.md) | [Segurança e LGPD](docs/05_seguranca_e_lgpd.md)
 <!-- nav:end -->
 
 > Pipeline completo e moderno de dados construído sobre a **Fictalent RH**, uma empresa **fictícia** de gestão de mão de obra (recrutamento e seleção, trabalho temporário, terceirização e treinamentos) com dados **100% sintéticos**: de uma réplica **MySQL** do sistema do cliente, em 10 módulos, com **backfill histórico desde 2018 e carga incremental diária**, orquestrado com **Dagster**, das camadas bronze, silver e gold em parquet ao modelo multidimensional (star schema) num warehouse **Postgres**, com observabilidade em **Grafana**, API REST dos indicadores, controle de acesso por perfil e **LGPD aplicada** a dado pessoal, pronto para painel web, Power BI e Tableau. A sazonalidade dos dados sintéticos é **calibrada por fonte pública** (microdados do Novo CAGED). O repositório existe para ajudar analistas em início de carreira a percorrer um projeto de engenharia de dados e BI do jeito que ele acontece no mundo real, com custo baixo e total portabilidade.
@@ -124,12 +124,13 @@ rh-fictalent-bigdata/
 - [02 · Entendimento dos Dados](docs/02_entendimento_dados.md): o banco relacional em 10 módulos, o que cada um guarda e o que esperar da qualidade desses dados.
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
+- [05 · Segurança e LGPD](docs/05_seguranca_e_lgpd.md): o modelo de ameaça camada a camada, o comando que prova cada garantia, a LGPD princípio por princípio e o que ainda não existe.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
 
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma.
 
-Os demais manuais (instalação, monitoramento, segurança e LGPD, auditoria, backup e solução de problemas) entram com as versões em que cada assunto passa a existir.
+Os demais manuais (instalação, monitoramento, auditoria, backup e solução de problemas) entram com as versões em que cada assunto passa a existir.
 
 </details>
 

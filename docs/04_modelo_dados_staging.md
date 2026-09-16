@@ -3,7 +3,7 @@
 # Modelo de Dados · a réplica do sistema do cliente
 
 <!-- nav:start -->
-[Home](../README.md) | [← Arquitetura](03_arquitetura.md) | [Manual de Operação →](08_manual_de_operacao.md)
+[Home](../README.md) | [← Arquitetura](03_arquitetura.md) | [Segurança e LGPD →](05_seguranca_e_lgpd.md)
 <!-- nav:end -->
 
 > O banco relacional de onde o pipeline lê: 10 módulos, 75 tabelas de negócio e uma de infraestrutura, em MySQL 8, com comentário em toda tabela e etiqueta LGPD em toda coluna de dado pessoal. A DDL está em [`staging/ddl`](../staging/ddl), um arquivo por módulo, na ordem das dependências. Este documento explica as convenções, o papel de cada módulo e as decisões de desenho; o dicionário coluna a coluna, gerado do próprio banco, entra na v0.2.0 (card 2.7).
