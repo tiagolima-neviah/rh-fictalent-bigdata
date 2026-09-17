@@ -3,10 +3,10 @@
 # Manual de Operação · subir, verificar, parar e recuperar
 
 <!-- nav:start -->
-[Home](../README.md) | [← Segurança e LGPD](05_seguranca_e_lgpd.md)
+[Home](../README.md) | [← Instalação e Reprodução](07_instalacao_e_reproducao.md) | [Monitoramento e Healthcheck →](09_monitoramento_e_healthcheck.md)
 <!-- nav:end -->
 
-> O manual de quem opera a plataforma no dia a dia. Todo comando aqui foi executado e conferido na versão em que a seção entrou. Rode todos a partir da **raiz do repositório**. Este documento cresce com o projeto: nesta versão (v0.2.0) ele cobre a infraestrutura; execução de pipelines, agendas e reprocessamento entram com a Fase 3.
+> O manual de quem opera a plataforma no dia a dia. Todo comando aqui foi executado e conferido na versão em que a seção entrou. Rode todos a partir da **raiz do repositório**. A instalação do zero está em [Instalação e Reprodução](07_instalacao_e_reproducao.md); o que olhar e o que fazer quando algo acende, em [Monitoramento e Healthcheck](09_monitoramento_e_healthcheck.md). Reprocessamento por partição entra com o dado (v0.5.0).
 
 ## 1. O que roda, e onde
 
