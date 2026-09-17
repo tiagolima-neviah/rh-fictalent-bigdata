@@ -104,9 +104,11 @@ rh-fictalent-bigdata/
 ├── compose.yaml             # a plataforma inteira: 7 serviços com healthcheck
 ├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, keyring da réplica, provisionamento do Grafana
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
+├── dados/publicos/          # tabelas derivadas de fonte pública (Novo CAGED), com a fonte; o bruto fica fora do git
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
+│   ├── fontes/              # fontes públicas: download, agregação e tabelas derivadas (Novo CAGED)
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
 │   ├── bronze/  silver/  gold/   # as camadas do lake
