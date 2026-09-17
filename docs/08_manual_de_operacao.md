@@ -164,6 +164,14 @@ docker compose logs --no-log-prefix dagster-web dagster-daemon | grep '"run_id":
 
 O id está na página da execução (*Runs*). Só os erros: `grep '"nivel": "ERROR"'`; uma exceção vem inteira no campo `excecao`. O formato é o de `src/rh_fictalent/observabilidade/logs.py`, aplicado pelo logger de job `json` (`rh_fictalent.orquestracao.logger_json`), padrão de toda execução desta code location.
 
+**Toda execução que termina vira linhas no warehouse**, gravadas pelos sensores `metricas_sucesso`, `metricas_falha` e `metricas_cancelamento` (ligados por padrão; aparecem em *Automation*): `observabilidade.execucao` (uma por execução) e `observabilidade.execucao_passo` (uma por passo, com asset, partição, duração, status, linhas, metadados e erro). É o que o Grafana lê. As últimas execuções, direto no warehouse:
+
+```bash
+docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)" fictalent_pg_dw psql -U fictalent_admin -d dw_fictalent -c "SELECT job, status, inicio, duracao_s, passos, passos_falhos FROM observabilidade.execucao ORDER BY inicio DESC LIMIT 10"
+```
+
+O sensor dispara até 15 segundos depois do fim da execução; se a tabela não aparecer, `docker compose logs dagster-daemon | grep metricas`.
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:

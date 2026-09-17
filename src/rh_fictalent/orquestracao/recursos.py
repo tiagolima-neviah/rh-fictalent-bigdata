@@ -91,7 +91,9 @@ class Warehouse(dg.ConfigurableResource):  # type: ignore[type-arg]
     def consultar(self, sql: str, *args: Any) -> list[tuple[Any, ...]]:
         with self.conectar() as con, con.cursor() as cur:
             cur.execute(sql, args or None)
-            return list(cur.fetchall())
+            linhas = list(cur.fetchall())
+            con.commit()
+            return linhas
 
 
 def recursos_do_ambiente() -> dict[str, Any]:
