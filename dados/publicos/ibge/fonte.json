@@ -1,0 +1,19 @@
+{
+  "fonte": "IBGE, API de localidades v1",
+  "url": "https://servicodados.ibge.gov.br/api/v1/localidades/estados/{codigo_uf}/municipios",
+  "ufs": [
+    "SP",
+    "MG"
+  ],
+  "colunas": [
+    "codigo_ibge",
+    "nome",
+    "uf",
+    "microrregiao",
+    "mesorregiao",
+    "regiao_imediata",
+    "regiao_intermediaria"
+  ],
+  "baixado_em": "2026-09-17T20:27:09+00:00",
+  "linhas": 1498
+}

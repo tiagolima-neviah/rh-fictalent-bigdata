@@ -156,6 +156,15 @@ E da sua máquina, contra a plataforma de pé (é o que o teste de integração 
 
 Depois de mudar código em `src/`, reconstrua a imagem: `docker compose up -d --build dagster-web dagster-daemon`.
 
+**As fontes públicas** (grupo `fontes`, desde a v0.4.0) são os primeiros assets de dado: `fontes/ibge/municipios` (job `carregar_municipios`) e `fontes/brasilapi/feriados` (job `carregar_feriados`, particionado por ano). Materializar grava parquet no lake em `s3://fictalent-lake/fontes/...`; os metadados da execução mostram as linhas e o caminho. Na interface, o job dos feriados pede a partição (um ano) ou aceita um *backfill* de 2018 a 2026, que vira uma execução por ano. Pela linha de comando:
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_municipios
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_feriados --partition 2024
+```
+
+As APIs são públicas e sem contrato: o cliente (`src/rh_fictalent/fontes/apis.py`) espera no máximo 30 s por pedido, tenta 5 vezes com recuo exponencial em 429, 5xx e queda de rede, e deixa 0,5 s entre pedidos. Os limites são configuração do recurso `apis` (na página *Launchpad* do job). As mesmas tabelas, versionadas para o gerador, se regeneram com `.venv/bin/python -m rh_fictalent.fontes.apis`.
+
 **Os logs são JSON, uma linha por evento**, e toda linha nascida dentro de uma execução carrega o `run_id` dela (mais `job`, `passo` e `evento`). Para ver o que uma execução fez, do começo ao fim, em qualquer serviço:
 
 ```bash

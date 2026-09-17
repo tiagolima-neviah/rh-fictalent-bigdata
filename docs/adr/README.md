@@ -13,5 +13,6 @@ Cada tecnologia que entra neste projeto precisa de um registro dizendo **que nec
 | [0007](0007-grafana-so-observabilidade.md) | Grafana só para observabilidade, nunca painel de negócio | aceito em 15/09/2026 |
 | [0008](0008-gitflow-por-versao-publicavel.md) | Gitflow com cada fase virando versão publicável | aceito em 15/09/2026 |
 | [0009](0009-fastapi-api-dos-indicadores.md) | FastAPI para servir os indicadores com contrato, versão e token | aceito em 16/09/2026, entra na v1.0.0 |
+| [0010](0010-httpx-ingestao-de-api.md) | httpx para a ingestão por API, com retry e limite de taxa escritos no projeto | aceito em 17/09/2026, entra na v0.4.0 |
 
 Tecnologia que entrar depois (dbt, PySpark, MLflow, o backend de keyring em produção) ganha o seu ADR antes de ganhar código.
