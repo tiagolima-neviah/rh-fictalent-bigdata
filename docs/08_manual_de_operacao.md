@@ -172,6 +172,8 @@ docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)"
 
 O sensor dispara até 15 segundos depois do fim da execução; se a tabela não aparecer, `docker compose logs dagster-daemon | grep metricas`.
 
+**O painel do Grafana** está em <http://127.0.0.1:3011> (usuário e senha do `.env`), pasta *Fictalent*, painel *Fictalent · Execuções do pipeline*: execuções e falhas nas últimas 24 h, **frescor** (minutos desde o último sucesso: verde até 1 h, âmbar até 25 h, vermelho depois), duração média, execuções por dia e status, duração por job e por passo, últimas execuções e os passos que falharam com o erro. O painel é arquivo (`infra/grafana/provisioning/dashboards/json/execucoes.json`) e a interface não o edita: mudou, mudou no repositório. Em *Alerting → Alert rules* estão as duas regras provisionadas (`infra/grafana/provisioning/alerting/regras.yaml`): **Execução do pipeline falhou** (falha nos últimos 15 minutos) e **Dado envelheceu** (sem execução com sucesso há mais de 26 horas; enquanto não há agenda diária, ela acende sempre que a plataforma passa um dia parada, o que é o comportamento certo). Sem ponto de contato externo neste laboratório: o alerta acende na interface.
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:

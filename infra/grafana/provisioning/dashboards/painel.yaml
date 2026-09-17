@@ -1,0 +1,15 @@
+# Painéis do Grafana provisionados como código: o JSON em ./json é a fonte da verdade,
+# a interface não edita (allowUiUpdates: false). Mudou o painel, mudou o repositório.
+apiVersion: 1
+
+providers:
+  - name: fictalent
+    orgId: 1
+    folder: Fictalent
+    type: file
+    disableDeletion: false
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
+      foldersFromFilesStructure: false
