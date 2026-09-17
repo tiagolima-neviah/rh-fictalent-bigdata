@@ -80,7 +80,8 @@
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 7 · OBSERVABILIDADE, SEGURANÇA E AUDITORIA          (atravessa tudo)
 ═══════════════════════════════════════════════════════════════════════════════
-  [healthcheck]  em cada container do Compose + endpoint /saude na API
+  [healthcheck]  em cada container do Compose + scripts/saude.sh de ponta a ponta
+                 (réplica, lake, warehouse, Dagster, Grafana) + endpoint /saude na API
   [logs JSON]    estruturados, com id de execução
   [Grafana]      painéis como código: execuções do Dagster, duração, linhas,
                  falhas e frescor dos dados; alertas (só observabilidade)
