@@ -199,7 +199,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | 4 · lake | a iniciar |
 | 5 · OLAP | motor definido (Postgres 16, ADR-0001), modelo dimensional a iniciar |
 | 6 · servir | a iniciar |
-| 7 · observabilidade, segurança e auditoria | CI com três trilhos: qualidade, réplica provada no runner e segurança (bandit, pip-audit, gitleaks, trivy), espelhada em `scripts/esteira.sh` (v0.2.0, card 2.8); Grafana, logs e auditoria a seguir |
+| 7 · observabilidade, segurança e auditoria | CI com três trilhos: qualidade, réplica provada no runner e segurança (bandit, pip-audit, gitleaks, trivy), espelhada em `scripts/esteira.sh` (v0.2.0, card 2.8); logs estruturados em JSON com id de execução em todo evento do Dagster (v0.3.0, card 3.2); métricas, Grafana e auditoria a seguir |
 | 8 · consumo | projeto separado, a iniciar |
 
 ## 8. O que este projeto deliberadamente não faz
