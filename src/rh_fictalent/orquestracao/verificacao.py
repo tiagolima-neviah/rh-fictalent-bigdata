@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 import dagster as dg
 
 from rh_fictalent.orquestracao.convencoes import MODULOS
+from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
 from rh_fictalent.orquestracao.recursos import Lake, Replica, Warehouse
 
 GRUPO = "plataforma"
@@ -31,6 +32,7 @@ def replica_pronta(context: dg.AssetExecutionContext, replica: Replica) -> None:
     total = sum(por_modulo.values())
     if total != TABELAS_ESPERADAS:
         raise dg.Failure(f"réplica com {total} tabelas; esperadas {TABELAS_ESPERADAS}")
+    context.log.info("réplica alcançada: %s tabelas em %s databases", total, len(por_modulo))
     context.add_output_metadata({"tabelas": total, "por_modulo": dg.MetadataValue.json(por_modulo)})
 
 
@@ -45,6 +47,7 @@ def lake_pronto(context: dg.AssetExecutionContext, lake: Lake) -> None:
         lido = arquivo.read()
     if lido != marca:
         raise dg.Failure(f"o lake devolveu {lido!r}, esperado {marca!r}")
+    context.log.info("lake alcançado: escreveu e leu %s", caminho)
     context.add_output_metadata({"bucket": lake.bucket, "caminho": caminho, "marca": marca})
 
 
@@ -56,6 +59,7 @@ def warehouse_pronto(context: dg.AssetExecutionContext, warehouse: Warehouse) ->
     )[0]
     if int(leitores) != 1:
         raise dg.Failure("papel grafana_leitor ausente no warehouse")
+    context.log.info("warehouse alcançado: %s", str(versao).split(",")[0])
     context.add_output_metadata({"versao": str(versao).split(",")[0]})
 
 
@@ -63,4 +67,5 @@ verificar_plataforma = dg.define_asset_job(
     name="verificar_plataforma",
     selection=dg.AssetSelection.groups(GRUPO),
     description="Prova que réplica, lake e warehouse estão alcançáveis pelos recursos do Dagster.",
+    config=CONFIG_LOGS_JSON,
 )

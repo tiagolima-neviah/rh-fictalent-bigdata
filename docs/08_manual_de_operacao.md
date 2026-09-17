@@ -156,6 +156,14 @@ E da sua máquina, contra a plataforma de pé (é o que o teste de integração 
 
 Depois de mudar código em `src/`, reconstrua a imagem: `docker compose up -d --build dagster-web dagster-daemon`.
 
+**Os logs são JSON, uma linha por evento**, e toda linha nascida dentro de uma execução carrega o `run_id` dela (mais `job`, `passo` e `evento`). Para ver o que uma execução fez, do começo ao fim, em qualquer serviço:
+
+```bash
+docker compose logs --no-log-prefix dagster-web dagster-daemon | grep '"run_id": "<id da execução>"'
+```
+
+O id está na página da execução (*Runs*). Só os erros: `grep '"nivel": "ERROR"'`; uma exceção vem inteira no campo `excecao`. O formato é o de `src/rh_fictalent/observabilidade/logs.py`, aplicado pelo logger de job `json` (`rh_fictalent.orquestracao.logger_json`), padrão de toda execução desta code location.
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:

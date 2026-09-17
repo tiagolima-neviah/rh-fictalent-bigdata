@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import dagster as dg
 
+from rh_fictalent.orquestracao.logger_json import logger_json
 from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
 from rh_fictalent.orquestracao.verificacao import (
     lake_pronto,
@@ -22,4 +23,5 @@ defs = dg.Definitions(
     assets=[replica_pronta, lake_pronto, warehouse_pronto],
     jobs=[verificar_plataforma],
     resources=recursos_do_ambiente(),
+    loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON
 )

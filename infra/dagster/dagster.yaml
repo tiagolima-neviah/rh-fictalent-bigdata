@@ -28,3 +28,11 @@ compute_logs:
 
 telemetry:
   enabled: false
+
+# Logs: os loggers rh_fictalent.* são gerenciados pelo Dagster, então o que o código do
+# projeto loga dentro de uma execução passa pelo logger do job (JSON, ver
+# rh_fictalent.orquestracao.logger_json) e aparece na interface.
+python_logs:
+  python_log_level: INFO
+  managed_python_loggers:
+    - rh_fictalent
