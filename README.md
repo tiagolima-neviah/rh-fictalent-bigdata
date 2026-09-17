@@ -66,8 +66,8 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 |---|---|---|
 | v0.1.0 | Entendimento do negócio e dos dados, arquitetura, modelo relacional | concluído |
 | v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, trilha de exclusões, DCL, cifra em repouso, dicionário, CI em três trilhos | concluído |
-| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | próxima |
-| v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | previsto |
+| v0.3.0 | Orquestração (Dagster: recursos, convenções, primeiro job), logs em JSON, métricas por sensor, Grafana como código, saúde de ponta a ponta | concluído |
+| v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | próxima |
 | v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | previsto |
 | v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
 | v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | previsto |
@@ -80,7 +80,7 @@ O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira oc
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.2.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster e Grafana), conferir a saúde de cada serviço e provar a fundação da réplica com os testes de integração:
+O projeto está em construção. Na v0.3.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster com o primeiro job e os sensores de métricas, Grafana com painel e alertas), verificá-la de ponta a ponta e acompanhar cada execução no painel:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
@@ -88,7 +88,7 @@ docker compose up -d --build
 bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 ```
 
-O passo a passo completo, com geração das senhas, verificação de saúde, parada, reinício e solução de problemas, está no [Manual de Operação](docs/08_manual_de_operacao.md).
+O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
 
 ## Qualidade e segurança a cada mudança
 
@@ -125,12 +125,14 @@ rh-fictalent-bigdata/
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
 - [05 · Segurança e LGPD](docs/05_seguranca_e_lgpd.md): o modelo de ameaça camada a camada, o comando que prova cada garantia, a LGPD princípio por princípio e o que ainda não existe.
+- [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa; atualizar, recomeçar, desinstalar.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
 
-- [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma.
+- [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma; Dagster, logs, métricas e a chave de cifra.
+- [09 · Monitoramento e Healthcheck](docs/09_monitoramento_e_healthcheck.md): as três camadas, o painel indicador a indicador, os alertas, como investigar uma execução e a rotina.
 
-Os demais manuais (instalação, monitoramento, auditoria, backup e solução de problemas) entram com as versões em que cada assunto passa a existir.
+Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 9 do manual de operação.
 
 </details>
 

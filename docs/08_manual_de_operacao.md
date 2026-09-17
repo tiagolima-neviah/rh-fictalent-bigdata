@@ -3,10 +3,10 @@
 # Manual de Operação · subir, verificar, parar e recuperar
 
 <!-- nav:start -->
-[Home](../README.md) | [← Segurança e LGPD](05_seguranca_e_lgpd.md)
+[Home](../README.md) | [← Instalação e Reprodução](07_instalacao_e_reproducao.md) | [Monitoramento e Healthcheck →](09_monitoramento_e_healthcheck.md)
 <!-- nav:end -->
 
-> O manual de quem opera a plataforma no dia a dia. Todo comando aqui foi executado e conferido na versão em que a seção entrou. Rode todos a partir da **raiz do repositório**. Este documento cresce com o projeto: nesta versão (v0.2.0) ele cobre a infraestrutura; execução de pipelines, agendas e reprocessamento entram com a Fase 3.
+> O manual de quem opera a plataforma no dia a dia. Todo comando aqui foi executado e conferido na versão em que a seção entrou. Rode todos a partir da **raiz do repositório**. A instalação do zero está em [Instalação e Reprodução](07_instalacao_e_reproducao.md); o que olhar e o que fazer quando algo acende, em [Monitoramento e Healthcheck](09_monitoramento_e_healthcheck.md). Reprocessamento por partição entra com o dado (v0.5.0).
 
 ## 1. O que roda, e onde
 
@@ -50,7 +50,7 @@ A primeira subida baixa as imagens e constrói a do Dagster (cerca de 1 minuto m
 bash scripts/saude.sh
 ```
 
-O script espera cada serviço ficar saudável e os dois jobs de inicialização terminarem, e termina com `OK` ou com a lista do que falhou.
+O script tem duas fases. A primeira espera cada serviço ficar saudável e os dois jobs de inicialização terminarem. A segunda prova o que está **dentro** dos containers: a réplica responde ao usuário `pipeline` com as 76 tabelas, tem os 75 gatilhos, os 76 tablespaces cifrados e o keyring ativo; o lake tem o bucket; o warehouse aceita o `grafana_leitor` e informa quantas execuções registrou e há quantos minutos foi o último sucesso (aviso acima de 26 h); o Dagster carregou a code location e tem os 3 sensores ligados; o Grafana responde, com as duas fontes `OK`, o painel e as 2 regras provisionados. Cada verificação sai com `✓` ou `✗`, e o fim é `PLATAFORMA OK` ou a contagem de falhas. `SO_CONTAINERS=1 bash scripts/saude.sh` roda só a primeira fase (é o que a CI faz).
 
 **4. A réplica já nasce com as tabelas.** Na primeira inicialização o MySQL executa a DDL de `staging/ddl` (10 módulos, 76 tabelas). Se o volume da réplica já existia antes da DDL entrar no repositório, aplique por cima:
 
@@ -138,7 +138,43 @@ docker compose down -v
 
 Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
 
-## 6. Antes de abrir um PR
+## 6. O Dagster: interface e o primeiro job
+
+A interface está em <http://127.0.0.1:3010>. Em **Assets** aparecem os três assets do grupo `plataforma`; em **Jobs**, o `verificar_plataforma`. Materializar o job (botão *Materialize all* na página do job, ou *Launch run*) prova, de dentro do Dagster, que os recursos alcançam a réplica (76 tabelas, como usuário `pipeline`), o lake (escreve e lê `s3://fictalent-lake/controle/verificacao.txt`) e o warehouse (versão e papel do Grafana). O resultado fica no histórico com os metadados de cada asset.
+
+Pela linha de comando, de dentro do container:
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j verificar_plataforma
+```
+
+E da sua máquina, contra a plataforma de pé (é o que o teste de integração faz):
+
+```bash
+.venv/bin/pytest -q tests/test_orquestracao.py
+```
+
+Depois de mudar código em `src/`, reconstrua a imagem: `docker compose up -d --build dagster-web dagster-daemon`.
+
+**Os logs são JSON, uma linha por evento**, e toda linha nascida dentro de uma execução carrega o `run_id` dela (mais `job`, `passo` e `evento`). Para ver o que uma execução fez, do começo ao fim, em qualquer serviço:
+
+```bash
+docker compose logs --no-log-prefix dagster-web dagster-daemon | grep '"run_id": "<id da execução>"'
+```
+
+O id está na página da execução (*Runs*). Só os erros: `grep '"nivel": "ERROR"'`; uma exceção vem inteira no campo `excecao`. O formato é o de `src/rh_fictalent/observabilidade/logs.py`, aplicado pelo logger de job `json` (`rh_fictalent.orquestracao.logger_json`), padrão de toda execução desta code location.
+
+**Toda execução que termina vira linhas no warehouse**, gravadas pelos sensores `metricas_sucesso`, `metricas_falha` e `metricas_cancelamento` (ligados por padrão; aparecem em *Automation*): `observabilidade.execucao` (uma por execução) e `observabilidade.execucao_passo` (uma por passo, com asset, partição, duração, status, linhas, metadados e erro). É o que o Grafana lê. As últimas execuções, direto no warehouse:
+
+```bash
+docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)" fictalent_pg_dw psql -U fictalent_admin -d dw_fictalent -c "SELECT job, status, inicio, duracao_s, passos, passos_falhos FROM observabilidade.execucao ORDER BY inicio DESC LIMIT 10"
+```
+
+O sensor dispara até 15 segundos depois do fim da execução; se a tabela não aparecer, `docker compose logs dagster-daemon | grep metricas`.
+
+**O painel do Grafana** está em <http://127.0.0.1:3011> (usuário e senha do `.env`), pasta *Fictalent*, painel *Fictalent · Execuções do pipeline*: execuções e falhas nas últimas 24 h, **frescor** (minutos desde o último sucesso: verde até 1 h, âmbar até 25 h, vermelho depois), duração média, execuções por dia e status, duração por job e por passo, últimas execuções e os passos que falharam com o erro. O painel é arquivo (`infra/grafana/provisioning/dashboards/json/execucoes.json`) e a interface não o edita: mudou, mudou no repositório. Em *Alerting → Alert rules* estão as duas regras provisionadas (`infra/grafana/provisioning/alerting/regras.yaml`): **Execução do pipeline falhou** (falha nos últimos 15 minutos) e **Dado envelheceu** (sem execução com sucesso há mais de 26 horas; enquanto não há agenda diária, ela acende sempre que a plataforma passa um dia parada, o que é o comportamento certo). Sem ponto de contato externo neste laboratório: o alerta acende na interface.
+
+## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:
 
@@ -148,7 +184,7 @@ bash scripts/esteira.sh
 
 Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de pé), bandit e pip-audit; com docker disponível, também gitleaks e trivy por container. Termina com `ESTEIRA VERDE` ou com a contagem de falhas.
 
-## 7. A chave de cifra da réplica
+## 8. A chave de cifra da réplica
 
 A réplica é cifrada em repouso ([Modelo de Dados, seção 8](04_modelo_dados_staging.md#8-cifra-em-repouso)). A chave mestra fica no volume `mysql_keyring`, nunca no repositório. Trocar a chave mestra, sem parar nada:
 
@@ -164,7 +200,7 @@ docker exec -e MYSQL_PWD="$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2
 
 Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manual de backup, v1.0.0).
 
-## 8. Quando algo não sobe
+## 9. Quando algo não sobe
 
 | sintoma | causa provável | o que fazer |
 |---|---|---|

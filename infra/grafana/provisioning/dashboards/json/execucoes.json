@@ -1,0 +1,206 @@
+{
+  "uid": "fictalent-execucoes",
+  "title": "Fictalent · Execuções do pipeline",
+  "description": "O que o Dagster executou: quantas vezes, quanto demorou, o que falhou e há quanto tempo o dado foi atualizado. Lê observabilidade.execucao e execucao_passo no warehouse, como grafana_leitor.",
+  "tags": ["fictalent", "observabilidade"],
+  "timezone": "browser",
+  "editable": false,
+  "graphTooltip": 1,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-7d", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Execuções nas últimas 24 h",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*)::int AS execucoes FROM observabilidade.execucao WHERE inicio > now() - interval '24 hours'"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Falhas nas últimas 24 h",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*)::int AS falhas FROM observabilidade.execucao WHERE status = 'FALHA' AND inicio > now() - interval '24 hours'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Frescor: minutos desde o último sucesso",
+      "description": "Quanto tempo faz que uma execução terminou com sucesso. Verde até 1 h, âmbar até 25 h, vermelho depois.",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ROUND(EXTRACT(EPOCH FROM (now() - MAX(fim))) / 60)::int AS minutos FROM observabilidade.execucao WHERE status = 'SUCESSO'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "m",
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 60 }, { "color": "red", "value": 1500 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Duração média (últimas 24 h)",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ROUND(AVG(duracao_s), 2) AS segundos FROM observabilidade.execucao WHERE inicio > now() - interval '24 hours'"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Execuções por dia e status",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT date_trunc('day', inicio) AS \"time\", status AS metric, COUNT(*)::int AS execucoes FROM observabilidade.execucao WHERE $__timeFilter(inicio) GROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none", "custom": { "drawStyle": "bars", "fillOpacity": 70, "stacking": { "mode": "normal" } } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "SUCESSO" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] },
+          { "matcher": { "id": "byName", "options": "FALHA" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } } ] },
+          { "matcher": { "id": "byName", "options": "CANCELADA" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Duração de cada execução, por job",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT inicio AS \"time\", job AS metric, duracao_s FROM observabilidade.execucao WHERE $__timeFilter(inicio) AND duracao_s IS NOT NULL ORDER BY 1"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "drawStyle": "points", "pointSize": 6 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 7,
+      "type": "bargauge",
+      "title": "Duração média por passo (no período)",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 9 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT passo, ROUND(AVG(duracao_s), 3) AS media_s FROM observabilidade.execucao_passo WHERE $__timeFilter(inicio) AND duracao_s IS NOT NULL GROUP BY passo ORDER BY 2 DESC"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^media_s$/", "values": true }, "showUnfilled": true }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Últimas execuções",
+      "gridPos": { "x": 8, "y": 12, "w": 16, "h": 9 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT inicio, job, status, duracao_s, passos, passos_falhos FROM observabilidade.execucao WHERE $__timeFilter(inicio) ORDER BY inicio DESC LIMIT 20"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "duracao_s" }, "properties": [ { "id": "unit", "value": "s" } ] },
+          { "matcher": { "id": "byName", "options": "inicio" }, "properties": [ { "id": "unit", "value": "dateTimeAsIso" } ] }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [] }
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Passos que falharam, com o erro",
+      "gridPos": { "x": 0, "y": 21, "w": 24, "h": 8 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "warehouse-postgres" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT p.fim, e.job, p.passo, p.erro FROM observabilidade.execucao_passo p JOIN observabilidade.execucao e USING (run_id) WHERE p.status = 'FALHA' AND $__timeFilter(p.fim) ORDER BY p.fim DESC LIMIT 20"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [ { "matcher": { "id": "byName", "options": "fim" }, "properties": [ { "id": "unit", "value": "dateTimeAsIso" } ] } ]
+      },
+      "options": { "showHeader": true, "sortBy": [] }
+    }
+  ]
+}

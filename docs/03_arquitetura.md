@@ -80,7 +80,8 @@
 ═══════════════════════════════════════════════════════════════════════════════
  CAMADA 7 · OBSERVABILIDADE, SEGURANÇA E AUDITORIA          (atravessa tudo)
 ═══════════════════════════════════════════════════════════════════════════════
-  [healthcheck]  em cada container do Compose + endpoint /saude na API
+  [healthcheck]  em cada container do Compose + scripts/saude.sh de ponta a ponta
+                 (réplica, lake, warehouse, Dagster, Grafana) + endpoint /saude na API
   [logs JSON]    estruturados, com id de execução
   [Grafana]      painéis como código: execuções do Dagster, duração, linhas,
                  falhas e frescor dos dados; alertas (só observabilidade)
@@ -181,9 +182,9 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 
 | manual | cobre |
 |---|---|
-| instalação e reprodução | do clone ao pipeline rodando, com requisitos e verificação final |
-| operação | subir, parar, reiniciar um serviço ou todos, reprocessar um dia ou um ano |
-| monitoramento e healthcheck | o que cada painel do Grafana mostra, o que é normal, o que é alerta |
+| [instalação e reprodução](07_instalacao_e_reproducao.md) | do clone ao pipeline rodando, com requisitos e verificação final |
+| [operação](08_manual_de_operacao.md) | subir, parar, reiniciar um serviço ou todos, reprocessar um dia ou um ano |
+| [monitoramento e healthcheck](09_monitoramento_e_healthcheck.md) | o que cada painel do Grafana mostra, o que é normal, o que é alerta |
 | auditoria | onde está cada trilha e como consultar |
 | backup e restauração | dos bancos e do lake, com teste de restauração |
 | solução de problemas | as falhas conhecidas, o sintoma e o remédio |
@@ -195,11 +196,11 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
 | 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste, cifra em repouso de tudo com keyring próprio e dicionário de dados gerado da `information_schema` ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.7) |
 | 2 · ingestão | a iniciar |
-| 3 · orquestração | a iniciar |
+| 3 · orquestração | projeto Dagster com recursos (réplica, lake, warehouse) configurados pelo ambiente, convenções de camada, chave e partição, e o job `verificar_plataforma` que prova os três alcances de dentro do Dagster (v0.3.0, card 3.1); assets de dado entram com as versões seguintes |
 | 4 · lake | a iniciar |
 | 5 · OLAP | motor definido (Postgres 16, ADR-0001), modelo dimensional a iniciar |
 | 6 · servir | a iniciar |
-| 7 · observabilidade, segurança e auditoria | CI com três trilhos: qualidade, réplica provada no runner e segurança (bandit, pip-audit, gitleaks, trivy), espelhada em `scripts/esteira.sh` (v0.2.0, card 2.8); Grafana, logs e auditoria a seguir |
+| 7 · observabilidade, segurança e auditoria | CI com três trilhos: qualidade, réplica provada no runner e segurança (bandit, pip-audit, gitleaks, trivy), espelhada em `scripts/esteira.sh` (v0.2.0, card 2.8); logs estruturados em JSON com id de execução em todo evento do Dagster (card 3.2) e métricas de execução gravadas no warehouse por sensor a cada fim de execução (`observabilidade.execucao` e `execucao_passo`, card 3.3) e Grafana como código lendo essas tabelas: painel de execuções, frescor e falhas mais duas regras de alerta (card 3.4), v0.3.0; auditoria a seguir |
 | 8 · consumo | projeto separado, a iniciar |
 
 ## 8. O que este projeto deliberadamente não faz

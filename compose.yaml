@@ -197,7 +197,7 @@ services:
     build:
       context: .
       dockerfile: infra/dagster/Dockerfile
-    image: fictalent/dagster:0.2.0
+    image: fictalent/dagster:0.3.0
     container_name: fictalent_dagster_web
     command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/app/workspace.yaml"]
     environment: &ambiente_dagster
@@ -205,6 +205,20 @@ services:
       DAGSTER_PG_DB: ${DAGSTER_PG_DB:-dagster}
       DAGSTER_PG_USER: ${DAGSTER_PG_USER:-dagster}
       DAGSTER_PG_PASSWORD: ${DAGSTER_PG_PASSWORD:?defina DAGSTER_PG_PASSWORD no .env}
+      # recursos do pipeline (rh_fictalent.orquestracao.recursos): dentro do Compose os hosts
+      # são os serviços e as portas são as internas; fora dele, o .env aponta para 127.0.0.1
+      STAGING_HOST: mysql-staging
+      STAGING_PORT: "3306"
+      PIPELINE_PASSWORD: ${PIPELINE_PASSWORD:?defina PIPELINE_PASSWORD no .env}
+      S3_ENDPOINT: http://s3:8333
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?defina S3_ACCESS_KEY no .env}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?defina S3_SECRET_KEY no .env}
+      S3_BUCKET: ${S3_BUCKET:-fictalent-lake}
+      DW_HOST: pg-dw
+      DW_PORT: "5432"
+      DW_DB: ${DW_DB:-dw_fictalent}
+      DW_ADMIN_USER: ${DW_ADMIN_USER:-fictalent_admin}
+      DW_ADMIN_PASSWORD: ${DW_ADMIN_PASSWORD:?defina DW_ADMIN_PASSWORD no .env}
     ports:
       - "127.0.0.1:${DAGSTER_PORT:-3010}:3000"
     volumes:
@@ -222,7 +236,7 @@ services:
 
   dagster-daemon:
     <<: *seguranca
-    image: fictalent/dagster:0.2.0
+    image: fictalent/dagster:0.3.0
     container_name: fictalent_dagster_daemon
     command: ["dagster-daemon", "run", "-w", "/opt/dagster/app/workspace.yaml"]
     environment: *ambiente_dagster
