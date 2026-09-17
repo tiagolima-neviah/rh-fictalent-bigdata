@@ -1,0 +1,87 @@
+# Regras de alerta provisionadas como código. Avaliadas a cada minuto sobre o warehouse
+# (observabilidade.execucao), com o papel grafana_leitor. Sem integração externa neste
+# laboratório: o alerta acende na interface (Alerting > Alert rules) e no ponto de contato
+# padrão; em produção o ponto de contato vira e-mail ou chat, também por provisioning.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: fictalent
+    folder: Fictalent
+    interval: 1m
+    rules:
+      - uid: fictalent-execucao-falhou
+        title: Execução do pipeline falhou
+        condition: C
+        for: 1m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severidade: alta
+          projeto: fictalent
+        annotations:
+          summary: "Pelo menos uma execução terminou com FALHA nos últimos 15 minutos."
+          runbook: "docs/08_manual_de_operacao.md, seção 6: ache o run_id na tabela de falhas e leia o erro do passo."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 900, to: 0 }
+            datasourceUid: warehouse-postgres
+            model:
+              refId: A
+              rawQuery: true
+              editorMode: code
+              format: table
+              rawSql: "SELECT COUNT(*)::int AS falhas FROM observabilidade.execucao WHERE status = 'FALHA' AND fim > now() - interval '15 minutes'"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+
+      - uid: fictalent-dado-envelheceu
+        title: Dado envelheceu (sem execução com sucesso há mais de 26 horas)
+        condition: C
+        for: 5m
+        noDataState: Alerting
+        execErrState: Error
+        labels:
+          severidade: media
+          projeto: fictalent
+        annotations:
+          summary: "Nenhuma execução terminou com sucesso nas últimas 26 horas: o dado do warehouse está velho."
+          runbook: "docs/08_manual_de_operacao.md, seção 6: confira o daemon do Dagster e as agendas em Automation."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: warehouse-postgres
+            model:
+              refId: A
+              rawQuery: true
+              editorMode: code
+              format: table
+              rawSql: "SELECT COALESCE(EXTRACT(EPOCH FROM (now() - MAX(fim))) / 3600, 9999)::float AS horas FROM observabilidade.execucao WHERE status = 'SUCESSO'"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: { type: gt, params: [26] }
