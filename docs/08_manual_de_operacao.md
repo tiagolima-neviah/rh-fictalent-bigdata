@@ -50,7 +50,7 @@ A primeira subida baixa as imagens e constrói a do Dagster (cerca de 1 minuto m
 bash scripts/saude.sh
 ```
 
-O script espera cada serviço ficar saudável e os dois jobs de inicialização terminarem, e termina com `OK` ou com a lista do que falhou.
+O script tem duas fases. A primeira espera cada serviço ficar saudável e os dois jobs de inicialização terminarem. A segunda prova o que está **dentro** dos containers: a réplica responde ao usuário `pipeline` com as 76 tabelas, tem os 75 gatilhos, os 76 tablespaces cifrados e o keyring ativo; o lake tem o bucket; o warehouse aceita o `grafana_leitor` e informa quantas execuções registrou e há quantos minutos foi o último sucesso (aviso acima de 26 h); o Dagster carregou a code location e tem os 3 sensores ligados; o Grafana responde, com as duas fontes `OK`, o painel e as 2 regras provisionados. Cada verificação sai com `✓` ou `✗`, e o fim é `PLATAFORMA OK` ou a contagem de falhas. `SO_CONTAINERS=1 bash scripts/saude.sh` roda só a primeira fase (é o que a CI faz).
 
 **4. A réplica já nasce com as tabelas.** Na primeira inicialização o MySQL executa a DDL de `staging/ddl` (10 módulos, 76 tabelas). Se o volume da réplica já existia antes da DDL entrar no repositório, aplique por cima:
 
