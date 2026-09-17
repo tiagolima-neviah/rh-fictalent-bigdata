@@ -3,7 +3,7 @@
 # Segurança e LGPD · o que protege o quê, e como conferir
 
 <!-- nav:start -->
-[Home](../README.md) | [← Modelo de Dados](04_modelo_dados_staging.md) | [Manual de Operação →](08_manual_de_operacao.md)
+[Home](../README.md) | [← Modelo de Dados](04_modelo_dados_staging.md) | [Instalação e Reprodução →](07_instalacao_e_reproducao.md)
 <!-- nav:end -->
 
 > Este documento consolida, num lugar só, cada controle de segurança e de proteção de dados do projeto: contra o que ele protege, onde está implementado e **o comando que prova que funciona**. O que ainda não existe aparece como previsto, com a versão em que entra. Nada aqui substitui o aviso do README: é um projeto de estudo, sem auditoria independente.
