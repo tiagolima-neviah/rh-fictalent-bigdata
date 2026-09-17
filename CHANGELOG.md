@@ -2,6 +2,30 @@
 
 Cada versão fecha uma fase inteira, com código, testes e documentação. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] · 2026-09-17 · Orquestração e observabilidade
+
+O Dagster deixou de ser vazio e a plataforma passou a se observar: recursos, convenções, o primeiro job, logs em JSON, métricas de execução no warehouse, Grafana como código e a verificação de ponta a ponta. Ainda sem dado: o dado sintético é a v0.4.0.
+
+### Orquestração (Dagster)
+- Recursos `Replica` (MySQL, como usuário `pipeline`), `Lake` (S3 via fsspec) e `Warehouse` (Postgres), configurados pelo ambiente, com segredos por `EnvVar`; dentro do Compose os hosts são os serviços, fora dele `127.0.0.1`.
+- Convenções de todo asset: camada como grupo, chave `camada/modulo/tabela`, partição diária desde 2018-01-02 e anual 2018 a 2026.
+- Job `verificar_plataforma` (grupo `plataforma`): prova de dentro do Dagster que réplica, lake e warehouse estão alcançáveis, com metadados no histórico.
+- Logs estruturados: uma linha JSON por evento de toda execução, com `run_id`, `job`, `passo`, `evento` e `excecao`; logger de job selecionado pela configuração padrão de cada job.
+
+### Observabilidade
+- Métricas de execução no warehouse (`observabilidade.execucao` e `execucao_passo`), gravadas por três sensores de fim de execução (sucesso, falha, cancelamento), ligados por padrão, com upsert.
+- Grafana como código: painel *Fictalent · Execuções do pipeline* (execuções e falhas em 24 h, frescor com faixas, duração média, por dia e status, por job, por passo, últimas execuções, falhas com o erro) e duas regras de alerta (execução falhou; dado envelheceu), provisionados por arquivo e não editáveis pela interface.
+- `scripts/saude.sh` em duas fases: containers saudáveis e prova de ponta a ponta (réplica, gatilhos, cifra, keyring, bucket, `grafana_leitor`, métricas e frescor, code location e sensores, fontes, painel e alertas), terminando em `PLATAFORMA OK`.
+
+### Documentação
+- `docs/07` instalação e reprodução (do clone à plataforma verificada, atualizar, recomeçar, desinstalar) e `docs/09` monitoramento e healthcheck (três camadas, painel indicador a indicador, alertas, investigar por `run_id`, rotina). Manual `docs/08` ganhou Dagster, logs, métricas e a chave de cifra.
+
+### Esteira
+- 285 testes; os de integração materializam o job, capturam os logs, registram métricas e executam cada consulta do Grafana como `grafana_leitor`.
+
+### Não inclui
+- Dado, ingestão, assets de dado, agendas. A ordem: v0.4.0 dado sintético, v0.5.0 ingestão, v0.6.0 lake, v0.7.0 gold e warehouse, v1.0.0 API, auditoria, backup e nuvem.
+
 ## [0.2.0] · 2026-09-16 · Fundação segura
 
 A réplica do sistema do cliente, de pé, cifrada, com controle de acesso e provada por teste a cada PR. Ainda sem dado: o dado sintético é a v0.4.0.
@@ -38,5 +62,6 @@ A réplica do sistema do cliente, de pé, cifrada, com controle de acesso e prov
 - Modelo relacional de 75 tabelas em 10 módulos aprovado; plano de sintetização aprovado.
 - Repositório público com Gitflow (`develop` como branch padrão).
 
+[0.3.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.3.0
 [0.2.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.2.0
 [0.1.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.1.0

@@ -66,8 +66,8 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 |---|---|---|
 | v0.1.0 | Entendimento do negócio e dos dados, arquitetura, modelo relacional | concluído |
 | v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, trilha de exclusões, DCL, cifra em repouso, dicionário, CI em três trilhos | concluído |
-| v0.3.0 | Orquestração (Dagster) e observabilidade (Grafana, logs, healthcheck) | em andamento |
-| v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | previsto |
+| v0.3.0 | Orquestração (Dagster: recursos, convenções, primeiro job), logs em JSON, métricas por sensor, Grafana como código, saúde de ponta a ponta | concluído |
+| v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | próxima |
 | v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | previsto |
 | v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
 | v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | previsto |
@@ -80,7 +80,7 @@ O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira oc
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.2.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster e Grafana), conferir a saúde de cada serviço e provar a fundação da réplica com os testes de integração:
+O projeto está em construção. Na v0.3.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster com o primeiro job e os sensores de métricas, Grafana com painel e alertas), verificá-la de ponta a ponta e acompanhar cada execução no painel:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
