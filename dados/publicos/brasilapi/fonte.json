@@ -1,0 +1,16 @@
+{
+  "fonte": "BrasilAPI, feriados nacionais v1",
+  "url": "https://brasilapi.com.br/api/feriados/v1/{ano}",
+  "anos": [
+    2018,
+    2026
+  ],
+  "colunas": [
+    "data",
+    "nome",
+    "abrangencia",
+    "ano"
+  ],
+  "baixado_em": "2026-09-17T20:27:15+00:00",
+  "linhas": 120
+}

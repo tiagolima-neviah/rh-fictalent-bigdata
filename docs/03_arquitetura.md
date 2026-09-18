@@ -39,7 +39,7 @@
                                    a partir do MySQL (marca d'água por tabela,
                                    exclusão lógica)
   2b API REST   ─ [Python + httpx] municípios (IBGE) e feriados (BrasilAPI)
-                                   paginação, retry, limite de taxa
+                                   timeout, retry com recuo, limite de taxa
   2c arquivo    ─ [pandas + pandera] consolidado gerencial em Excel e
                                    índices sazonais do Novo CAGED em CSV,
                                    ambos com esquema declarado
@@ -113,7 +113,7 @@
 | versionamento | **Git + Gitflow** | ramo por funcionalidade, `develop` de integração, versão marcada em `main` | é o fluxo que as equipes de dados maiores exigem |
 | staging | **MySQL 8** | a réplica autorizada do sistema do cliente, de onde o pipeline lê | é o motor mais provável do sistema próprio de uma PME, e o que o mercado pede é saber **ingerir de** MySQL. Fecha a terceira técnica de carga incremental da série (Fictitur: coluna temporal; Fictoria: `rowversion`; Fictalent: a partir de MySQL). [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) |
 | ingestão relacional | **leitor com saída Arrow** (ADBC, se houver driver MySQL maduro; senão ConnectorX) | traz o dado do MySQL em lotes colunares | não estoura a memória e preserva os tipos. A escolha é medida e registrada em ADR na v0.5.0 |
-| ingestão de API | **httpx** | consome as APIs públicas do IBGE e da BrasilAPI | cliente HTTP moderno, com timeout e retry controlados |
+| ingestão de API | **httpx** | consome as APIs públicas do IBGE e da BrasilAPI | cliente HTTP moderno, com timeout e retry controlados ([ADR-0010](adr/0010-httpx-ingestao-de-api.md)) |
 | ingestão de arquivo | **pandas + pandera** | lê Excel e CSV contra um esquema declarado | arquivo sem esquema é o começo de todo relatório que não bate |
 | orquestração | **Dagster** | decide quando e em que ordem cada etapa roda, repete o que falha, guarda o histórico | trabalha com **ativos de dado**, não só tarefas: a dependência entre tabelas vira desenho |
 | storage | **SeaweedFS + fsspec** | um S3 dentro do Compose | o mesmo código vai para AWS, GCP ou disco local só trocando o endereço. O MinIO, escolha óbvia até 2025, deixou de publicar a imagem da edição comunitária; a última disponível não recebe atualização de segurança há um ano. O SeaweedFS é Apache 2.0, ativo e fala a mesma API S3 |
@@ -195,7 +195,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 |---|---|
 | 0 · infraestrutura | Compose com 7 serviços e healthchecks, imagens com versão fixa, portas só em localhost, segredos obrigatórios via `.env` (v0.2.0, cards 2.1 e 2.1.1) |
 | 1 · staging (réplica) | MySQL 8 (ADR-0001) com a DDL dos 10 módulos aplicada: 75 tabelas de negócio mais a trilha de exclusões, comentário em toda tabela, chaves entre databases, etiqueta LGPD por coluna trilha de exclusões por gatilho gerado da DDL e papéis por função com GRANT gerado das etiquetas LGPD, provados por teste, cifra em repouso de tudo com keyring próprio e dicionário de dados gerado da `information_schema` ([Modelo de Dados](04_modelo_dados_staging.md), v0.2.0, cards 2.2 a 2.7); calibração do dado sintético iniciada: índice sazonal por mês, escopo e grupo CNAE derivado dos microdados do Novo CAGED, com a fonte, em `dados/publicos/caged` (v0.4.0, card 4.1) |
-| 2 · ingestão | a iniciar |
+| 2 · ingestão | por API feita: um cliente HTTP com timeout, retry com recuo exponencial e limite de taxa ([ADR-0010](adr/0010-httpx-ingestao-de-api.md)) traz os municípios de SP e MG (IBGE) e os feriados nacionais (BrasilAPI) como assets do grupo `fontes`, gravados em parquet no lake, os feriados particionados por ano; as mesmas funções geram as tabelas versionadas em `dados/publicos` (v0.4.0, card 4.2); relacional e arquivo entram na v0.5.0 |
 | 3 · orquestração | projeto Dagster com recursos (réplica, lake, warehouse) configurados pelo ambiente, convenções de camada, chave e partição, e o job `verificar_plataforma` que prova os três alcances de dentro do Dagster (v0.3.0, card 3.1); assets de dado entram com as versões seguintes |
 | 4 · lake | a iniciar |
 | 5 · OLAP | motor definido (Postgres 16, ADR-0001), modelo dimensional a iniciar |

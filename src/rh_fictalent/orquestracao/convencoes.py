@@ -6,6 +6,9 @@
   linhagem legível: bronze/ats/candidato depende de replica/ats/candidato.
 - Partição diária desde o primeiro dia da história (2018-01-02) para o incremental;
   partição anual para o histórico (backfill e gold por ano).
+- As fontes públicas externas (IBGE, BrasilAPI) formam o grupo fontes, com chave
+  fontes/provedor/conjunto (ex.: fontes/ibge/municipios); não são camada do pipeline,
+  são o que entra nele por API.
 """
 
 from __future__ import annotations
@@ -28,6 +31,9 @@ MODULOS = (
 PRIMEIRO_DIA = "2018-01-02"
 ANOS = tuple(str(ano) for ano in range(2018, 2027))
 
+GRUPO_FONTES = "fontes"
+PROVEDORES = ("ibge", "brasilapi")
+
 PARTICAO_DIARIA = dg.DailyPartitionsDefinition(start_date=PRIMEIRO_DIA, timezone="UTC")
 PARTICAO_ANUAL = dg.StaticPartitionsDefinition(list(ANOS))
 
@@ -38,3 +44,9 @@ def chave(camada: str, modulo: str, tabela: str) -> dg.AssetKey:
     if modulo not in MODULOS:
         raise ValueError(f"módulo desconhecido: {modulo!r}")
     return dg.AssetKey([camada, modulo, tabela])
+
+
+def chave_fonte(provedor: str, conjunto: str) -> dg.AssetKey:
+    if provedor not in PROVEDORES:
+        raise ValueError(f"provedor desconhecido: {provedor!r}")
+    return dg.AssetKey([GRUPO_FONTES, provedor, conjunto])
