@@ -109,21 +109,47 @@ class Replica:
         finally:
             con.close()
 
-    def gravar(self, tabelas: Tabelas) -> dict[str, int]:
-        """Insere tudo numa transação só; recusa se alguma tabela da etapa já tiver linhas."""
-        ocupadas = {n: q for n, q in self.contar(list(tabelas)).items() if q}
-        if ocupadas:
-            raise BaseNaoVazia(f"tabelas com dado: {ocupadas}; use --zerar para recomeçar")
+    def gravar(
+        self, tabelas: Tabelas, adiadas: dict[str, list[str]] | None = None
+    ) -> dict[str, int]:
+        """Insere tudo numa transação só. Cada tabela tem de estar exatamente no ponto em que a
+        etapa a continua (vazia, ou com os ids anteriores ao primeiro que vai entrar): gravar duas
+        vezes, ou fora de ordem, é recusado. `adiadas` são colunas inseridas nulas e preenchidas
+        no fim (o ciclo centro_custo <-> contrato), com o atualizado_em do próprio gerador."""
+        adiadas = adiadas or {}
+        fora_do_ponto = {}
         con = self.conectar()
         try:
             with con.cursor() as cur:
                 for nome, quadro in tabelas.items():
-                    colunas = ", ".join(f"`{c}`" for c in quadro.columns)
-                    marcas = ", ".join(["%s"] * len(quadro.columns))
+                    alvo = _identificador(nome)
+                    sql = f"SELECT COUNT(*), COALESCE(MAX(id), 0) FROM {alvo}"  # noqa: S608 # nosec B608
+                    cur.execute(sql)
+                    linhas, maior = (int(v) for v in cur.fetchone())
+                    esperado = int(quadro["id"].iloc[0]) - 1 if len(quadro) else linhas
+                    if (linhas, maior) != (esperado, esperado):
+                        fora_do_ponto[nome] = f"{linhas} linhas, esperadas {esperado}"
+                if fora_do_ponto:
+                    raise BaseNaoVazia(f"tabelas fora do ponto: {fora_do_ponto}; use --zerar")
+                for nome, quadro in tabelas.items():
+                    inserir = quadro.copy()
+                    for coluna in adiadas.get(nome, []):
+                        inserir[coluna] = None
+                    colunas = ", ".join(f"`{c}`" for c in inserir.columns)
+                    marcas = ", ".join(["%s"] * len(inserir.columns))
                     sql = f"INSERT INTO {_identificador(nome)} ({colunas}) VALUES ({marcas})"  # noqa: S608 # nosec B608
-                    linhas = valores(quadro)
-                    for i in range(0, len(linhas), LOTE):
-                        cur.executemany(sql, linhas[i : i + LOTE])
+                    linhas_a_inserir = valores(inserir)
+                    for i in range(0, len(linhas_a_inserir), LOTE):
+                        cur.executemany(sql, linhas_a_inserir[i : i + LOTE])
+                for nome, colunas_adiadas in adiadas.items():
+                    quadro = tabelas[nome]
+                    for coluna in colunas_adiadas:
+                        preenchidas = quadro[quadro[coluna].notna()]
+                        sql = (
+                            f"UPDATE {_identificador(nome)} SET `{coluna}` = %s, "  # noqa: S608 # nosec B608
+                            "atualizado_em = %s WHERE id = %s"
+                        )
+                        cur.executemany(sql, valores(preenchidas[[coluna, "atualizado_em", "id"]]))
             con.commit()
         except Exception:
             con.rollback()
@@ -132,12 +158,20 @@ class Replica:
             con.close()
         return {nome: len(quadro) for nome, quadro in tabelas.items()}
 
-    def ler(self, nome: str, colunas: list[str]) -> list[tuple[Any, ...]]:
+    def ler(
+        self, nome: str, colunas: list[str], faixa: tuple[int, int] | None = None
+    ) -> list[tuple[Any, ...]]:
+        """As linhas da tabela em ordem de id; `faixa` (primeiro, último id) limita a uma etapa."""
+        alvo = _identificador(nome)
+        primeiro, ultimo = faixa or (0, 2**62)
         con = self.conectar()
         try:
             with con.cursor() as cur:
                 lista = ", ".join(f"`{c}`" for c in colunas)
-                cur.execute(f"SELECT {lista} FROM {_identificador(nome)} ORDER BY id")  # noqa: S608 # nosec B608
+                cur.execute(
+                    f"SELECT {lista} FROM {alvo} WHERE id BETWEEN %s AND %s ORDER BY id",  # noqa: S608 # nosec B608
+                    (primeiro, ultimo),
+                )
                 return list(cur.fetchall())
         finally:
             con.close()

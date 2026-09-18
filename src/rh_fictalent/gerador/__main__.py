@@ -3,9 +3,12 @@
     python -m rh_fictalent.gerador --etapa 1                   # gera e confere, não grava
     python -m rh_fictalent.gerador --etapa 1 --gravar          # grava na réplica (replicador)
     python -m rh_fictalent.gerador --etapa 1 --gravar --zerar  # zera a réplica inteira antes (root)
+    python -m rh_fictalent.gerador --etapa 2 --gravar          # a etapa seguinte continua a base
 
-Gravar recusa tabela que já tem linhas: regenerar é sempre "zera e grava de novo", nunca
-remendo. Zerar esvazia a réplica inteira, porque toda etapa depende das anteriores.
+Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
+fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
+esvazia a réplica inteira, porque toda etapa depende das anteriores. Quando a etapa já permite
+tirar medidas, a régua parcial sai junto.
 """
 
 from __future__ import annotations
@@ -13,14 +16,31 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Callable
+from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
-from rh_fictalent.gerador import etapa1_cadastro
+from rh_fictalent.gerador import etapa1_cadastro, etapa2_carteira
 from rh_fictalent.gerador.nucleo import SEMENTE, Tabelas, assinatura, replica_do_ambiente
+from rh_fictalent.validacao.regua import Laudo
 
-ETAPAS: dict[int, tuple[str, Callable[[], Tabelas]]] = {
-    1: ("mundo cadastral", etapa1_cadastro.gerar),
+
+@dataclass(frozen=True)
+class Etapa:
+    nome: str
+    gerar: Callable[[], Tabelas]
+    adiadas: dict[str, list[str]] = field(default_factory=dict)
+    laudo: Callable[[Tabelas], Laudo] | None = None  # a régua parcial, quando a etapa já mede
+
+
+ETAPAS = {
+    1: Etapa("mundo cadastral", etapa1_cadastro.gerar),
+    2: Etapa(
+        "carteira comercial",
+        etapa2_carteira.gerar,
+        etapa2_carteira.ADIADAS,
+        lambda t: etapa2_carteira.laudo_parcial(etapa2_carteira.medir(t)),
+    ),
 }
 
 
@@ -33,19 +53,21 @@ def main(argumentos: list[str] | None = None) -> int:
     if args.zerar and not args.gravar:
         parser.error("--zerar só faz sentido com --gravar")
 
-    nome, gerar = ETAPAS[args.etapa]
-    tabelas = gerar()
-    print(f"etapa {args.etapa} · {nome} · semente {SEMENTE}")
+    etapa = ETAPAS[args.etapa]
+    tabelas = etapa.gerar()
+    print(f"etapa {args.etapa} · {etapa.nome} · semente {SEMENTE}")
     for tabela, quadro in tabelas.items():
         print(f"  {tabela:<32} {len(quadro):>7} linhas")
     print(f"  assinatura {assinatura(tabelas)[:16]}")
+    if etapa.laudo is not None:
+        print(etapa.laudo(tabelas).texto(so_problemas=True))
 
     if args.gravar:
         load_dotenv()
         if args.zerar:
             zeradas = replica_do_ambiente("root").zerar()
             print(f"réplica zerada: {zeradas} tabelas")
-        gravadas = replica_do_ambiente("replicador").gravar(tabelas)
+        gravadas = replica_do_ambiente("replicador").gravar(tabelas, etapa.adiadas)
         print(f"gravado na réplica: {sum(gravadas.values())} linhas em {len(gravadas)} tabelas")
     return 0
 
