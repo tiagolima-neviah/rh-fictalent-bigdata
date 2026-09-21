@@ -119,13 +119,21 @@ class Replica:
             con.close()
 
     def gravar(
-        self, tabelas: Tabelas, adiadas: dict[str, list[str]] | None = None
+        self,
+        tabelas: Tabelas,
+        adiadas: dict[str, list[str]] | None = None,
+        retoques: dict[str, pd.DataFrame] | None = None,
     ) -> dict[str, int]:
         """Insere tudo numa transação só. Cada tabela tem de estar exatamente no ponto em que a
         etapa a continua (vazia, ou com os ids anteriores ao primeiro que vai entrar): gravar duas
         vezes, ou fora de ordem, é recusado. `adiadas` são colunas inseridas nulas e preenchidas
-        no fim (o ciclo centro_custo <-> contrato), com o atualizado_em do próprio gerador."""
+        no fim (o ciclo centro_custo <-> contrato), com o atualizado_em do próprio gerador.
+        `retoques` fecham um ciclo entre etapas: por tabela já gravada, um quadro com `id` e uma
+        coluna que nasceu nula porque o destino da chave ainda não existia (a entrevista e o
+        usuário). Só entra em coluna ainda toda nula, em todas as linhas, e o carimbo da linha
+        fica como está: é o dado que sempre esteve lá, não uma edição."""
         adiadas = adiadas or {}
+        retoques = retoques or {}
         fora_do_ponto = {}
         con = self.conectar()
         try:
@@ -138,6 +146,16 @@ class Replica:
                     esperado = int(quadro["id"].iloc[0]) - 1 if len(quadro) else linhas
                     if (linhas, maior) != (esperado, esperado):
                         fora_do_ponto[nome] = f"{linhas} linhas, esperadas {esperado}"
+                for nome, quadro in retoques.items():
+                    (coluna,) = (c for c in quadro.columns if c != "id")
+                    sql = f"SELECT COUNT(*), COUNT({_coluna(coluna)}) FROM {_identificador(nome)}"  # noqa: S608 # nosec B608
+                    cur.execute(sql)
+                    linhas, com_valor = (int(v) for v in cur.fetchone())
+                    if (linhas, com_valor) != (len(quadro), 0):
+                        fora_do_ponto[nome] = (
+                            f"{linhas} linhas e {com_valor} com {coluna}, "
+                            f"esperadas {len(quadro)} e 0"
+                        )
                 if fora_do_ponto:
                     raise BaseNaoVazia(f"tabelas fora do ponto: {fora_do_ponto}; use --zerar")
                 for nome, quadro in tabelas.items():
@@ -158,6 +176,20 @@ class Replica:
                             "atualizado_em = %s WHERE id = %s"
                         )
                         cur.executemany(sql, valores(preenchidas[[coluna, "atualizado_em", "id"]]))
+                for nome, quadro in retoques.items():
+                    (coluna,) = (c for c in quadro.columns if c != "id")
+                    por_valor: dict[int, list[int]] = {}
+                    for i, v in zip(quadro["id"].tolist(), quadro[coluna].tolist(), strict=True):
+                        por_valor.setdefault(int(v), []).append(int(i))
+                    for valor, ids in por_valor.items():
+                        for i in range(0, len(ids), LOTE):
+                            lote = ids[i : i + LOTE]
+                            marcas = ", ".join(["%s"] * len(lote))
+                            sql = (
+                                f"UPDATE {_identificador(nome)} SET {_coluna(coluna)} = %s, "  # noqa: S608 # nosec B608
+                                f"atualizado_em = atualizado_em WHERE id IN ({marcas})"
+                            )
+                            cur.execute(sql, [valor, *lote])
             con.commit()
         except Exception:
             con.rollback()
@@ -218,6 +250,12 @@ def replica_do_ambiente(usuario: str = "replicador") -> Replica:
         usuario=usuario,
         senha=senha,
     )
+
+
+def _coluna(nome: str) -> str:
+    if not nome.replace("_", "").isalnum():
+        raise ValueError(f"nome de coluna inválido: {nome!r}")
+    return f"`{nome}`"
 
 
 def _identificador(nome: str) -> str:
