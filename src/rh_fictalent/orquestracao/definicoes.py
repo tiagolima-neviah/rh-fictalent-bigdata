@@ -12,6 +12,9 @@ from __future__ import annotations
 
 import dagster as dg
 
+from rh_fictalent.orquestracao.bronze import ASSETS as BRONZE
+from rh_fictalent.orquestracao.bronze import ORIGENS as REPLICA
+from rh_fictalent.orquestracao.bronze import backfill_bronze
 from rh_fictalent.orquestracao.fontes import (
     carregar_feriados,
     carregar_municipios,
@@ -29,8 +32,16 @@ from rh_fictalent.orquestracao.verificacao import (
 )
 
 defs = dg.Definitions(
-    assets=[replica_pronta, lake_pronto, warehouse_pronto, municipios_ibge, feriados_brasilapi],
-    jobs=[verificar_plataforma, carregar_municipios, carregar_feriados],
+    assets=[
+        replica_pronta,
+        lake_pronto,
+        warehouse_pronto,
+        municipios_ibge,
+        feriados_brasilapi,
+        *REPLICA,
+        *BRONZE,
+    ],
+    jobs=[verificar_plataforma, carregar_municipios, carregar_feriados, backfill_bronze],
     sensors=SENSORES,  # fim de execução vira linhas em observabilidade.execucao(_passo)
     resources=recursos_do_ambiente(),
     loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON
