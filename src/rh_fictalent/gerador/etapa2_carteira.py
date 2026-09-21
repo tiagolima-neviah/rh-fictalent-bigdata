@@ -336,7 +336,10 @@ class _Carteira:
 
     def novo_contrato(self, cliente: Cliente, tipo: str, inicio: date) -> int:
         contrato_id = len(self.l_contrato) + 1
-        assinatura = max(inicio - timedelta(days=int(self.rng.integers(3, 16))), INICIO)
+        assinatura = inicio - timedelta(days=int(self.rng.integers(3, 16)))
+        while assinatura.weekday() >= 5:  # contrato se assina em dia de semana
+            assinatura -= timedelta(days=1)
+        assinatura = max(assinatura, INICIO)
         sequencia = (
             sum(1 for k in self.l_contrato if k["dt_assinatura"].year == assinatura.year) + 1
         )

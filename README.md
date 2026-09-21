@@ -106,6 +106,7 @@ rh-fictalent-bigdata/
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── dados/publicos/          # tabelas de fonte pública (Novo CAGED, IBGE, BrasilAPI), cada uma com a fonte; o bruto fica fora do git
 ├── dados/gerencial/         # o consolidado gerencial em Excel (sintético): a fonte de arquivo do pipeline
+├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (165 de 165)
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
