@@ -2,6 +2,41 @@
 
 Cada versão fecha uma fase inteira, com código, testes e documentação. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] · 2026-09-21 · Dado sintético
+
+A réplica deixou de ser um banco vazio: **8,4 milhões de linhas em 76 tabelas** contam a história da Fictalent de janeiro de 2018 a 10 de setembro de 2026. O dado não foi sorteado para parecer plausível; foi **simulado e conferido contra um contrato escrito antes de ele existir**, com 165 checks em seis famílias. Ainda sem ingestão: ler a réplica e os arquivos é a v0.5.0.
+
+### Fontes públicas
+- Novo CAGED (2023 a 2025) agregado em `dados/publicos/caged`: movimentação mensal por escopo e grupo CNAE, e o índice sazonal que a régua usa para conferir o ritmo do ano. Pico de admissões em outubro e novembro, desligamentos em dezembro.
+- Municípios (IBGE) e feriados nacionais (BrasilAPI) como assets do Dagster, com cliente HTTP próprio: tempo limite, cinco tentativas com recuo exponencial, limite de taxa e transporte injetável para teste ([ADR-0010](docs/adr/0010-httpx-ingestao-de-api.md)). As tabelas derivadas são versionadas com a fonte declarada (`fonte.json`), o bruto fica fora do git.
+
+### Régua de validação
+- `validacao/` com banda, check, laudo e veredito: **165 checks em seis famílias** (escala e forma, naturalidade, a história, sazonalidade, coerência interna e a sujeira na medida certa), escritos **antes** da primeira linha de dado. Cada alvo vem do dossiê do caso ou de dado público; cada tolerância é decisão declarada.
+- Linha de comando própria: `--contrato` mostra o que a régua espera receber, `--medidas` dá o laudo e o código de saída é o veredito (0 aprovada, 1 reprovada, 2 incompleta).
+- Quatro revisões de banda, cada uma com data e motivo no histórico de `bandas.py`: duas corrigiram estimativas de volume do rascunho do modelo, duas trocaram um limite genérico por um que descreve o negócio de temporada.
+
+### Gerador
+- Gerador determinístico em seis etapas, cada uma continuando a anterior na réplica, com a mesma semente produzindo a mesma base em qualquer máquina: mundo cadastral, carteira comercial, funil e pessoas, ponto e folha, financeiro, conformidade e acesso.
+- **Nada é escrito por decreto.** O headcount de 2024 não é um número no código: a carteira abre postos, o funil converte candidatos, as pessoas são admitidas, alocadas e desligadas uma a uma, e o headcount é o que sobra. A defasagem de 6 a 9 meses entre a qualidade cair e o cliente romper o contrato **emerge** da mecânica (o cliente decide perto da renovação, olhando os últimos meses), em vez de ser um parâmetro.
+- Ponto e folha em numpy (6,8 milhões de linhas): marcação, apontamento, folha com encargos e provisões, e o rateio de custo fechando com a folha em toda competência.
+- Financeiro com a margem do caso: a receita nasce da medição do mês, e a despesa da retaguarda é o único número conduzido, fechando o ano na margem do plano, sempre positiva. O consolidado gerencial vai para a réplica e para nove planilhas Excel em `dados/gerencial`, que divergem da operação a partir de 2022: a declaração D6 da gerente virando dado.
+- Escrita transacional com guarda de continuidade: cada tabela tem de estar exatamente no ponto em que a etapa a continua, e gravar duas vezes é recusado. Regenerar é sempre recomeçar, nunca remendar.
+- A sujeira do catálogo (candidato duplicado, CPF inválido, admissão retroativa, temporário fora do prazo, marcação faltante, ASO vencido, título pago diferente, consolidado divergente) sai na proporção combinada, medida check a check.
+
+### Aceite
+- `--aceite --replica` gera as seis etapas de ponta a ponta, confere cada uma, junta as medidas, conta as linhas **na réplica** (têm de ser as que o gerador produz, tabela a tabela) e passa a régua inteira: **165 de 165 aprovados**, em 35 segundos.
+- Medidas e laudo versionados em `dados/regua`. Um teste gera a base e compara número a número com o laudo do repositório: mexeu no gerador e uma medida mudou, o aceite tem de ser refeito.
+
+### Documentação
+- `docs/06` régua de validação: o método, as seis famílias com a origem de cada alvo, a história em números, o catálogo de sujeira, o aceite, **onde a régua passa raspando** e **o que a régua não faz**.
+- `docs/07` ganhou a geração da base: o comando, a tabela por etapa com linhas e tempo medido, e o aceite. `docs/03` com as seis etapas; `dados/publicos`, `dados/gerencial` e `dados/regua` com README próprio.
+
+### Esteira
+- 393 testes (eram 285 na v0.3.0). Entre eles, o que gera a base inteira e confere o laudo versionado.
+
+### Não inclui
+- Ingestão, assets de dado, lake, gold, warehouse carregado, API. A ordem: v0.5.0 ingestão, v0.6.0 lake, v0.7.0 gold e warehouse, v1.0.0 API, auditoria, backup e nuvem.
+
 ## [0.3.0] · 2026-09-17 · Orquestração e observabilidade
 
 O Dagster deixou de ser vazio e a plataforma passou a se observar: recursos, convenções, o primeiro job, logs em JSON, métricas de execução no warehouse, Grafana como código e a verificação de ponta a ponta. Ainda sem dado: o dado sintético é a v0.4.0.
@@ -62,6 +97,7 @@ A réplica do sistema do cliente, de pé, cifrada, com controle de acesso e prov
 - Modelo relacional de 75 tabelas em 10 módulos aprovado; plano de sintetização aprovado.
 - Repositório público com Gitflow (`develop` como branch padrão).
 
+[0.4.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.4.0
 [0.3.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.3.0
 [0.2.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.2.0
 [0.1.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.1.0
