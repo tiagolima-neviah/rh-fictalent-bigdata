@@ -5,6 +5,7 @@
     python -m rh_fictalent.gerador --etapa 1 --gravar --zerar  # zera a réplica inteira antes (root)
     python -m rh_fictalent.gerador --etapa 2 --gravar          # a etapa seguinte continua a base
     python -m rh_fictalent.gerador --etapa 3 --gravar          # funil e pessoas, ~1,3 mi de linhas
+    python -m rh_fictalent.gerador --etapa 4 --gravar          # ponto e folha, ~6 mi de linhas
 
 Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
 fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
@@ -21,7 +22,12 @@ from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
-from rh_fictalent.gerador import etapa1_cadastro, etapa2_carteira, etapa3_pessoas
+from rh_fictalent.gerador import (
+    etapa1_cadastro,
+    etapa2_carteira,
+    etapa3_pessoas,
+    etapa4_ponto_folha,
+)
 from rh_fictalent.gerador.nucleo import SEMENTE, Tabelas, assinatura, replica_do_ambiente
 from rh_fictalent.validacao.regua import Laudo
 
@@ -41,7 +47,15 @@ def _etapa_3() -> Tabelas:
     return tabelas
 
 
+def _etapa_4() -> Tabelas:
+    tabelas, base = etapa4_ponto_folha.gerar_com_base()
+    etapa4_ponto_folha.conferir(tabelas, base)
+    _BASE.update(base)
+    return tabelas
+
+
 _GABARITO: dict[str, object] = {}
+_BASE: dict[str, object] = {}
 
 
 ETAPAS = {
@@ -57,6 +71,12 @@ ETAPAS = {
         _etapa_3,
         {},
         lambda t: etapa3_pessoas.laudo_parcial(etapa3_pessoas.medir(t, _GABARITO)),
+    ),
+    4: Etapa(
+        "ponto e folha",
+        _etapa_4,
+        {},
+        lambda t: etapa4_ponto_folha.laudo_parcial(etapa4_ponto_folha.medir(t, _BASE)),
     ),
 }
 

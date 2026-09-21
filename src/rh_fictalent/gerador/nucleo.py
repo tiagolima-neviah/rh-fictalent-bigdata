@@ -63,9 +63,18 @@ def tabela(linhas: list[dict[str, Any]]) -> pd.DataFrame:
     return quadro
 
 
-def valores(quadro: pd.DataFrame) -> list[list[Any]]:
-    """As linhas como tipos nativos do Python (nulo vira None), prontas para o driver."""
-    return quadro.astype(object).where(quadro.notna(), None).to_numpy().tolist()
+def valores(quadro: pd.DataFrame) -> list[tuple[Any, ...]]:
+    """As linhas como tipos nativos do Python (nulo vira None), prontas para o driver. Serve às
+    tabelas pequenas (colunas `object`) e às grandes (colunas tipadas): coluna de data tipada
+    vira `date`, a não ser os carimbos, que são instantes."""
+    colunas: list[list[Any]] = []
+    for nome in quadro.columns:
+        serie = quadro[nome]
+        if pd.api.types.is_datetime64_any_dtype(serie):
+            instante = nome in ("criado_em", "atualizado_em")
+            serie = serie.astype(object) if instante else pd.Series(serie.dt.date, dtype=object)
+        colunas.append(serie.astype(object).where(serie.notna(), None).tolist())
+    return list(zip(*colunas, strict=True))
 
 
 def assinatura(tabelas: Tabelas) -> str:
@@ -138,9 +147,8 @@ class Replica:
                     colunas = ", ".join(f"`{c}`" for c in inserir.columns)
                     marcas = ", ".join(["%s"] * len(inserir.columns))
                     sql = f"INSERT INTO {_identificador(nome)} ({colunas}) VALUES ({marcas})"  # noqa: S608 # nosec B608
-                    linhas_a_inserir = valores(inserir)
-                    for i in range(0, len(linhas_a_inserir), LOTE):
-                        cur.executemany(sql, linhas_a_inserir[i : i + LOTE])
+                    for i in range(0, len(inserir), LOTE):  # converte lote a lote: cabe na memória
+                        cur.executemany(sql, valores(inserir.iloc[i : i + LOTE]))
                 for nome, colunas_adiadas in adiadas.items():
                     quadro = tabelas[nome]
                     for coluna in colunas_adiadas:
