@@ -1,0 +1,1499 @@
+codigo_ibge,nome,uf,microrregiao,mesorregiao,regiao_imediata,regiao_intermediaria
+3100104,Abadia dos Dourados,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3100203,Abaeté,MG,Três Marias,Central Mineira,Abaeté,Divinópolis
+3100302,Abre Campo,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3100401,Acaiaca,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3100500,Açucena,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3100609,Água Boa,MG,Peçanha,Vale do Rio Doce,Capelinha,Teófilo Otoni
+3100708,Água Comprida,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3100807,Aguanil,MG,Campo Belo,Oeste de Minas,Campo Belo,Varginha
+3100906,Águas Formosas,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3101003,Águas Vermelhas,MG,Salinas,Norte de Minas,Pedra Azul,Teófilo Otoni
+3101102,Aimorés,MG,Aimorés,Vale do Rio Doce,Aimorés - Resplendor,Governador Valadares
+3101201,Aiuruoca,MG,Andrelândia,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3101300,Alagoa,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3101409,Albertina,MG,Poços de Caldas,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3101508,Além Paraíba,MG,Cataguases,Zona da Mata,Além Paraíba,Juíz de Fora
+3101607,Alfenas,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3101631,Alfredo Vasconcelos,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3101706,Almenara,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3101805,Alpercata,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3101904,Alpinópolis,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3102001,Alterosa,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3102050,Alto Caparaó,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3102100,Alto Rio Doce,MG,Viçosa,Zona da Mata,Barbacena,Barbacena
+3102209,Alvarenga,MG,Aimorés,Vale do Rio Doce,Caratinga,Ipatinga
+3102308,Alvinópolis,MG,Itabira,Metropolitana de Belo Horizonte,Ponte Nova,Juíz de Fora
+3102407,Alvorada de Minas,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Diamantina,Teófilo Otoni
+3102506,Amparo do Serra,MG,Viçosa,Zona da Mata,Ponte Nova,Juíz de Fora
+3102605,Andradas,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3102704,Cachoeira de Pajeú,MG,Pedra Azul,Jequitinhonha,Pedra Azul,Teófilo Otoni
+3102803,Andrelândia,MG,Andrelândia,Sul/Sudoeste de Minas,Juiz de Fora,Juíz de Fora
+3102852,Angelândia,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3102902,Antônio Carlos,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3103009,Antônio Dias,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3103108,Antônio Prado de Minas,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3103207,Araçaí,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3103306,Aracitaba,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3103405,Araçuaí,MG,Araçuaí,Jequitinhonha,Araçuaí,Teófilo Otoni
+3103504,Araguari,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3103603,Arantina,MG,Andrelândia,Sul/Sudoeste de Minas,Juiz de Fora,Juíz de Fora
+3103702,Araponga,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3103751,Araporã,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3103801,Arapuá,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3103900,Araújos,MG,Bom Despacho,Central Mineira,Divinópolis,Divinópolis
+3104007,Araxá,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3104106,Arceburgo,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3104205,Arcos,MG,Formiga,Oeste de Minas,Formiga,Divinópolis
+3104304,Areado,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3104403,Argirita,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3104452,Aricanduva,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3104502,Arinos,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3104601,Astolfo Dutra,MG,Ubá,Zona da Mata,Cataguases,Juíz de Fora
+3104700,Ataléia,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3104809,Augusto de Lima,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3104908,Baependi,MG,São Lourenço,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3105004,Baldim,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3105103,Bambuí,MG,Piuí,Oeste de Minas,Formiga,Divinópolis
+3105202,Bandeira,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3105301,Bandeira do Sul,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3105400,Barão de Cocais,MG,Itabira,Metropolitana de Belo Horizonte,Santa Bárbara - Ouro Preto,Belo Horizonte
+3105509,Barão do Monte Alto,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3105608,Barbacena,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3105707,Barra Longa,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3105905,Barroso,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3106002,Bela Vista de Minas,MG,Itabira,Metropolitana de Belo Horizonte,João Monlevade,Ipatinga
+3106101,Belmiro Braga,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3106200,Belo Horizonte,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3106309,Belo Oriente,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3106408,Belo Vale,MG,Itaguara,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3106507,Berilo,MG,Capelinha,Jequitinhonha,Araçuaí,Teófilo Otoni
+3106606,Bertópolis,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3106655,Berizal,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3106705,Betim,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3106804,Bias Fortes,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3106903,Bicas,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3107000,Biquinhas,MG,Três Marias,Central Mineira,Abaeté,Divinópolis
+3107109,Boa Esperança,MG,Varginha,Sul/Sudoeste de Minas,Três Pontas - Boa Esperança,Varginha
+3107208,Bocaina de Minas,MG,Andrelândia,Sul/Sudoeste de Minas,Juiz de Fora,Juíz de Fora
+3107307,Bocaiúva,MG,Bocaiúva,Norte de Minas,Montes Claros,Montes Claros
+3107406,Bom Despacho,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3107505,Bom Jardim de Minas,MG,Andrelândia,Sul/Sudoeste de Minas,Juiz de Fora,Juíz de Fora
+3107604,Bom Jesus da Penha,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3107703,Bom Jesus do Amparo,MG,Itabira,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3107802,Bom Jesus do Galho,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3107901,Bom Repouso,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3108008,Bom Sucesso,MG,Oliveira,Oeste de Minas,Lavras,Varginha
+3108107,Bonfim,MG,Itaguara,Metropolitana de Belo Horizonte,Oliveira,Divinópolis
+3108206,Bonfinópolis de Minas,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3108255,Bonito de Minas,MG,Januária,Norte de Minas,Januária,Montes Claros
+3108305,Borda da Mata,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3108404,Botelhos,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3108503,Botumirim,MG,Grão Mogol,Norte de Minas,Montes Claros,Montes Claros
+3108552,Brasilândia de Minas,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3108602,Brasília de Minas,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3108701,Brás Pires,MG,Viçosa,Zona da Mata,Ubá,Juíz de Fora
+3108800,Braúnas,MG,Guanhães,Vale do Rio Doce,Ipatinga,Ipatinga
+3108909,Brazópolis,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3109006,Brumadinho,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3109105,Bueno Brandão,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3109204,Buenópolis,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3109253,Bugre,MG,Caratinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3109303,Buritis,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3109402,Buritizeiro,MG,Pirapora,Norte de Minas,Pirapora,Montes Claros
+3109451,Cabeceira Grande,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3109501,Cabo Verde,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3109600,Cachoeira da Prata,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3109709,Cachoeira de Minas,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3109808,Cachoeira Dourada,MG,Ituiutaba,Triângulo Mineiro/Alto Paranaíba,Ituiutaba,Uberlândia
+3109907,Caetanópolis,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3110004,Caeté,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3110103,Caiana,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3110202,Cajuri,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3110301,Caldas,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3110400,Camacho,MG,Formiga,Oeste de Minas,Divinópolis,Divinópolis
+3110509,Camanducaia,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3110608,Cambuí,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3110707,Cambuquira,MG,São Lourenço,Sul/Sudoeste de Minas,Três Corações,Varginha
+3110806,Campanário,MG,Governador Valadares,Vale do Rio Doce,Teófilo Otoni,Teófilo Otoni
+3110905,Campanha,MG,Varginha,Sul/Sudoeste de Minas,Três Corações,Varginha
+3111002,Campestre,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3111101,Campina Verde,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3111150,Campo Azul,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3111200,Campo Belo,MG,Campo Belo,Oeste de Minas,Campo Belo,Varginha
+3111309,Campo do Meio,MG,Varginha,Sul/Sudoeste de Minas,Alfenas,Varginha
+3111408,Campo Florido,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3111507,Campos Altos,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3111606,Campos Gerais,MG,Varginha,Sul/Sudoeste de Minas,Alfenas,Varginha
+3111705,Canaã,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3111804,Canápolis,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3111903,Cana Verde,MG,Campo Belo,Oeste de Minas,Lavras,Varginha
+3112000,Candeias,MG,Campo Belo,Oeste de Minas,Campo Belo,Varginha
+3112059,Cantagalo,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3112109,Caparaó,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3112208,Capela Nova,MG,Barbacena,Campo das Vertentes,Conselheiro Lafaiete,Barbacena
+3112307,Capelinha,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3112406,Capetinga,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3112505,Capim Branco,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3112604,Capinópolis,MG,Ituiutaba,Triângulo Mineiro/Alto Paranaíba,Ituiutaba,Uberlândia
+3112653,Capitão Andrade,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3112703,Capitão Enéas,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3112802,Capitólio,MG,Passos,Sul/Sudoeste de Minas,Piumhi,Varginha
+3112901,Caputira,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3113008,Caraí,MG,Araçuaí,Jequitinhonha,Teófilo Otoni,Teófilo Otoni
+3113107,Caranaíba,MG,Barbacena,Campo das Vertentes,Conselheiro Lafaiete,Barbacena
+3113206,Carandaí,MG,Barbacena,Campo das Vertentes,Conselheiro Lafaiete,Barbacena
+3113305,Carangola,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3113404,Caratinga,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3113503,Carbonita,MG,Capelinha,Jequitinhonha,Diamantina,Teófilo Otoni
+3113602,Careaçu,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3113701,Carlos Chagas,MG,Nanuque,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3113800,Carmésia,MG,Guanhães,Vale do Rio Doce,Itabira,Belo Horizonte
+3113909,Carmo da Cachoeira,MG,Varginha,Sul/Sudoeste de Minas,Três Corações,Varginha
+3114006,Carmo da Mata,MG,Oliveira,Oeste de Minas,Divinópolis,Divinópolis
+3114105,Carmo de Minas,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3114204,Carmo do Cajuru,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3114303,Carmo do Paranaíba,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3114402,Carmo do Rio Claro,MG,Alfenas,Sul/Sudoeste de Minas,Passos,Varginha
+3114501,Carmópolis de Minas,MG,Oliveira,Oeste de Minas,Oliveira,Divinópolis
+3114550,Carneirinho,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Iturama,Uberaba
+3114600,Carrancas,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3114709,Carvalhópolis,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3114808,Carvalhos,MG,Andrelândia,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3114907,Casa Grande,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3115003,Cascalho Rico,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3115102,Cássia,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3115201,Conceição da Barra de Minas,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3115300,Cataguases,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3115359,Catas Altas,MG,Itabira,Metropolitana de Belo Horizonte,Santa Bárbara - Ouro Preto,Belo Horizonte
+3115409,Catas Altas da Noruega,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3115458,Catuji,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3115474,Catuti,MG,Janaúba,Norte de Minas,Espinosa,Montes Claros
+3115508,Caxambu,MG,São Lourenço,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3115607,Cedro do Abaeté,MG,Três Marias,Central Mineira,Abaeté,Divinópolis
+3115706,Central de Minas,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3115805,Centralina,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3115904,Chácara,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3116001,Chalé,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3116100,Chapada do Norte,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3116159,Chapada Gaúcha,MG,Januária,Norte de Minas,São Francisco,Montes Claros
+3116209,Chiador,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3116308,Cipotânea,MG,Viçosa,Zona da Mata,Barbacena,Barbacena
+3116407,Claraval,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3116506,Claro dos Poções,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3116605,Cláudio,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3116704,Coimbra,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3116803,Coluna,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3116902,Comendador Gomes,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Frutal,Uberaba
+3117009,Comercinho,MG,Pedra Azul,Jequitinhonha,Pedra Azul,Teófilo Otoni
+3117108,Conceição da Aparecida,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3117207,Conceição das Pedras,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3117306,Conceição das Alagoas,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3117405,Conceição de Ipanema,MG,Aimorés,Vale do Rio Doce,Manhuaçu,Juíz de Fora
+3117504,Conceição do Mato Dentro,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3117603,Conceição do Pará,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3117702,Conceição do Rio Verde,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3117801,Conceição dos Ouros,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3117836,Cônego Marinho,MG,Januária,Norte de Minas,Januária,Montes Claros
+3117876,Confins,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3117900,Congonhal,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3118007,Congonhas,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3118106,Congonhas do Norte,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3118205,Conquista,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3118304,Conselheiro Lafaiete,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3118403,Conselheiro Pena,MG,Aimorés,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3118502,Consolação,MG,Itajubá,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3118601,Contagem,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3118700,Coqueiral,MG,Varginha,Sul/Sudoeste de Minas,Três Pontas - Boa Esperança,Varginha
+3118809,Coração de Jesus,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3118908,Cordisburgo,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3119005,Cordislândia,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Varginha,Varginha
+3119104,Corinto,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3119203,Coroaci,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3119302,Coromandel,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Patrocínio,Patos de Minas
+3119401,Coronel Fabriciano,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3119500,Coronel Murta,MG,Araçuaí,Jequitinhonha,Araçuaí,Teófilo Otoni
+3119609,Coronel Pacheco,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3119708,Coronel Xavier Chaves,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3119807,Córrego Danta,MG,Piuí,Oeste de Minas,Formiga,Divinópolis
+3119906,Córrego do Bom Jesus,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3119955,Córrego Fundo,MG,Formiga,Oeste de Minas,Formiga,Divinópolis
+3120003,Córrego Novo,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3120102,Couto de Magalhães de Minas,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3120151,Crisólita,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3120201,Cristais,MG,Campo Belo,Oeste de Minas,Campo Belo,Varginha
+3120300,Cristália,MG,Grão Mogol,Norte de Minas,Montes Claros,Montes Claros
+3120409,Cristiano Otoni,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3120508,Cristina,MG,Itajubá,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3120607,Crucilândia,MG,Itaguara,Metropolitana de Belo Horizonte,Oliveira,Divinópolis
+3120706,Cruzeiro da Fortaleza,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Patrocínio,Patos de Minas
+3120805,Cruzília,MG,Andrelândia,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3120839,Cuparaque,MG,Aimorés,Vale do Rio Doce,Aimorés - Resplendor,Governador Valadares
+3120870,Curral de Dentro,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3120904,Curvelo,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3121001,Datas,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3121100,Delfim Moreira,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3121209,Delfinópolis,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3121258,Delta,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3121308,Descoberto,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3121407,Desterro de Entre Rios,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3121506,Desterro do Melo,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3121605,Diamantina,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3121704,Diogo de Vasconcelos,MG,Ouro Preto,Metropolitana de Belo Horizonte,Ponte Nova,Juíz de Fora
+3121803,Dionísio,MG,Itabira,Metropolitana de Belo Horizonte,Ipatinga,Ipatinga
+3121902,Divinésia,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3122009,Divino,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3122108,Divino das Laranjeiras,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3122207,Divinolândia de Minas,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3122306,Divinópolis,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3122355,Divisa Alegre,MG,Salinas,Norte de Minas,Pedra Azul,Teófilo Otoni
+3122405,Divisa Nova,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3122454,Divisópolis,MG,Almenara,Jequitinhonha,Pedra Azul,Teófilo Otoni
+3122470,Dom Bosco,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3122504,Dom Cavati,MG,Caratinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3122603,Dom Joaquim,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Guanhães,Governador Valadares
+3122702,Dom Silvério,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3122801,Dom Viçoso,MG,Itajubá,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3122900,Dona Euzébia,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3123007,Dores de Campos,MG,São João Del Rei,Campo das Vertentes,Barbacena,Barbacena
+3123106,Dores de Guanhães,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3123205,Dores do Indaiá,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3123304,Dores do Turvo,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3123403,Doresópolis,MG,Piuí,Oeste de Minas,Piumhi,Varginha
+3123502,Douradoquara,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3123528,Durandé,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3123601,Elói Mendes,MG,Varginha,Sul/Sudoeste de Minas,Varginha,Varginha
+3123700,Engenheiro Caldas,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3123809,Engenheiro Navarro,MG,Bocaiúva,Norte de Minas,Montes Claros,Montes Claros
+3123858,Entre Folhas,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3123908,Entre Rios de Minas,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3124005,Ervália,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3124104,Esmeraldas,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3124203,Espera Feliz,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3124302,Espinosa,MG,Janaúba,Norte de Minas,Espinosa,Montes Claros
+3124401,Espírito Santo do Dourado,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3124500,Estiva,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3124609,Estrela Dalva,MG,Cataguases,Zona da Mata,Além Paraíba,Juíz de Fora
+3124708,Estrela do Indaiá,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3124807,Estrela do Sul,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3124906,Eugenópolis,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3125002,Ewbank da Câmara,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3125101,Extrema,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3125200,Fama,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3125309,Faria Lemos,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3125408,Felício dos Santos,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3125507,São Gonçalo do Rio Preto,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3125606,Felisburgo,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3125705,Felixlândia,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3125804,Fernandes Tourinho,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3125903,Ferros,MG,Itabira,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3125952,Fervedouro,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3126000,Florestal,MG,Pará de Minas,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3126109,Formiga,MG,Formiga,Oeste de Minas,Formiga,Divinópolis
+3126208,Formoso,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3126307,Fortaleza de Minas,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3126406,Fortuna de Minas,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3126505,Francisco Badaró,MG,Capelinha,Jequitinhonha,Araçuaí,Teófilo Otoni
+3126604,Francisco Dumont,MG,Bocaiúva,Norte de Minas,Montes Claros,Montes Claros
+3126703,Francisco Sá,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3126752,Franciscópolis,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3126802,Frei Gaspar,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3126901,Frei Inocêncio,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3126950,Frei Lagonegro,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3127008,Fronteira,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Frutal,Uberaba
+3127057,Fronteira dos Vales,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3127073,Fruta de Leite,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3127107,Frutal,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Frutal,Uberaba
+3127206,Funilândia,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3127305,Galiléia,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3127339,Gameleiras,MG,Janaúba,Norte de Minas,Espinosa,Montes Claros
+3127354,Glaucilândia,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3127370,Goiabeira,MG,Aimorés,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3127388,Goianá,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3127404,Gonçalves,MG,Pouso Alegre,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3127503,Gonzaga,MG,Guanhães,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3127602,Gouveia,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3127701,Governador Valadares,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3127800,Grão Mogol,MG,Grão Mogol,Norte de Minas,Montes Claros,Montes Claros
+3127909,Grupiara,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3128006,Guanhães,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3128105,Guapé,MG,Varginha,Sul/Sudoeste de Minas,Passos,Varginha
+3128204,Guaraciaba,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3128253,Guaraciama,MG,Bocaiúva,Norte de Minas,Montes Claros,Montes Claros
+3128303,Guaranésia,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3128402,Guarani,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3128501,Guarará,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3128600,Guarda-Mor,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3128709,Guaxupé,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3128808,Guidoval,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3128907,Guimarânia,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patrocínio,Patos de Minas
+3129004,Guiricema,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3129103,Gurinhatã,MG,Ituiutaba,Triângulo Mineiro/Alto Paranaíba,Ituiutaba,Uberlândia
+3129202,Heliodora,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3129301,Iapu,MG,Caratinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3129400,Ibertioga,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3129509,Ibiá,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3129608,Ibiaí,MG,Pirapora,Norte de Minas,Pirapora,Montes Claros
+3129657,Ibiracatu,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3129707,Ibiraci,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3129806,Ibirité,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3129905,Ibitiúra de Minas,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3130002,Ibituruna,MG,Oliveira,Oeste de Minas,Lavras,Varginha
+3130051,Icaraí de Minas,MG,Januária,Norte de Minas,São Francisco,Montes Claros
+3130101,Igarapé,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3130200,Igaratinga,MG,Divinópolis,Oeste de Minas,Pará de Minas,Divinópolis
+3130309,Iguatama,MG,Piuí,Oeste de Minas,Formiga,Divinópolis
+3130408,Ijaci,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3130507,Ilicínea,MG,Varginha,Sul/Sudoeste de Minas,Três Pontas - Boa Esperança,Varginha
+3130556,Imbé de Minas,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3130606,Inconfidentes,MG,Poços de Caldas,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3130655,Indaiabira,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3130705,Indianópolis,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3130804,Ingaí,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3130903,Inhapim,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3131000,Inhaúma,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3131109,Inimutaba,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3131158,Ipaba,MG,Caratinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3131208,Ipanema,MG,Aimorés,Vale do Rio Doce,Manhuaçu,Juíz de Fora
+3131307,Ipatinga,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3131406,Ipiaçu,MG,Ituiutaba,Triângulo Mineiro/Alto Paranaíba,Ituiutaba,Uberlândia
+3131505,Ipuiúna,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3131604,Iraí de Minas,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3131703,Itabira,MG,Itabira,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3131802,Itabirinha,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3131901,Itabirito,MG,Ouro Preto,Metropolitana de Belo Horizonte,Santa Bárbara - Ouro Preto,Belo Horizonte
+3132008,Itacambira,MG,Grão Mogol,Norte de Minas,Montes Claros,Montes Claros
+3132107,Itacarambi,MG,Januária,Norte de Minas,Januária,Montes Claros
+3132206,Itaguara,MG,Itaguara,Metropolitana de Belo Horizonte,Oliveira,Divinópolis
+3132305,Itaipé,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3132404,Itajubá,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3132503,Itamarandiba,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3132602,Itamarati de Minas,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3132701,Itambacuri,MG,Governador Valadares,Vale do Rio Doce,Teófilo Otoni,Teófilo Otoni
+3132800,Itambé do Mato Dentro,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3132909,Itamogi,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,São Sebastião do Paraíso,Varginha
+3133006,Itamonte,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3133105,Itanhandu,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3133204,Itanhomi,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3133303,Itaobim,MG,Pedra Azul,Jequitinhonha,Teófilo Otoni,Teófilo Otoni
+3133402,Itapagipe,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Frutal,Uberaba
+3133501,Itapecerica,MG,Formiga,Oeste de Minas,Divinópolis,Divinópolis
+3133600,Itapeva,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3133709,Itatiaiuçu,MG,Itaguara,Metropolitana de Belo Horizonte,Divinópolis,Divinópolis
+3133758,Itaú de Minas,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3133808,Itaúna,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3133907,Itaverava,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3134004,Itinga,MG,Araçuaí,Jequitinhonha,Araçuaí,Teófilo Otoni
+3134103,Itueta,MG,Aimorés,Vale do Rio Doce,Aimorés - Resplendor,Governador Valadares
+3134202,Ituiutaba,MG,Ituiutaba,Triângulo Mineiro/Alto Paranaíba,Ituiutaba,Uberlândia
+3134301,Itumirim,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3134400,Iturama,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Iturama,Uberaba
+3134509,Itutinga,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3134608,Jaboticatubas,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3134707,Jacinto,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3134806,Jacuí,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,São Sebastião do Paraíso,Varginha
+3134905,Jacutinga,MG,Poços de Caldas,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3135001,Jaguaraçu,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3135050,Jaíba,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3135076,Jampruca,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3135100,Janaúba,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3135209,Januária,MG,Januária,Norte de Minas,Januária,Montes Claros
+3135308,Japaraíba,MG,Bom Despacho,Central Mineira,Divinópolis,Divinópolis
+3135357,Japonvar,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3135407,Jeceaba,MG,Itaguara,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3135456,Jenipapo de Minas,MG,Capelinha,Jequitinhonha,Araçuaí,Teófilo Otoni
+3135506,Jequeri,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3135605,Jequitaí,MG,Pirapora,Norte de Minas,Montes Claros,Montes Claros
+3135704,Jequitibá,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3135803,Jequitinhonha,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3135902,Jesuânia,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3136009,Joaíma,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3136108,Joanésia,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3136207,João Monlevade,MG,Itabira,Metropolitana de Belo Horizonte,João Monlevade,Ipatinga
+3136306,João Pinheiro,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3136405,Joaquim Felício,MG,Curvelo,Central Mineira,Montes Claros,Montes Claros
+3136504,Jordânia,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3136520,José Gonçalves de Minas,MG,Capelinha,Jequitinhonha,Araçuaí,Teófilo Otoni
+3136553,José Raydan,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3136579,Josenópolis,MG,Grão Mogol,Norte de Minas,Montes Claros,Montes Claros
+3136603,Nova União,MG,Itabira,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3136652,Juatuba,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3136702,Juiz de Fora,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3136801,Juramento,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3136900,Juruaia,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3136959,Juvenília,MG,Januária,Norte de Minas,Januária,Montes Claros
+3137007,Ladainha,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3137106,Lagamar,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3137205,Lagoa da Prata,MG,Bom Despacho,Central Mineira,Divinópolis,Divinópolis
+3137304,Lagoa dos Patos,MG,Pirapora,Norte de Minas,Montes Claros,Montes Claros
+3137403,Lagoa Dourada,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3137502,Lagoa Formosa,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3137536,Lagoa Grande,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3137601,Lagoa Santa,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3137700,Lajinha,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3137809,Lambari,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3137908,Lamim,MG,Viçosa,Zona da Mata,Conselheiro Lafaiete,Barbacena
+3138005,Laranjal,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3138104,Lassance,MG,Pirapora,Norte de Minas,Pirapora,Montes Claros
+3138203,Lavras,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3138302,Leandro Ferreira,MG,Bom Despacho,Central Mineira,Divinópolis,Divinópolis
+3138351,Leme do Prado,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3138401,Leopoldina,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3138500,Liberdade,MG,Andrelândia,Sul/Sudoeste de Minas,Juiz de Fora,Juíz de Fora
+3138609,Lima Duarte,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3138625,Limeira do Oeste,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Iturama,Uberaba
+3138658,Lontra,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3138674,Luisburgo,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3138682,Luislândia,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3138708,Luminárias,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3138807,Luz,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3138906,Machacalis,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3139003,Machado,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3139102,Madre de Deus de Minas,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3139201,Malacacheta,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3139250,Mamonas,MG,Janaúba,Norte de Minas,Espinosa,Montes Claros
+3139300,Manga,MG,Januária,Norte de Minas,Janaúba,Montes Claros
+3139409,Manhuaçu,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3139508,Manhumirim,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3139607,Mantena,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3139706,Maravilhas,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Pará de Minas,Divinópolis
+3139805,Mar de Espanha,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3139904,Maria da Fé,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3140001,Mariana,MG,Ouro Preto,Metropolitana de Belo Horizonte,Santa Bárbara - Ouro Preto,Belo Horizonte
+3140100,Marilac,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3140159,Mário Campos,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3140209,Maripá de Minas,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3140308,Marliéria,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3140407,Marmelópolis,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3140506,Martinho Campos,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3140530,Martins Soares,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3140555,Mata Verde,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3140605,Materlândia,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3140704,Mateus Leme,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3140803,Matias Barbosa,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3140852,Matias Cardoso,MG,Januária,Norte de Minas,Janaúba,Montes Claros
+3140902,Matipó,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3141009,Mato Verde,MG,Janaúba,Norte de Minas,Espinosa,Montes Claros
+3141108,Matozinhos,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3141207,Matutina,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3141306,Medeiros,MG,Piuí,Oeste de Minas,Formiga,Divinópolis
+3141405,Medina,MG,Pedra Azul,Jequitinhonha,Pedra Azul,Teófilo Otoni
+3141504,Mendes Pimentel,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3141603,Mercês,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3141702,Mesquita,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3141801,Minas Novas,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3141900,Minduri,MG,Andrelândia,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3142007,Mirabela,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3142106,Miradouro,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3142205,Miraí,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3142254,Miravânia,MG,Januária,Norte de Minas,Janaúba,Montes Claros
+3142304,Moeda,MG,Itaguara,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3142403,Moema,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3142502,Monjolos,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3142601,Monsenhor Paulo,MG,Varginha,Sul/Sudoeste de Minas,Varginha,Varginha
+3142700,Montalvânia,MG,Januária,Norte de Minas,Januária,Montes Claros
+3142809,Monte Alegre de Minas,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3142908,Monte Azul,MG,Janaúba,Norte de Minas,Espinosa,Montes Claros
+3143005,Monte Belo,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3143104,Monte Carmelo,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3143153,Monte Formoso,MG,Almenara,Jequitinhonha,Teófilo Otoni,Teófilo Otoni
+3143203,Monte Santo de Minas,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,São Sebastião do Paraíso,Varginha
+3143302,Montes Claros,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3143401,Monte Sião,MG,Poços de Caldas,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3143450,Montezuma,MG,Salinas,Norte de Minas,Espinosa,Montes Claros
+3143500,Morada Nova de Minas,MG,Três Marias,Central Mineira,Abaeté,Divinópolis
+3143609,Morro da Garça,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3143708,Morro do Pilar,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3143807,Munhoz,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3143906,Muriaé,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3144003,Mutum,MG,Aimorés,Vale do Rio Doce,Manhuaçu,Juíz de Fora
+3144102,Muzambinho,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3144201,Nacip Raydan,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3144300,Nanuque,MG,Nanuque,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3144359,Naque,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3144375,Natalândia,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3144409,Natércia,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3144508,Nazareno,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3144607,Nepomuceno,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3144656,Ninheira,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3144672,Nova Belém,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3144706,Nova Era,MG,Itabira,Metropolitana de Belo Horizonte,João Monlevade,Ipatinga
+3144805,Nova Lima,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3144904,Nova Módica,MG,Governador Valadares,Vale do Rio Doce,Teófilo Otoni,Teófilo Otoni
+3145000,Nova Ponte,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3145059,Nova Porteirinha,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3145109,Nova Resende,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3145208,Nova Serrana,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3145307,Novo Cruzeiro,MG,Araçuaí,Jequitinhonha,Teófilo Otoni,Teófilo Otoni
+3145356,Novo Oriente de Minas,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3145372,Novorizonte,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3145406,Olaria,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3145455,Olhos-d'Água,MG,Bocaiúva,Norte de Minas,Montes Claros,Montes Claros
+3145505,Olímpio Noronha,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3145604,Oliveira,MG,Oliveira,Oeste de Minas,Oliveira,Divinópolis
+3145703,Oliveira Fortes,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3145802,Onça de Pitangui,MG,Pará de Minas,Metropolitana de Belo Horizonte,Pará de Minas,Divinópolis
+3145851,Oratórios,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3145877,Orizânia,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3145901,Ouro Branco,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3146008,Ouro Fino,MG,Poços de Caldas,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3146107,Ouro Preto,MG,Ouro Preto,Metropolitana de Belo Horizonte,Santa Bárbara - Ouro Preto,Belo Horizonte
+3146206,Ouro Verde de Minas,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3146255,Padre Carvalho,MG,Grão Mogol,Norte de Minas,Salinas,Montes Claros
+3146305,Padre Paraíso,MG,Araçuaí,Jequitinhonha,Teófilo Otoni,Teófilo Otoni
+3146404,Paineiras,MG,Três Marias,Central Mineira,Abaeté,Divinópolis
+3146503,Pains,MG,Formiga,Oeste de Minas,Formiga,Divinópolis
+3146552,Pai Pedro,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3146602,Paiva,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3146701,Palma,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3146750,Palmópolis,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3146909,Papagaios,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Pará de Minas,Divinópolis
+3147006,Paracatu,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3147105,Pará de Minas,MG,Pará de Minas,Metropolitana de Belo Horizonte,Pará de Minas,Divinópolis
+3147204,Paraguaçu,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3147303,Paraisópolis,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3147402,Paraopeba,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3147501,Passabém,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3147600,Passa Quatro,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3147709,Passa Tempo,MG,Oliveira,Oeste de Minas,Oliveira,Divinópolis
+3147808,Passa Vinte,MG,Andrelândia,Sul/Sudoeste de Minas,Juiz de Fora,Juíz de Fora
+3147907,Passos,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3147956,Patis,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3148004,Patos de Minas,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3148103,Patrocínio,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Patrocínio,Patos de Minas
+3148202,Patrocínio do Muriaé,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3148301,Paula Cândido,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3148400,Paulistas,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3148509,Pavão,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3148608,Peçanha,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3148707,Pedra Azul,MG,Pedra Azul,Jequitinhonha,Pedra Azul,Teófilo Otoni
+3148756,Pedra Bonita,MG,Manhuaçu,Zona da Mata,Carangola,Juíz de Fora
+3148806,Pedra do Anta,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3148905,Pedra do Indaiá,MG,Formiga,Oeste de Minas,Divinópolis,Divinópolis
+3149002,Pedra Dourada,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3149101,Pedralva,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3149150,Pedras de Maria da Cruz,MG,Januária,Norte de Minas,Januária,Montes Claros
+3149200,Pedrinópolis,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3149309,Pedro Leopoldo,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3149408,Pedro Teixeira,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3149507,Pequeri,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3149606,Pequi,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Pará de Minas,Divinópolis
+3149705,Perdigão,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3149804,Perdizes,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3149903,Perdões,MG,Campo Belo,Oeste de Minas,Lavras,Varginha
+3149952,Periquito,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3150000,Pescador,MG,Governador Valadares,Vale do Rio Doce,Teófilo Otoni,Teófilo Otoni
+3150109,Piau,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3150158,Piedade de Caratinga,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3150208,Piedade de Ponte Nova,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3150307,Piedade do Rio Grande,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3150406,Piedade dos Gerais,MG,Itaguara,Metropolitana de Belo Horizonte,Oliveira,Divinópolis
+3150505,Pimenta,MG,Formiga,Oeste de Minas,Formiga,Divinópolis
+3150539,Pingo-d'Água,MG,Caratinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3150570,Pintópolis,MG,Januária,Norte de Minas,São Francisco,Montes Claros
+3150604,Piracema,MG,Oliveira,Oeste de Minas,Oliveira,Divinópolis
+3150703,Pirajuba,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Frutal,Uberaba
+3150802,Piranga,MG,Viçosa,Zona da Mata,Conselheiro Lafaiete,Barbacena
+3150901,Piranguçu,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3151008,Piranguinho,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3151107,Pirapetinga,MG,Cataguases,Zona da Mata,Além Paraíba,Juíz de Fora
+3151206,Pirapora,MG,Pirapora,Norte de Minas,Pirapora,Montes Claros
+3151305,Piraúba,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3151404,Pitangui,MG,Pará de Minas,Metropolitana de Belo Horizonte,Divinópolis,Divinópolis
+3151503,Piumhi,MG,Piuí,Oeste de Minas,Piumhi,Varginha
+3151602,Planura,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Frutal,Uberaba
+3151701,Poço Fundo,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3151800,Poços de Caldas,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3151909,Pocrane,MG,Aimorés,Vale do Rio Doce,Manhuaçu,Juíz de Fora
+3152006,Pompéu,MG,Três Marias,Central Mineira,Dores do Indaiá,Divinópolis
+3152105,Ponte Nova,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3152131,Ponto Chique,MG,Montes Claros,Norte de Minas,Pirapora,Montes Claros
+3152170,Ponto dos Volantes,MG,Araçuaí,Jequitinhonha,Teófilo Otoni,Teófilo Otoni
+3152204,Porteirinha,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3152303,Porto Firme,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3152402,Poté,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3152501,Pouso Alegre,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3152600,Pouso Alto,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3152709,Prados,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3152808,Prata,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3152907,Pratápolis,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3153004,Pratinha,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3153103,Presidente Bernardes,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3153202,Presidente Juscelino,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3153301,Presidente Kubitschek,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3153400,Presidente Olegário,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3153509,Alto Jequitibá,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3153608,Prudente de Morais,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3153707,Quartel Geral,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3153806,Queluzito,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3153905,Raposos,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3154002,Raul Soares,MG,Ponte Nova,Zona da Mata,Caratinga,Ipatinga
+3154101,Recreio,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3154150,Reduto,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3154200,Resende Costa,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3154309,Resplendor,MG,Aimorés,Vale do Rio Doce,Aimorés - Resplendor,Governador Valadares
+3154408,Ressaquinha,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3154457,Riachinho,MG,Pirapora,Norte de Minas,Unaí,Patos de Minas
+3154507,Riacho dos Machados,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3154606,Ribeirão das Neves,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3154705,Ribeirão Vermelho,MG,Lavras,Campo das Vertentes,Lavras,Varginha
+3154804,Rio Acima,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3154903,Rio Casca,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3155009,Rio Doce,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3155108,Rio do Prado,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3155207,Rio Espera,MG,Viçosa,Zona da Mata,Conselheiro Lafaiete,Barbacena
+3155306,Rio Manso,MG,Itaguara,Metropolitana de Belo Horizonte,Oliveira,Divinópolis
+3155405,Rio Novo,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3155504,Rio Paranaíba,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3155603,Rio Pardo de Minas,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3155702,Rio Piracicaba,MG,Itabira,Metropolitana de Belo Horizonte,João Monlevade,Ipatinga
+3155801,Rio Pomba,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3155900,Rio Preto,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3156007,Rio Vermelho,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Guanhães,Governador Valadares
+3156106,Ritápolis,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3156205,Rochedo de Minas,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3156304,Rodeiro,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3156403,Romaria,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Monte Carmelo,Uberlândia
+3156452,Rosário da Limeira,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3156502,Rubelita,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3156601,Rubim,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3156700,Sabará,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3156809,Sabinópolis,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3156908,Sacramento,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3157005,Salinas,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3157104,Salto da Divisa,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3157203,Santa Bárbara,MG,Itabira,Metropolitana de Belo Horizonte,Santa Bárbara - Ouro Preto,Belo Horizonte
+3157252,Santa Bárbara do Leste,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3157278,Santa Bárbara do Monte Verde,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3157302,Santa Bárbara do Tugúrio,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3157336,Santa Cruz de Minas,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3157377,Santa Cruz de Salinas,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3157401,Santa Cruz do Escalvado,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3157500,Santa Efigênia de Minas,MG,Guanhães,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3157609,Santa Fé de Minas,MG,Pirapora,Norte de Minas,Pirapora,Montes Claros
+3157658,Santa Helena de Minas,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3157708,Santa Juliana,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3157807,Santa Luzia,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3157906,Santa Margarida,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3158003,Santa Maria de Itabira,MG,Itabira,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3158102,Santa Maria do Salto,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3158201,Santa Maria do Suaçuí,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3158300,Santana da Vargem,MG,Varginha,Sul/Sudoeste de Minas,Três Pontas - Boa Esperança,Varginha
+3158409,Santana de Cataguases,MG,Cataguases,Zona da Mata,Cataguases,Juíz de Fora
+3158508,Santana de Pirapama,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3158607,Santana do Deserto,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3158706,Santana do Garambéu,MG,São João Del Rei,Campo das Vertentes,Barbacena,Barbacena
+3158805,Santana do Jacaré,MG,Campo Belo,Oeste de Minas,Campo Belo,Varginha
+3158904,Santana do Manhuaçu,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3158953,Santana do Paraíso,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3159001,Santana do Riacho,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3159100,Santana dos Montes,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3159209,Santa Rita de Caldas,MG,Poços de Caldas,Sul/Sudoeste de Minas,Poços de Caldas,Pouso Alegre
+3159308,Santa Rita de Jacutinga,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3159357,Santa Rita de Minas,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3159407,Santa Rita de Ibitipoca,MG,Juiz de Fora,Zona da Mata,Barbacena,Barbacena
+3159506,Santa Rita do Itueto,MG,Aimorés,Vale do Rio Doce,Aimorés - Resplendor,Governador Valadares
+3159605,Santa Rita do Sapucaí,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3159704,Santa Rosa da Serra,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3159803,Santa Vitória,MG,Ituiutaba,Triângulo Mineiro/Alto Paranaíba,Ituiutaba,Uberlândia
+3159902,Santo Antônio do Amparo,MG,Oliveira,Oeste de Minas,Lavras,Varginha
+3160009,Santo Antônio do Aventureiro,MG,Cataguases,Zona da Mata,Além Paraíba,Juíz de Fora
+3160108,Santo Antônio do Grama,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3160207,Santo Antônio do Itambé,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Diamantina,Teófilo Otoni
+3160306,Santo Antônio do Jacinto,MG,Almenara,Jequitinhonha,Almenara,Teófilo Otoni
+3160405,Santo Antônio do Monte,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3160454,Santo Antônio do Retiro,MG,Salinas,Norte de Minas,Espinosa,Montes Claros
+3160504,Santo Antônio do Rio Abaixo,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3160603,Santo Hipólito,MG,Curvelo,Central Mineira,Curvelo,Belo Horizonte
+3160702,Santos Dumont,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3160801,São Bento Abade,MG,Varginha,Sul/Sudoeste de Minas,Três Corações,Varginha
+3160900,São Brás do Suaçuí,MG,Conselheiro Lafaiete,Metropolitana de Belo Horizonte,Conselheiro Lafaiete,Barbacena
+3160959,São Domingos das Dores,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3161007,São Domingos do Prata,MG,Itabira,Metropolitana de Belo Horizonte,João Monlevade,Ipatinga
+3161056,São Félix de Minas,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3161106,São Francisco,MG,Januária,Norte de Minas,São Francisco,Montes Claros
+3161205,São Francisco de Paula,MG,Oliveira,Oeste de Minas,Oliveira,Divinópolis
+3161304,São Francisco de Sales,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Iturama,Uberaba
+3161403,São Francisco do Glória,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3161502,São Geraldo,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3161601,São Geraldo da Piedade,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3161650,São Geraldo do Baixio,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3161700,São Gonçalo do Abaeté,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3161809,São Gonçalo do Pará,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3161908,São Gonçalo do Rio Abaixo,MG,Itabira,Metropolitana de Belo Horizonte,João Monlevade,Ipatinga
+3162005,São Gonçalo do Sapucaí,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Varginha,Varginha
+3162104,São Gotardo,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3162203,São João Batista do Glória,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3162252,São João da Lagoa,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3162302,São João da Mata,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3162401,São João da Ponte,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3162450,São João das Missões,MG,Januária,Norte de Minas,Januária,Montes Claros
+3162500,São João del Rei,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3162559,São João do Manhuaçu,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3162575,São João do Manteninha,MG,Mantena,Vale do Rio Doce,Mantena,Governador Valadares
+3162609,São João do Oriente,MG,Caratinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3162658,São João do Pacuí,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3162708,São João do Paraíso,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3162807,São João Evangelista,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3162906,São João Nepomuceno,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3162922,São Joaquim de Bicas,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3162948,São José da Barra,MG,Passos,Sul/Sudoeste de Minas,Passos,Varginha
+3162955,São José da Lapa,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3163003,São José da Safira,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3163102,São José da Varginha,MG,Pará de Minas,Metropolitana de Belo Horizonte,Pará de Minas,Divinópolis
+3163201,São José do Alegre,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3163300,São José do Divino,MG,Governador Valadares,Vale do Rio Doce,Teófilo Otoni,Teófilo Otoni
+3163409,São José do Goiabal,MG,Itabira,Metropolitana de Belo Horizonte,Ipatinga,Ipatinga
+3163508,São José do Jacuri,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3163607,São José do Mantimento,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3163706,São Lourenço,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3163805,São Miguel do Anta,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3163904,São Pedro da União,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,Guaxupé,Varginha
+3164001,São Pedro dos Ferros,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3164100,São Pedro do Suaçuí,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3164209,São Romão,MG,Pirapora,Norte de Minas,São Francisco,Montes Claros
+3164308,São Roque de Minas,MG,Piuí,Oeste de Minas,Piumhi,Varginha
+3164407,São Sebastião da Bela Vista,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3164431,São Sebastião da Vargem Alegre,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3164472,São Sebastião do Anta,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3164506,São Sebastião do Maranhão,MG,Peçanha,Vale do Rio Doce,Guanhães,Governador Valadares
+3164605,São Sebastião do Oeste,MG,Divinópolis,Oeste de Minas,Divinópolis,Divinópolis
+3164704,São Sebastião do Paraíso,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,São Sebastião do Paraíso,Varginha
+3164803,São Sebastião do Rio Preto,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Itabira,Belo Horizonte
+3164902,São Sebastião do Rio Verde,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3165008,São Tiago,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3165107,São Tomás de Aquino,MG,São Sebastião do Paraíso,Sul/Sudoeste de Minas,São Sebastião do Paraíso,Varginha
+3165206,São Tomé das Letras,MG,Varginha,Sul/Sudoeste de Minas,Três Corações,Varginha
+3165305,São Vicente de Minas,MG,Andrelândia,Sul/Sudoeste de Minas,São João del Rei,Barbacena
+3165404,Sapucaí-Mirim,MG,Pouso Alegre,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3165503,Sardoá,MG,Guanhães,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3165537,Sarzedo,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3165552,Setubinha,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3165560,Sem-Peixe,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3165578,Senador Amaral,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3165602,Senador Cortes,MG,Juiz de Fora,Zona da Mata,São João Nepomuceno - Bicas,Juíz de Fora
+3165701,Senador Firmino,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3165800,Senador José Bento,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3165909,Senador Modestino Gonçalves,MG,Diamantina,Jequitinhonha,Diamantina,Teófilo Otoni
+3166006,Senhora de Oliveira,MG,Viçosa,Zona da Mata,Conselheiro Lafaiete,Barbacena
+3166105,Senhora do Porto,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3166204,Senhora dos Remédios,MG,Barbacena,Campo das Vertentes,Barbacena,Barbacena
+3166303,Sericita,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3166402,Seritinga,MG,Andrelândia,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3166501,Serra Azul de Minas,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Diamantina,Teófilo Otoni
+3166600,Serra da Saudade,MG,Bom Despacho,Central Mineira,Dores do Indaiá,Divinópolis
+3166709,Serra dos Aimorés,MG,Nanuque,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3166808,Serra do Salitre,MG,Patrocínio,Triângulo Mineiro/Alto Paranaíba,Patrocínio,Patos de Minas
+3166907,Serrania,MG,Alfenas,Sul/Sudoeste de Minas,Alfenas,Varginha
+3166956,Serranópolis de Minas,MG,Janaúba,Norte de Minas,Janaúba,Montes Claros
+3167004,Serranos,MG,Andrelândia,Sul/Sudoeste de Minas,Caxambu - Baependi,Pouso Alegre
+3167103,Serro,MG,Conceição do Mato Dentro,Metropolitana de Belo Horizonte,Diamantina,Teófilo Otoni
+3167202,Sete Lagoas,MG,Sete Lagoas,Metropolitana de Belo Horizonte,Sete Lagoas,Belo Horizonte
+3167301,Silveirânia,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3167400,Silvianópolis,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3167509,Simão Pereira,MG,Juiz de Fora,Zona da Mata,Juiz de Fora,Juíz de Fora
+3167608,Simonésia,MG,Manhuaçu,Zona da Mata,Manhuaçu,Juíz de Fora
+3167707,Sobrália,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3167806,Soledade de Minas,MG,São Lourenço,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3167905,Tabuleiro,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3168002,Taiobeiras,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3168051,Taparuba,MG,Aimorés,Vale do Rio Doce,Manhuaçu,Juíz de Fora
+3168101,Tapira,MG,Araxá,Triângulo Mineiro/Alto Paranaíba,Araxá,Uberaba
+3168200,Tapiraí,MG,Piuí,Oeste de Minas,Formiga,Divinópolis
+3168309,Taquaraçu de Minas,MG,Itabira,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3168408,Tarumirim,MG,Caratinga,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3168507,Teixeiras,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3168606,Teófilo Otoni,MG,Teófilo Otoni,Vale do Mucuri,Teófilo Otoni,Teófilo Otoni
+3168705,Timóteo,MG,Ipatinga,Vale do Rio Doce,Ipatinga,Ipatinga
+3168804,Tiradentes,MG,São João Del Rei,Campo das Vertentes,São João del Rei,Barbacena
+3168903,Tiros,MG,Patos de Minas,Triângulo Mineiro/Alto Paranaíba,Patos de Minas,Patos de Minas
+3169000,Tocantins,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3169059,Tocos do Moji,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3169109,Toledo,MG,Pouso Alegre,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3169208,Tombos,MG,Muriaé,Zona da Mata,Carangola,Juíz de Fora
+3169307,Três Corações,MG,Varginha,Sul/Sudoeste de Minas,Três Corações,Varginha
+3169356,Três Marias,MG,Três Marias,Central Mineira,Curvelo,Belo Horizonte
+3169406,Três Pontas,MG,Varginha,Sul/Sudoeste de Minas,Três Pontas - Boa Esperança,Varginha
+3169505,Tumiritinga,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3169604,Tupaciguara,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3169703,Turmalina,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3169802,Turvolândia,MG,Santa Rita do Sapucaí,Sul/Sudoeste de Minas,Pouso Alegre,Pouso Alegre
+3169901,Ubá,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3170008,Ubaí,MG,Montes Claros,Norte de Minas,São Francisco,Montes Claros
+3170057,Ubaporanga,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3170107,Uberaba,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3170206,Uberlândia,MG,Uberlândia,Triângulo Mineiro/Alto Paranaíba,Uberlândia,Uberlândia
+3170305,Umburatiba,MG,Nanuque,Vale do Mucuri,Águas Formosas,Teófilo Otoni
+3170404,Unaí,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3170438,União de Minas,MG,Frutal,Triângulo Mineiro/Alto Paranaíba,Iturama,Uberaba
+3170479,Uruana de Minas,MG,Unaí,Noroeste de Minas,Unaí,Patos de Minas
+3170503,Urucânia,MG,Ponte Nova,Zona da Mata,Ponte Nova,Juíz de Fora
+3170529,Urucuia,MG,Januária,Norte de Minas,Unaí,Patos de Minas
+3170578,Vargem Alegre,MG,Caratinga,Vale do Rio Doce,Caratinga,Ipatinga
+3170602,Vargem Bonita,MG,Piuí,Oeste de Minas,Piumhi,Varginha
+3170651,Vargem Grande do Rio Pardo,MG,Salinas,Norte de Minas,Salinas,Montes Claros
+3170701,Varginha,MG,Varginha,Sul/Sudoeste de Minas,Varginha,Varginha
+3170750,Varjão de Minas,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3170800,Várzea da Palma,MG,Pirapora,Norte de Minas,Pirapora,Montes Claros
+3170909,Varzelândia,MG,Montes Claros,Norte de Minas,Montes Claros,Montes Claros
+3171006,Vazante,MG,Paracatu,Noroeste de Minas,Patos de Minas,Patos de Minas
+3171030,Verdelândia,MG,Montes Claros,Norte de Minas,Janaúba,Montes Claros
+3171071,Veredinha,MG,Capelinha,Jequitinhonha,Capelinha,Teófilo Otoni
+3171105,Veríssimo,MG,Uberaba,Triângulo Mineiro/Alto Paranaíba,Uberaba,Uberaba
+3171154,Vermelho Novo,MG,Ponte Nova,Zona da Mata,Caratinga,Ipatinga
+3171204,Vespasiano,MG,Belo Horizonte,Metropolitana de Belo Horizonte,Belo Horizonte,Belo Horizonte
+3171303,Viçosa,MG,Viçosa,Zona da Mata,Viçosa,Juíz de Fora
+3171402,Vieiras,MG,Muriaé,Zona da Mata,Muriaé,Juíz de Fora
+3171501,Mathias Lobato,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3171600,Virgem da Lapa,MG,Araçuaí,Jequitinhonha,Araçuaí,Teófilo Otoni
+3171709,Virgínia,MG,Itajubá,Sul/Sudoeste de Minas,São Lourenço,Pouso Alegre
+3171808,Virginópolis,MG,Guanhães,Vale do Rio Doce,Guanhães,Governador Valadares
+3171907,Virgolândia,MG,Governador Valadares,Vale do Rio Doce,Governador Valadares,Governador Valadares
+3172004,Visconde do Rio Branco,MG,Ubá,Zona da Mata,Ubá,Juíz de Fora
+3172103,Volta Grande,MG,Cataguases,Zona da Mata,Além Paraíba,Juíz de Fora
+3172202,Wenceslau Braz,MG,Itajubá,Sul/Sudoeste de Minas,Itajubá,Pouso Alegre
+3500105,Adamantina,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3500204,Adolfo,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3500303,Aguaí,SP,Pirassununga,Campinas,São João da Boa Vista,Campinas
+3500402,Águas da Prata,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3500501,Águas de Lindóia,SP,Amparo,Campinas,Amparo,Campinas
+3500550,Águas de Santa Bárbara,SP,Avaré,Bauru,Avaré,Sorocaba
+3500600,Águas de São Pedro,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3500709,Agudos,SP,Bauru,Bauru,Bauru,Bauru
+3500758,Alambari,SP,Itapetininga,Itapetininga,Itapetininga,Sorocaba
+3500808,Alfredo Marcondes,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3500907,Altair,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3501004,Altinópolis,SP,Batatais,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3501103,Alto Alegre,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3501152,Alumínio,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3501202,Álvares Florence,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3501301,Álvares Machado,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3501400,Álvaro de Carvalho,SP,Marília,Marília,Marília,Marília
+3501509,Alvinlândia,SP,Marília,Marília,Marília,Marília
+3501608,Americana,SP,Campinas,Campinas,Campinas,Campinas
+3501707,Américo Brasiliense,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3501806,Américo de Campos,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3501905,Amparo,SP,Amparo,Campinas,Amparo,Campinas
+3502002,Analândia,SP,São Carlos,Araraquara,Rio Claro,Campinas
+3502101,Andradina,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3502200,Angatuba,SP,Itapetininga,Itapetininga,Itapetininga,Sorocaba
+3502309,Anhembi,SP,Botucatu,Bauru,Botucatu,Bauru
+3502408,Anhumas,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3502507,Aparecida,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3502606,Aparecida d'Oeste,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3502705,Apiaí,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3502754,Araçariguama,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3502804,Araçatuba,SP,Araçatuba,Araçatuba,Araçatuba,Araçatuba
+3502903,Araçoiaba da Serra,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3503000,Aramina,SP,Ituverava,Ribeirão Preto,Ituverava,Ribeirão Preto
+3503109,Arandu,SP,Avaré,Bauru,Avaré,Sorocaba
+3503158,Arapeí,SP,Bananal,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3503208,Araraquara,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3503307,Araras,SP,Limeira,Piracicaba,Araras,Campinas
+3503356,Arco-Íris,SP,Tupã,Marília,Tupã,Marília
+3503406,Arealva,SP,Bauru,Bauru,Bauru,Bauru
+3503505,Areias,SP,Bananal,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3503604,Areiópolis,SP,Bauru,Bauru,Botucatu,Bauru
+3503703,Ariranha,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3503802,Artur Nogueira,SP,Mogi Mirim,Campinas,Campinas,Campinas
+3503901,Arujá,SP,Guarulhos,Metropolitana de São Paulo,São Paulo,São Paulo
+3503950,Aspásia,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3504008,Assis,SP,Assis,Assis,Assis,Marília
+3504107,Atibaia,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3504206,Auriflama,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3504305,Avaí,SP,Bauru,Bauru,Bauru,Bauru
+3504404,Avanhandava,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3504503,Avaré,SP,Avaré,Bauru,Avaré,Sorocaba
+3504602,Bady Bassitt,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3504701,Balbinos,SP,Bauru,Bauru,Bauru,Bauru
+3504800,Bálsamo,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3504909,Bananal,SP,Bananal,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3505005,Barão de Antonina,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3505104,Barbosa,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3505203,Bariri,SP,Jaú,Bauru,Jaú,Bauru
+3505302,Barra Bonita,SP,Jaú,Bauru,Jaú,Bauru
+3505351,Barra do Chapéu,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3505401,Barra do Turvo,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3505500,Barretos,SP,Barretos,Ribeirão Preto,Barretos,Ribeirão Preto
+3505609,Barrinha,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3505708,Barueri,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3505807,Bastos,SP,Tupã,Marília,Tupã,Marília
+3505906,Batatais,SP,Batatais,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3506003,Bauru,SP,Bauru,Bauru,Bauru,Bauru
+3506102,Bebedouro,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3506201,Bento de Abreu,SP,Araçatuba,Araçatuba,Araçatuba,Araçatuba
+3506300,Bernardino de Campos,SP,Ourinhos,Assis,Ourinhos,Marília
+3506359,Bertioga,SP,Santos,Metropolitana de São Paulo,Santos,São Paulo
+3506409,Bilac,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3506508,Birigui,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3506607,Biritiba Mirim,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3506706,Boa Esperança do Sul,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3506805,Bocaina,SP,Jaú,Bauru,Jaú,Bauru
+3506904,Bofete,SP,Botucatu,Bauru,Botucatu,Bauru
+3507001,Boituva,SP,Tatuí,Itapetininga,Sorocaba,Sorocaba
+3507100,Bom Jesus dos Perdões,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3507159,Bom Sucesso de Itararé,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3507209,Borá,SP,Assis,Assis,Assis,Marília
+3507308,Boracéia,SP,Jaú,Bauru,Jaú,Bauru
+3507407,Borborema,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3507456,Borebi,SP,Bauru,Bauru,Bauru,Bauru
+3507506,Botucatu,SP,Botucatu,Bauru,Botucatu,Bauru
+3507605,Bragança Paulista,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3507704,Braúna,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3507753,Brejo Alegre,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3507803,Brodowski,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3507902,Brotas,SP,Rio Claro,Piracicaba,Jaú,Bauru
+3508009,Buri,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3508108,Buritama,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3508207,Buritizal,SP,Ituverava,Ribeirão Preto,Ituverava,Ribeirão Preto
+3508306,Cabrália Paulista,SP,Bauru,Bauru,Bauru,Bauru
+3508405,Cabreúva,SP,Sorocaba,Macro Metropolitana Paulista,Jundiaí,Campinas
+3508504,Caçapava,SP,São José dos Campos,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3508603,Cachoeira Paulista,SP,Guaratinguetá,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3508702,Caconde,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3508801,Cafelândia,SP,Lins,Bauru,Lins,Bauru
+3508900,Caiabu,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3509007,Caieiras,SP,Franco da Rocha,Metropolitana de São Paulo,São Paulo,São Paulo
+3509106,Caiuá,SP,Presidente Prudente,Presidente Prudente,Presidente Epitácio-Presidente Venceslau,Presidente Prudente
+3509205,Cajamar,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3509254,Cajati,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3509304,Cajobi,SP,Catanduva,São José do Rio Preto,Barretos,Ribeirão Preto
+3509403,Cajuru,SP,Batatais,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3509452,Campina do Monte Alegre,SP,Itapetininga,Itapetininga,Itapetininga,Sorocaba
+3509502,Campinas,SP,Campinas,Campinas,Campinas,Campinas
+3509601,Campo Limpo Paulista,SP,Jundiaí,Macro Metropolitana Paulista,Jundiaí,Campinas
+3509700,Campos do Jordão,SP,Campos do Jordão,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3509809,Campos Novos Paulista,SP,Assis,Assis,Marília,Marília
+3509908,Cananéia,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3509957,Canas,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3510005,Cândido Mota,SP,Assis,Assis,Assis,Marília
+3510104,Cândido Rodrigues,SP,Jaboticabal,Ribeirão Preto,Araraquara,Araraquara
+3510153,Canitar,SP,Ourinhos,Assis,Ourinhos,Marília
+3510203,Capão Bonito,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3510302,Capela do Alto,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3510401,Capivari,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3510500,Caraguatatuba,SP,Caraguatatuba,Vale do Paraíba Paulista,Caraguatatuba - Ubatuba - São Sebastião,São José dos Campos
+3510609,Carapicuíba,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3510708,Cardoso,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3510807,Casa Branca,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3510906,Cássia dos Coqueiros,SP,Batatais,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3511003,Castilho,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3511102,Catanduva,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3511201,Catiguá,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3511300,Cedral,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3511409,Cerqueira César,SP,Avaré,Bauru,Avaré,Sorocaba
+3511508,Cerquilho,SP,Tatuí,Itapetininga,Sorocaba,Sorocaba
+3511607,Cesário Lange,SP,Tatuí,Itapetininga,Tatuí,Sorocaba
+3511706,Charqueada,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3511904,Clementina,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3512001,Colina,SP,Barretos,Ribeirão Preto,Barretos,Ribeirão Preto
+3512100,Colômbia,SP,Barretos,Ribeirão Preto,Barretos,Ribeirão Preto
+3512209,Conchal,SP,Limeira,Piracicaba,Araras,Campinas
+3512308,Conchas,SP,Botucatu,Bauru,Botucatu,Bauru
+3512407,Cordeirópolis,SP,Limeira,Piracicaba,Limeira,Campinas
+3512506,Coroados,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3512605,Coronel Macedo,SP,Itapeva,Itapetininga,Avaré,Sorocaba
+3512704,Corumbataí,SP,Rio Claro,Piracicaba,Rio Claro,Campinas
+3512803,Cosmópolis,SP,Campinas,Campinas,Campinas,Campinas
+3512902,Cosmorama,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3513009,Cotia,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3513108,Cravinhos,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3513207,Cristais Paulista,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3513306,Cruzália,SP,Assis,Assis,Assis,Marília
+3513405,Cruzeiro,SP,Guaratinguetá,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3513504,Cubatão,SP,Santos,Metropolitana de São Paulo,Santos,São Paulo
+3513603,Cunha,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3513702,Descalvado,SP,São Carlos,Araraquara,São Carlos,Araraquara
+3513801,Diadema,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3513850,Dirce Reis,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3513900,Divinolândia,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3514007,Dobrada,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3514106,Dois Córregos,SP,Jaú,Bauru,Jaú,Bauru
+3514205,Dolcinópolis,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3514304,Dourado,SP,São Carlos,Araraquara,São Carlos,Araraquara
+3514403,Dracena,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3514502,Duartina,SP,Bauru,Bauru,Bauru,Bauru
+3514601,Dumont,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3514700,Echaporã,SP,Marília,Marília,Marília,Marília
+3514809,Eldorado,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3514908,Elias Fausto,SP,Campinas,Campinas,Campinas,Campinas
+3514924,Elisiário,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3514957,Embaúba,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3515004,Embu das Artes,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3515103,Embu-Guaçu,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3515129,Emilianópolis,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3515152,Engenheiro Coelho,SP,Mogi Mirim,Campinas,Limeira,Campinas
+3515186,Espírito Santo do Pinhal,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3515194,Espírito Santo do Turvo,SP,Ourinhos,Assis,Ourinhos,Marília
+3515202,Estrela d'Oeste,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3515301,Estrela do Norte,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3515350,Euclides da Cunha Paulista,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3515400,Fartura,SP,Ourinhos,Assis,Piraju,Marília
+3515509,Fernandópolis,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3515608,Fernando Prestes,SP,Jaboticabal,Ribeirão Preto,Catanduva,São José do Rio Preto
+3515657,Fernão,SP,Marília,Marília,Marília,Marília
+3515707,Ferraz de Vasconcelos,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3515806,Flora Rica,SP,Adamantina,Presidente Prudente,Dracena,Presidente Prudente
+3515905,Floreal,SP,Auriflama,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3516002,Flórida Paulista,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3516101,Florínea,SP,Assis,Assis,Assis,Marília
+3516200,Franca,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3516309,Francisco Morato,SP,Franco da Rocha,Metropolitana de São Paulo,São Paulo,São Paulo
+3516408,Franco da Rocha,SP,Franco da Rocha,Metropolitana de São Paulo,São Paulo,São Paulo
+3516507,Gabriel Monteiro,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3516606,Gália,SP,Marília,Marília,Marília,Marília
+3516705,Garça,SP,Marília,Marília,Marília,Marília
+3516804,Gastão Vidigal,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3516853,Gavião Peixoto,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3516903,General Salgado,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3517000,Getulina,SP,Lins,Bauru,Marília,Marília
+3517109,Glicério,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3517208,Guaiçara,SP,Lins,Bauru,Lins,Bauru
+3517307,Guaimbê,SP,Lins,Bauru,Marília,Marília
+3517406,Guaíra,SP,São Joaquim da Barra,Ribeirão Preto,Barretos,Ribeirão Preto
+3517505,Guapiaçu,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3517604,Guapiara,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3517703,Guará,SP,Ituverava,Ribeirão Preto,Ituverava,Ribeirão Preto
+3517802,Guaraçaí,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3517901,Guaraci,SP,São José do Rio Preto,São José do Rio Preto,Barretos,Ribeirão Preto
+3518008,Guarani d'Oeste,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3518107,Guarantã,SP,Bauru,Bauru,Lins,Bauru
+3518206,Guararapes,SP,Araçatuba,Araçatuba,Araçatuba,Araçatuba
+3518305,Guararema,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3518404,Guaratinguetá,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3518503,Guareí,SP,Itapetininga,Itapetininga,Itapetininga,Sorocaba
+3518602,Guariba,SP,Jaboticabal,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3518701,Guarujá,SP,Santos,Metropolitana de São Paulo,Santos,São Paulo
+3518800,Guarulhos,SP,Guarulhos,Metropolitana de São Paulo,São Paulo,São Paulo
+3518859,Guatapará,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3518909,Guzolândia,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3519006,Herculândia,SP,Tupã,Marília,Tupã,Marília
+3519055,Holambra,SP,Campinas,Campinas,Campinas,Campinas
+3519071,Hortolândia,SP,Campinas,Campinas,Campinas,Campinas
+3519105,Iacanga,SP,Bauru,Bauru,Bauru,Bauru
+3519204,Iacri,SP,Tupã,Marília,Tupã,Marília
+3519253,Iaras,SP,Avaré,Bauru,Avaré,Sorocaba
+3519303,Ibaté,SP,São Carlos,Araraquara,São Carlos,Araraquara
+3519402,Ibirá,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3519501,Ibirarema,SP,Assis,Assis,Ourinhos,Marília
+3519600,Ibitinga,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3519709,Ibiúna,SP,Piedade,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3519808,Icém,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3519907,Iepê,SP,Assis,Assis,Presidente Prudente,Presidente Prudente
+3520004,Igaraçu do Tietê,SP,Jaú,Bauru,Jaú,Bauru
+3520103,Igarapava,SP,Ituverava,Ribeirão Preto,Ituverava,Ribeirão Preto
+3520202,Igaratá,SP,São José dos Campos,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3520301,Iguape,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3520400,Ilhabela,SP,Caraguatatuba,Vale do Paraíba Paulista,Caraguatatuba - Ubatuba - São Sebastião,São José dos Campos
+3520426,Ilha Comprida,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3520442,Ilha Solteira,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3520509,Indaiatuba,SP,Campinas,Campinas,Campinas,Campinas
+3520608,Indiana,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3520707,Indiaporã,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3520806,Inúbia Paulista,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3520905,Ipaussu,SP,Ourinhos,Assis,Ourinhos,Marília
+3521002,Iperó,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3521101,Ipeúna,SP,Rio Claro,Piracicaba,Rio Claro,Campinas
+3521150,Ipiguá,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3521200,Iporanga,SP,Capão Bonito,Itapetininga,Registro,Sorocaba
+3521309,Ipuã,SP,São Joaquim da Barra,Ribeirão Preto,São Joaquim da Barra ¿ Orlândia,Ribeirão Preto
+3521408,Iracemápolis,SP,Limeira,Piracicaba,Limeira,Campinas
+3521507,Irapuã,SP,Novo Horizonte,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3521606,Irapuru,SP,Adamantina,Presidente Prudente,Dracena,Presidente Prudente
+3521705,Itaberá,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3521804,Itaí,SP,Avaré,Bauru,Avaré,Sorocaba
+3521903,Itajobi,SP,Novo Horizonte,São José do Rio Preto,Catanduva,São José do Rio Preto
+3522000,Itaju,SP,Jaú,Bauru,Jaú,Bauru
+3522109,Itanhaém,SP,Itanhaém,Litoral Sul Paulista,Santos,São Paulo
+3522158,Itaoca,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3522208,Itapecerica da Serra,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3522307,Itapetininga,SP,Itapetininga,Itapetininga,Itapetininga,Sorocaba
+3522406,Itapeva,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3522505,Itapevi,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3522604,Itapira,SP,Mogi Mirim,Campinas,Mogi Guaçu,Campinas
+3522653,Itapirapuã Paulista,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3522703,Itápolis,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3522802,Itaporanga,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3522901,Itapuí,SP,Jaú,Bauru,Jaú,Bauru
+3523008,Itapura,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3523107,Itaquaquecetuba,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3523206,Itararé,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3523305,Itariri,SP,Itanhaém,Litoral Sul Paulista,Santos,São Paulo
+3523404,Itatiba,SP,Bragança Paulista,Macro Metropolitana Paulista,Jundiaí,Campinas
+3523503,Itatinga,SP,Avaré,Bauru,Botucatu,Bauru
+3523602,Itirapina,SP,Rio Claro,Piracicaba,São Carlos,Araraquara
+3523701,Itirapuã,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3523800,Itobi,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3523909,Itu,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3524006,Itupeva,SP,Jundiaí,Macro Metropolitana Paulista,Jundiaí,Campinas
+3524105,Ituverava,SP,Ituverava,Ribeirão Preto,Ituverava,Ribeirão Preto
+3524204,Jaborandi,SP,São Joaquim da Barra,Ribeirão Preto,Barretos,Ribeirão Preto
+3524303,Jaboticabal,SP,Jaboticabal,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3524402,Jacareí,SP,São José dos Campos,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3524501,Jaci,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3524600,Jacupiranga,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3524709,Jaguariúna,SP,Campinas,Campinas,Campinas,Campinas
+3524808,Jales,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3524907,Jambeiro,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3525003,Jandira,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3525102,Jardinópolis,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3525201,Jarinu,SP,Bragança Paulista,Macro Metropolitana Paulista,Jundiaí,Campinas
+3525300,Jaú,SP,Jaú,Bauru,Jaú,Bauru
+3525409,Jeriquara,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3525508,Joanópolis,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3525607,João Ramalho,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3525706,José Bonifácio,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3525805,Júlio Mesquita,SP,Lins,Bauru,Marília,Marília
+3525854,Jumirim,SP,Piracicaba,Piracicaba,Sorocaba,Sorocaba
+3525904,Jundiaí,SP,Jundiaí,Macro Metropolitana Paulista,Jundiaí,Campinas
+3526001,Junqueirópolis,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3526100,Juquiá,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3526209,Juquitiba,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3526308,Lagoinha,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3526407,Laranjal Paulista,SP,Tatuí,Itapetininga,Piracicaba,Campinas
+3526506,Lavínia,SP,Araçatuba,Araçatuba,Andradina,Araçatuba
+3526605,Lavrinhas,SP,Guaratinguetá,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3526704,Leme,SP,Limeira,Piracicaba,Araras,Campinas
+3526803,Lençóis Paulista,SP,Bauru,Bauru,Bauru,Bauru
+3526902,Limeira,SP,Limeira,Piracicaba,Limeira,Campinas
+3527009,Lindóia,SP,Amparo,Campinas,Amparo,Campinas
+3527108,Lins,SP,Lins,Bauru,Lins,Bauru
+3527207,Lorena,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3527256,Lourdes,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3527306,Louveira,SP,Jundiaí,Macro Metropolitana Paulista,Jundiaí,Campinas
+3527405,Lucélia,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3527504,Lucianópolis,SP,Bauru,Bauru,Bauru,Bauru
+3527603,Luís Antônio,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3527702,Luiziânia,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3527801,Lupércio,SP,Marília,Marília,Marília,Marília
+3527900,Lutécia,SP,Assis,Assis,Assis,Marília
+3528007,Macatuba,SP,Jaú,Bauru,Bauru,Bauru
+3528106,Macaubal,SP,Nhandeara,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3528205,Macedônia,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3528304,Magda,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3528403,Mairinque,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3528502,Mairiporã,SP,Franco da Rocha,Metropolitana de São Paulo,São Paulo,São Paulo
+3528601,Manduri,SP,Ourinhos,Assis,Avaré,Sorocaba
+3528700,Marabá Paulista,SP,Presidente Prudente,Presidente Prudente,Presidente Epitácio-Presidente Venceslau,Presidente Prudente
+3528809,Maracaí,SP,Assis,Assis,Assis,Marília
+3528858,Marapoama,SP,Novo Horizonte,São José do Rio Preto,Catanduva,São José do Rio Preto
+3528908,Mariápolis,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3529005,Marília,SP,Marília,Marília,Marília,Marília
+3529104,Marinópolis,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3529203,Martinópolis,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3529302,Matão,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3529401,Mauá,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3529500,Mendonça,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3529609,Meridiano,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3529658,Mesópolis,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3529708,Miguelópolis,SP,São Joaquim da Barra,Ribeirão Preto,Ituverava,Ribeirão Preto
+3529807,Mineiros do Tietê,SP,Jaú,Bauru,Jaú,Bauru
+3529906,Miracatu,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3530003,Mira Estrela,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3530102,Mirandópolis,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3530201,Mirante do Paranapanema,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3530300,Mirassol,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3530409,Mirassolândia,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3530508,Mococa,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3530607,Mogi das Cruzes,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3530706,Mogi Guaçu,SP,Mogi Mirim,Campinas,Mogi Guaçu,Campinas
+3530805,Mogi Mirim,SP,Mogi Mirim,Campinas,Mogi Guaçu,Campinas
+3530904,Mombuca,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3531001,Monções,SP,Nhandeara,São José do Rio Preto,Araçatuba,Araçatuba
+3531100,Mongaguá,SP,Itanhaém,Litoral Sul Paulista,Santos,São Paulo
+3531209,Monte Alegre do Sul,SP,Amparo,Campinas,Amparo,Campinas
+3531308,Monte Alto,SP,Jaboticabal,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3531407,Monte Aprazível,SP,Nhandeara,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3531506,Monte Azul Paulista,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3531605,Monte Castelo,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3531704,Monteiro Lobato,SP,Campos do Jordão,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3531803,Monte Mor,SP,Campinas,Campinas,Campinas,Campinas
+3531902,Morro Agudo,SP,São Joaquim da Barra,Ribeirão Preto,São Joaquim da Barra ¿ Orlândia,Ribeirão Preto
+3532009,Morungaba,SP,Bragança Paulista,Macro Metropolitana Paulista,Jundiaí,Campinas
+3532058,Motuca,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3532108,Murutinga do Sul,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3532157,Nantes,SP,Assis,Assis,Presidente Prudente,Presidente Prudente
+3532207,Narandiba,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3532306,Natividade da Serra,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3532405,Nazaré Paulista,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3532504,Neves Paulista,SP,Nhandeara,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3532603,Nhandeara,SP,Nhandeara,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3532702,Nipoã,SP,Nhandeara,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3532801,Nova Aliança,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3532827,Nova Campina,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3532843,Nova Canaã Paulista,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3532868,Nova Castilho,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3532900,Nova Europa,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3533007,Nova Granada,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3533106,Nova Guataporanga,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3533205,Nova Independência,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3533254,Novais,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3533304,Nova Luzitânia,SP,Auriflama,São José do Rio Preto,Araçatuba,Araçatuba
+3533403,Nova Odessa,SP,Campinas,Campinas,Campinas,Campinas
+3533502,Novo Horizonte,SP,Novo Horizonte,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3533601,Nuporanga,SP,São Joaquim da Barra,Ribeirão Preto,São Joaquim da Barra ¿ Orlândia,Ribeirão Preto
+3533700,Ocauçu,SP,Marília,Marília,Marília,Marília
+3533809,Óleo,SP,Ourinhos,Assis,Avaré,Sorocaba
+3533908,Olímpia,SP,São José do Rio Preto,São José do Rio Preto,Barretos,Ribeirão Preto
+3534005,Onda Verde,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3534104,Oriente,SP,Marília,Marília,Marília,Marília
+3534203,Orindiúva,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3534302,Orlândia,SP,São Joaquim da Barra,Ribeirão Preto,São Joaquim da Barra ¿ Orlândia,Ribeirão Preto
+3534401,Osasco,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3534500,Oscar Bressane,SP,Marília,Marília,Marília,Marília
+3534609,Osvaldo Cruz,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3534708,Ourinhos,SP,Ourinhos,Assis,Ourinhos,Marília
+3534757,Ouroeste,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3534807,Ouro Verde,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3534906,Pacaembu,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3535002,Palestina,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3535101,Palmares Paulista,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3535200,Palmeira d'Oeste,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3535309,Palmital,SP,Assis,Assis,Assis,Marília
+3535408,Panorama,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3535507,Paraguaçu Paulista,SP,Assis,Assis,Assis,Marília
+3535606,Paraibuna,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3535705,Paraíso,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3535804,Paranapanema,SP,Avaré,Bauru,Avaré,Sorocaba
+3535903,Paranapuã,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3536000,Parapuã,SP,Adamantina,Presidente Prudente,Tupã,Marília
+3536109,Pardinho,SP,Botucatu,Bauru,Botucatu,Bauru
+3536208,Pariquera-Açu,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3536257,Parisi,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3536307,Patrocínio Paulista,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3536406,Paulicéia,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3536505,Paulínia,SP,Campinas,Campinas,Campinas,Campinas
+3536570,Paulistânia,SP,Bauru,Bauru,Bauru,Bauru
+3536604,Paulo de Faria,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3536703,Pederneiras,SP,Jaú,Bauru,Bauru,Bauru
+3536802,Pedra Bela,SP,Amparo,Campinas,Bragança Paulista,Campinas
+3536901,Pedranópolis,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3537008,Pedregulho,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3537107,Pedreira,SP,Campinas,Campinas,Campinas,Campinas
+3537156,Pedrinhas Paulista,SP,Assis,Assis,Assis,Marília
+3537206,Pedro de Toledo,SP,Itanhaém,Litoral Sul Paulista,Santos,São Paulo
+3537305,Penápolis,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3537404,Pereira Barreto,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3537503,Pereiras,SP,Tatuí,Itapetininga,Tatuí,Sorocaba
+3537602,Peruíbe,SP,Itanhaém,Litoral Sul Paulista,Santos,São Paulo
+3537701,Piacatu,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3537800,Piedade,SP,Piedade,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3537909,Pilar do Sul,SP,Piedade,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3538006,Pindamonhangaba,SP,São José dos Campos,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3538105,Pindorama,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3538204,Pinhalzinho,SP,Amparo,Campinas,Bragança Paulista,Campinas
+3538303,Piquerobi,SP,Presidente Prudente,Presidente Prudente,Presidente Epitácio-Presidente Venceslau,Presidente Prudente
+3538501,Piquete,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3538600,Piracaia,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3538709,Piracicaba,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3538808,Piraju,SP,Ourinhos,Assis,Piraju,Marília
+3538907,Pirajuí,SP,Bauru,Bauru,Bauru,Bauru
+3539004,Pirangi,SP,Jaboticabal,Ribeirão Preto,Catanduva,São José do Rio Preto
+3539103,Pirapora do Bom Jesus,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3539202,Pirapozinho,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3539301,Pirassununga,SP,Pirassununga,Campinas,São Carlos,Araraquara
+3539400,Piratininga,SP,Bauru,Bauru,Bauru,Bauru
+3539509,Pitangueiras,SP,Jaboticabal,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3539608,Planalto,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3539707,Platina,SP,Assis,Assis,Assis,Marília
+3539806,Poá,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3539905,Poloni,SP,Nhandeara,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3540002,Pompéia,SP,Marília,Marília,Marília,Marília
+3540101,Pongaí,SP,Bauru,Bauru,Lins,Bauru
+3540200,Pontal,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3540259,Pontalinda,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3540309,Pontes Gestal,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3540408,Populina,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3540507,Porangaba,SP,Tatuí,Itapetininga,Tatuí,Sorocaba
+3540606,Porto Feliz,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3540705,Porto Ferreira,SP,Pirassununga,Campinas,São Carlos,Araraquara
+3540754,Potim,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3540804,Potirendaba,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3540853,Pracinha,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3540903,Pradópolis,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3541000,Praia Grande,SP,Santos,Metropolitana de São Paulo,Santos,São Paulo
+3541059,Pratânia,SP,Botucatu,Bauru,Botucatu,Bauru
+3541109,Presidente Alves,SP,Bauru,Bauru,Bauru,Bauru
+3541208,Presidente Bernardes,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3541307,Presidente Epitácio,SP,Presidente Prudente,Presidente Prudente,Presidente Epitácio-Presidente Venceslau,Presidente Prudente
+3541406,Presidente Prudente,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3541505,Presidente Venceslau,SP,Presidente Prudente,Presidente Prudente,Presidente Epitácio-Presidente Venceslau,Presidente Prudente
+3541604,Promissão,SP,Lins,Bauru,Lins,Bauru
+3541653,Quadra,SP,Tatuí,Itapetininga,Tatuí,Sorocaba
+3541703,Quatá,SP,Assis,Assis,Presidente Prudente,Presidente Prudente
+3541802,Queiroz,SP,Tupã,Marília,Tupã,Marília
+3541901,Queluz,SP,Guaratinguetá,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3542008,Quintana,SP,Tupã,Marília,Marília,Marília
+3542107,Rafard,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3542206,Rancharia,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3542305,Redenção da Serra,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3542404,Regente Feijó,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3542503,Reginópolis,SP,Bauru,Bauru,Bauru,Bauru
+3542602,Registro,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3542701,Restinga,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3542800,Ribeira,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3542909,Ribeirão Bonito,SP,São Carlos,Araraquara,São Carlos,Araraquara
+3543006,Ribeirão Branco,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3543105,Ribeirão Corrente,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3543204,Ribeirão do Sul,SP,Ourinhos,Assis,Ourinhos,Marília
+3543238,Ribeirão dos Índios,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3543253,Ribeirão Grande,SP,Capão Bonito,Itapetininga,Itapeva,Sorocaba
+3543303,Ribeirão Pires,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3543402,Ribeirão Preto,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3543501,Riversul,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3543600,Rifaina,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3543709,Rincão,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3543808,Rinópolis,SP,Adamantina,Presidente Prudente,Tupã,Marília
+3543907,Rio Claro,SP,Rio Claro,Piracicaba,Rio Claro,Campinas
+3544004,Rio das Pedras,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3544103,Rio Grande da Serra,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3544202,Riolândia,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3544251,Rosana,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3544301,Roseira,SP,Guaratinguetá,Vale do Paraíba Paulista,Guaratinguetá,São José dos Campos
+3544400,Rubiácea,SP,Araçatuba,Araçatuba,Araçatuba,Araçatuba
+3544509,Rubinéia,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3544608,Sabino,SP,Lins,Bauru,Lins,Bauru
+3544707,Sagres,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3544806,Sales,SP,Novo Horizonte,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3544905,Sales Oliveira,SP,São Joaquim da Barra,Ribeirão Preto,São Joaquim da Barra ¿ Orlândia,Ribeirão Preto
+3545001,Salesópolis,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3545100,Salmourão,SP,Adamantina,Presidente Prudente,Adamantina - Lucélia,Presidente Prudente
+3545159,Saltinho,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3545209,Salto,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3545308,Salto de Pirapora,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3545407,Salto Grande,SP,Ourinhos,Assis,Ourinhos,Marília
+3545506,Sandovalina,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3545605,Santa Adélia,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3545704,Santa Albertina,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3545803,Santa Bárbara d'Oeste,SP,Campinas,Campinas,Campinas,Campinas
+3546009,Santa Branca,SP,São José dos Campos,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3546108,Santa Clara d'Oeste,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3546207,Santa Cruz da Conceição,SP,Limeira,Piracicaba,Araras,Campinas
+3546256,Santa Cruz da Esperança,SP,Batatais,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3546306,Santa Cruz das Palmeiras,SP,Pirassununga,Campinas,São João da Boa Vista,Campinas
+3546405,Santa Cruz do Rio Pardo,SP,Ourinhos,Assis,Ourinhos,Marília
+3546504,Santa Ernestina,SP,Jaboticabal,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3546603,Santa Fé do Sul,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3546702,Santa Gertrudes,SP,Limeira,Piracicaba,Rio Claro,Campinas
+3546801,Santa Isabel,SP,Guarulhos,Metropolitana de São Paulo,São Paulo,São Paulo
+3546900,Santa Lúcia,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3547007,Santa Maria da Serra,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3547106,Santa Mercedes,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3547205,Santana da Ponte Pensa,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3547304,Santana de Parnaíba,SP,Osasco,Metropolitana de São Paulo,São Paulo,São Paulo
+3547403,Santa Rita d'Oeste,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3547502,Santa Rita do Passa Quatro,SP,Ribeirão Preto,Ribeirão Preto,São Carlos,Araraquara
+3547601,Santa Rosa de Viterbo,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3547650,Santa Salete,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3547700,Santo Anastácio,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3547809,Santo André,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3547908,Santo Antônio da Alegria,SP,Batatais,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3548005,Santo Antônio de Posse,SP,Mogi Mirim,Campinas,Campinas,Campinas
+3548054,Santo Antônio do Aracanguá,SP,Araçatuba,Araçatuba,Araçatuba,Araçatuba
+3548104,Santo Antônio do Jardim,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3548203,Santo Antônio do Pinhal,SP,Campos do Jordão,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3548302,Santo Expedito,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3548401,Santópolis do Aguapeí,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3548500,Santos,SP,Santos,Metropolitana de São Paulo,Santos,São Paulo
+3548609,São Bento do Sapucaí,SP,Campos do Jordão,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3548708,São Bernardo do Campo,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3548807,São Caetano do Sul,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3548906,São Carlos,SP,São Carlos,Araraquara,São Carlos,Araraquara
+3549003,São Francisco,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3549102,São João da Boa Vista,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3549201,São João das Duas Pontes,SP,Fernandópolis,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3549250,São João de Iracema,SP,Auriflama,São José do Rio Preto,Fernandópolis,São José do Rio Preto
+3549300,São João do Pau d'Alho,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3549409,São Joaquim da Barra,SP,São Joaquim da Barra,Ribeirão Preto,São Joaquim da Barra ¿ Orlândia,Ribeirão Preto
+3549508,São José da Bela Vista,SP,Franca,Ribeirão Preto,Franca,Ribeirão Preto
+3549607,São José do Barreiro,SP,Bananal,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3549706,São José do Rio Pardo,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3549805,São José do Rio Preto,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3549904,São José dos Campos,SP,São José dos Campos,Vale do Paraíba Paulista,São José dos Campos,São José dos Campos
+3549953,São Lourenço da Serra,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3550001,São Luiz do Paraitinga,SP,Paraibuna/Paraitinga,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3550100,São Manuel,SP,Botucatu,Bauru,Botucatu,Bauru
+3550209,São Miguel Arcanjo,SP,Piedade,Macro Metropolitana Paulista,Itapetininga,Sorocaba
+3550308,São Paulo,SP,São Paulo,Metropolitana de São Paulo,São Paulo,São Paulo
+3550407,São Pedro,SP,Piracicaba,Piracicaba,Piracicaba,Campinas
+3550506,São Pedro do Turvo,SP,Ourinhos,Assis,Ourinhos,Marília
+3550605,São Roque,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3550704,São Sebastião,SP,Caraguatatuba,Vale do Paraíba Paulista,Caraguatatuba - Ubatuba - São Sebastião,São José dos Campos
+3550803,São Sebastião da Grama,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3550902,São Simão,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3551009,São Vicente,SP,Santos,Metropolitana de São Paulo,Santos,São Paulo
+3551108,Sarapuí,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3551207,Sarutaiá,SP,Ourinhos,Assis,Piraju,Marília
+3551306,Sebastianópolis do Sul,SP,Nhandeara,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3551405,Serra Azul,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3551504,Serrana,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3551603,Serra Negra,SP,Amparo,Campinas,Amparo,Campinas
+3551702,Sertãozinho,SP,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto,Ribeirão Preto
+3551801,Sete Barras,SP,Registro,Litoral Sul Paulista,Registro,Sorocaba
+3551900,Severínia,SP,Catanduva,São José do Rio Preto,Barretos,Ribeirão Preto
+3552007,Silveiras,SP,Bananal,Vale do Paraíba Paulista,Cruzeiro,São José dos Campos
+3552106,Socorro,SP,Amparo,Campinas,Bragança Paulista,Campinas
+3552205,Sorocaba,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3552304,Sud Mennucci,SP,Andradina,Araçatuba,Andradina,Araçatuba
+3552403,Sumaré,SP,Campinas,Campinas,Campinas,Campinas
+3552502,Suzano,SP,Mogi das Cruzes,Metropolitana de São Paulo,São Paulo,São Paulo
+3552551,Suzanápolis,SP,Andradina,Araçatuba,Jales,São José do Rio Preto
+3552601,Tabapuã,SP,Catanduva,São José do Rio Preto,Catanduva,São José do Rio Preto
+3552700,Tabatinga,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3552809,Taboão da Serra,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3552908,Taciba,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3553005,Taguaí,SP,Ourinhos,Assis,Avaré,Sorocaba
+3553104,Taiaçu,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3553203,Taiúva,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3553302,Tambaú,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3553401,Tanabi,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3553500,Tapiraí,SP,Piedade,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3553609,Tapiratiba,SP,São João da Boa Vista,Campinas,São José do Rio Pardo - Mococa,Campinas
+3553658,Taquaral,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3553708,Taquaritinga,SP,Jaboticabal,Ribeirão Preto,Araraquara,Araraquara
+3553807,Taquarituba,SP,Itapeva,Itapetininga,Avaré,Sorocaba
+3553856,Taquarivaí,SP,Itapeva,Itapetininga,Itapeva,Sorocaba
+3553906,Tarabai,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3553955,Tarumã,SP,Assis,Assis,Assis,Marília
+3554003,Tatuí,SP,Tatuí,Itapetininga,Tatuí,Sorocaba
+3554102,Taubaté,SP,São José dos Campos,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3554201,Tejupá,SP,Ourinhos,Assis,Piraju,Marília
+3554300,Teodoro Sampaio,SP,Presidente Prudente,Presidente Prudente,Presidente Prudente,Presidente Prudente
+3554409,Terra Roxa,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3554508,Tietê,SP,Piracicaba,Piracicaba,Sorocaba,Sorocaba
+3554607,Timburi,SP,Ourinhos,Assis,Piraju,Marília
+3554656,Torre de Pedra,SP,Tatuí,Itapetininga,Tatuí,Sorocaba
+3554706,Torrinha,SP,Rio Claro,Piracicaba,Jaú,Bauru
+3554755,Trabiju,SP,Araraquara,Araraquara,Araraquara,Araraquara
+3554805,Tremembé,SP,São José dos Campos,Vale do Paraíba Paulista,Taubaté - Pindamonhangaba,São José dos Campos
+3554904,Três Fronteiras,SP,Jales,São José do Rio Preto,Santa Fé do Sul,São José do Rio Preto
+3554953,Tuiuti,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3555000,Tupã,SP,Tupã,Marília,Tupã,Marília
+3555109,Tupi Paulista,SP,Dracena,Presidente Prudente,Dracena,Presidente Prudente
+3555208,Turiúba,SP,Birigui,Araçatuba,Birigui - Penápolis,Araçatuba
+3555307,Turmalina,SP,Fernandópolis,São José do Rio Preto,Jales,São José do Rio Preto
+3555356,Ubarana,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3555406,Ubatuba,SP,Caraguatatuba,Vale do Paraíba Paulista,Caraguatatuba - Ubatuba - São Sebastião,São José dos Campos
+3555505,Ubirajara,SP,Bauru,Bauru,Bauru,Bauru
+3555604,Uchoa,SP,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3555703,União Paulista,SP,Nhandeara,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3555802,Urânia,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3555901,Uru,SP,Bauru,Bauru,Lins,Bauru
+3556008,Urupês,SP,Novo Horizonte,São José do Rio Preto,São José do Rio Preto,São José do Rio Preto
+3556107,Valentim Gentil,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3556206,Valinhos,SP,Campinas,Campinas,Campinas,Campinas
+3556305,Valparaíso,SP,Araçatuba,Araçatuba,Araçatuba,Araçatuba
+3556354,Vargem,SP,Bragança Paulista,Macro Metropolitana Paulista,Bragança Paulista,Campinas
+3556404,Vargem Grande do Sul,SP,São João da Boa Vista,Campinas,São João da Boa Vista,Campinas
+3556453,Vargem Grande Paulista,SP,Itapecerica da Serra,Metropolitana de São Paulo,São Paulo,São Paulo
+3556503,Várzea Paulista,SP,Jundiaí,Macro Metropolitana Paulista,Jundiaí,Campinas
+3556602,Vera Cruz,SP,Marília,Marília,Marília,Marília
+3556701,Vinhedo,SP,Campinas,Campinas,Campinas,Campinas
+3556800,Viradouro,SP,Jaboticabal,Ribeirão Preto,Barretos,Ribeirão Preto
+3556909,Vista Alegre do Alto,SP,Jaboticabal,Ribeirão Preto,Catanduva,São José do Rio Preto
+3556958,Vitória Brasil,SP,Jales,São José do Rio Preto,Jales,São José do Rio Preto
+3557006,Votorantim,SP,Sorocaba,Macro Metropolitana Paulista,Sorocaba,Sorocaba
+3557105,Votuporanga,SP,Votuporanga,São José do Rio Preto,Votuporanga,São José do Rio Preto
+3557154,Zacarias,SP,São José do Rio Preto,São José do Rio Preto,Birigui - Penápolis,Araçatuba
+3557204,Chavantes,SP,Ourinhos,Assis,Ourinhos,Marília
+3557303,Estiva Gerbi,SP,Mogi Mirim,Campinas,Mogi Guaçu,Campinas

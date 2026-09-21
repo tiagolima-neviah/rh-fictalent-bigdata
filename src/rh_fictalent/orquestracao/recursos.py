@@ -14,9 +14,14 @@ import os
 from typing import Any
 
 import dagster as dg
+import pandas as pd
 import psycopg
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pymysql
 import s3fs
+
+from rh_fictalent.fontes.apis import ClienteHTTP
 
 
 def _ambiente(nome: str, padrao: str) -> str:
@@ -69,6 +74,30 @@ class Lake(dg.ConfigurableResource):  # type: ignore[type-arg]
     def caminho(self, camada: str, *partes: str) -> str:
         return "/".join((f"s3://{self.bucket}", camada, *partes))
 
+    def escrever_parquet(self, tabela: pd.DataFrame, caminho: str) -> None:
+        with self.sistema().open(caminho, "wb") as arquivo:
+            pq.write_table(pa.Table.from_pandas(tabela, preserve_index=False), arquivo)
+
+    def ler_parquet(self, caminho: str) -> pd.DataFrame:
+        with self.sistema().open(caminho, "rb") as arquivo:
+            tabela: pd.DataFrame = pq.read_table(arquivo).to_pandas()
+            return tabela
+
+
+class ApisPublicas(dg.ConfigurableResource):  # type: ignore[type-arg]
+    """As APIs públicas (IBGE, BrasilAPI): limites do cliente HTTP, ajustáveis pelo Dagster."""
+
+    timeout: float = 30.0
+    tentativas: int = 5
+    intervalo_minimo: float = 0.5
+
+    def cliente(self) -> ClienteHTTP:
+        return ClienteHTTP(
+            timeout=self.timeout,
+            tentativas=self.tentativas,
+            intervalo_minimo=self.intervalo_minimo,
+        )
+
 
 class Warehouse(dg.ConfigurableResource):  # type: ignore[type-arg]
     """O warehouse Postgres, destino da gold."""
@@ -97,7 +126,7 @@ class Warehouse(dg.ConfigurableResource):  # type: ignore[type-arg]
 
 
 def recursos_do_ambiente() -> dict[str, Any]:
-    """Os três recursos, lendo o ambiente: hosts e portas com padrão local, segredos por EnvVar."""
+    """Os recursos, lendo o ambiente: hosts e portas com padrão local, segredos por EnvVar."""
     return {
         "replica": Replica(
             host=_ambiente("STAGING_HOST", "127.0.0.1"),
@@ -111,6 +140,7 @@ def recursos_do_ambiente() -> dict[str, Any]:
             segredo=dg.EnvVar("S3_SECRET_KEY"),
             bucket=_ambiente("S3_BUCKET", "fictalent-lake"),
         ),
+        "apis": ApisPublicas(),
         "warehouse": Warehouse(
             host=_ambiente("DW_HOST", "127.0.0.1"),
             porta=int(_ambiente("DW_PORT", "5441")),

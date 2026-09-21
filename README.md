@@ -67,8 +67,8 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 | v0.1.0 | Entendimento do negócio e dos dados, arquitetura, modelo relacional | concluído |
 | v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, trilha de exclusões, DCL, cifra em repouso, dicionário, CI em três trilhos | concluído |
 | v0.3.0 | Orquestração (Dagster: recursos, convenções, primeiro job), logs em JSON, métricas por sensor, Grafana como código, saúde de ponta a ponta | concluído |
-| v0.4.0 | Dado sintético: CAGED, APIs públicas, régua, gerador 2018 a 2026 | próxima |
-| v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | previsto |
+| v0.4.0 | Dado sintético: CAGED e APIs públicas, régua de 165 checks, gerador de 2018 a 2026 e a réplica com 8,4 milhões de linhas | concluído |
+| v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | próxima |
 | v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
 | v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | previsto |
 | v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | previsto |
@@ -76,11 +76,11 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 
 ## Requisitos
 
-O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira ocupou **cerca de 1,4 GB de RAM** (medido na v0.2.0, ainda sem dados); com o volume completo e o pipeline rodando, a referência é **8 GB de RAM no mínimo (16 GB recomendado)**, 4 núcleos e cerca de 20 GB livres em disco, a confirmar quando a base existir. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
+O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira ocupou **cerca de 1,4 GB de RAM** (medido na v0.2.0, ainda sem dados); com a base sintética gerada, a réplica ocupa cerca de **1,5 GB** em disco e o gerador pede até 2,4 GB de RAM por alguns minutos; a referência é **8 GB de RAM no mínimo (16 GB recomendado)**, 4 núcleos e cerca de 20 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.3.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster com o primeiro job e os sensores de métricas, Grafana com painel e alertas), verificá-la de ponta a ponta e acompanhar cada execução no painel:
+O projeto está em construção. Na v0.4.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster com o primeiro job e os sensores de métricas, Grafana com painel e alertas) e **gerar a base sintética da Fictalent**, de 2018 a setembro de 2026:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
@@ -88,7 +88,12 @@ docker compose up -d --build
 bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 ```
 
-O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
+```bash
+.venv/bin/python -m rh_fictalent.gerador --etapa 1 --gravar --zerar && for e in 2 3 4 5 6; do .venv/bin/python -m rh_fictalent.gerador --etapa $e --gravar || break; done
+.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 165 de 165
+```
+
+São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
 
 ## Qualidade e segurança a cada mudança
 
@@ -104,9 +109,13 @@ rh-fictalent-bigdata/
 ├── compose.yaml             # a plataforma inteira: 7 serviços com healthcheck
 ├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, keyring da réplica, provisionamento do Grafana
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
+├── dados/publicos/          # tabelas de fonte pública (Novo CAGED, IBGE, BrasilAPI), cada uma com a fonte; o bruto fica fora do git
+├── dados/gerencial/         # o consolidado gerencial em Excel (sintético): a fonte de arquivo do pipeline
+├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (165 de 165)
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
+│   ├── fontes/              # fontes públicas: CAGED (FTP, agregação) e APIs (IBGE, BrasilAPI) com retry e limite de taxa
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
 │   ├── bronze/  silver/  gold/   # as camadas do lake
@@ -125,7 +134,8 @@ rh-fictalent-bigdata/
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
 - [05 · Segurança e LGPD](docs/05_seguranca_e_lgpd.md): o modelo de ameaça camada a camada, o comando que prova cada garantia, a LGPD princípio por princípio e o que ainda não existe.
-- [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa; atualizar, recomeçar, desinstalar.
+- [06 · Régua de Validação](docs/06_regua_de_validacao.md): o contrato de aceite do dado sintético, 165 checks em seis famílias, de onde vem cada alvo, o laudo versionado e o que a régua não faz.
+- [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa, a geração da base sintética e o aceite; atualizar, recomeçar, desinstalar.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
 

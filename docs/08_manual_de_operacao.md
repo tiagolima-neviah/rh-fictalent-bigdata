@@ -136,7 +136,7 @@ Apaga **todos os dados**: bancos, lake, histórico do Dagster, configurações d
 docker compose down -v
 ```
 
-Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
+Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana; a réplica volta vazia, e a base sintética se regenera em 7 minutos com os comandos da seção 6 de [Instalação e Reprodução](07_instalacao_e_reproducao.md). Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
 
 ## 6. O Dagster: interface e o primeiro job
 
@@ -155,6 +155,15 @@ E da sua máquina, contra a plataforma de pé (é o que o teste de integração 
 ```
 
 Depois de mudar código em `src/`, reconstrua a imagem: `docker compose up -d --build dagster-web dagster-daemon`.
+
+**As fontes públicas** (grupo `fontes`, desde a v0.4.0) são os primeiros assets de dado: `fontes/ibge/municipios` (job `carregar_municipios`) e `fontes/brasilapi/feriados` (job `carregar_feriados`, particionado por ano). Materializar grava parquet no lake em `s3://fictalent-lake/fontes/...`; os metadados da execução mostram as linhas e o caminho. Na interface, o job dos feriados pede a partição (um ano) ou aceita um *backfill* de 2018 a 2026, que vira uma execução por ano. Pela linha de comando:
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_municipios
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_feriados --partition 2024
+```
+
+As APIs são públicas e sem contrato: o cliente (`src/rh_fictalent/fontes/apis.py`) espera no máximo 30 s por pedido, tenta 5 vezes com recuo exponencial em 429, 5xx e queda de rede, e deixa 0,5 s entre pedidos. Os limites são configuração do recurso `apis` (na página *Launchpad* do job). As mesmas tabelas, versionadas para o gerador, se regeneram com `.venv/bin/python -m rh_fictalent.fontes.apis`.
 
 **Os logs são JSON, uma linha por evento**, e toda linha nascida dentro de uma execução carrega o `run_id` dela (mais `job`, `passo` e `evento`). Para ver o que uma execução fez, do começo ao fim, em qualquer serviço:
 

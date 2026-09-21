@@ -3,10 +3,10 @@
 # Instalação e reprodução · do clone à plataforma verificada
 
 <!-- nav:start -->
-[Home](../README.md) | [← Segurança e LGPD](05_seguranca_e_lgpd.md) | [Manual de Operação →](08_manual_de_operacao.md)
+[Home](../README.md) | [← Régua de Validação](06_regua_de_validacao.md) | [Manual de Operação →](08_manual_de_operacao.md)
 <!-- nav:end -->
 
-> O caminho completo para ter este projeto rodando numa máquina que nunca o viu, com o comando exato de cada passo e a verificação que diz se deu certo. Todo passo foi executado na versão em que entrou. Tempo total medido: cerca de 5 minutos numa estação com 16 núcleos e conexão boa, a maior parte baixando imagens.
+> O caminho completo para ter este projeto rodando numa máquina que nunca o viu, com o comando exato de cada passo e a verificação que diz se deu certo. Todo passo foi executado na versão em que entrou. Tempo total medido: cerca de 5 minutos para a plataforma (a maior parte baixando imagens) e mais 7 para gerar e conferir a base sintética, numa estação com 16 núcleos e conexão boa.
 
 ## 1. O que precisa estar instalado
 
@@ -18,7 +18,7 @@
 | git | qualquer recente | clonar e contribuir | `git --version` |
 | openssl | qualquer | gerar as senhas do `.env` | `openssl version` |
 
-Máquina: **8 GB de RAM** no mínimo (16 recomendado), 4 núcleos, 20 GB livres em disco. Em repouso a plataforma usa cerca de 1,4 GB. No Windows, use o WSL2 com Docker Desktop ou o Docker dentro da distribuição; tudo abaixo é Linux.
+Máquina: **8 GB de RAM** no mínimo (16 recomendado), 4 núcleos, 20 GB livres em disco. Em repouso a plataforma usa cerca de 1,4 GB; gerar a base sintética pede mais 2,5 GB livres por alguns minutos. No Windows, use o WSL2 com Docker Desktop ou o Docker dentro da distribuição; tudo abaixo é Linux.
 
 Instalar o uv, se faltar: <https://docs.astral.sh/uv/getting-started/installation/>.
 
@@ -77,7 +77,34 @@ bash scripts/esteira.sh
 
 Lint, tipos, testes (os de integração rodam porque a plataforma está de pé), bandit, pip-audit e, com o docker disponível, gitleaks e trivy. Termina em `ESTEIRA VERDE`.
 
-## 6. O que está onde
+## 6. Gerar a base sintética
+
+A plataforma sobe com a réplica vazia. A base (a Fictalent de 2018 a 10/09/2026, 8,4 milhões de linhas em 76 tabelas) é gerada por um gerador determinístico em seis etapas, cada uma continuando a anterior: a mesma semente produz a mesma base em qualquer máquina.
+
+```bash
+.venv/bin/python -m rh_fictalent.gerador --etapa 1 --gravar --zerar && for e in 2 3 4 5 6; do .venv/bin/python -m rh_fictalent.gerador --etapa $e --gravar || break; done
+```
+
+| etapa | o que gera | linhas | tempo medido |
+|---|---|---|---|
+| 1 | o mundo cadastral: filiais, funções, convenções e pisos, feriados, municípios | 1,7 mil | 3 s |
+| 2 | a carteira comercial: clientes, contratos, postos, preços, SLA e ocorrências | 4,7 mil | 1 s |
+| 3 | o funil de recrutamento e as pessoas: vagas, candidatos, candidaturas, entrevistas, admissões, alocações | 1,33 milhão | 1 min |
+| 4 | ponto e folha: marcações, apontamentos, folha, provisões e rateio de custo | 6,82 milhões | 3 min 25 s |
+| 5 | financeiro: faturas, títulos, impostos e o consolidado gerencial (também em Excel, em `dados/gerencial`) | 18,8 mil | 30 s |
+| 6 | conformidade e acesso: treinamentos, exames, programas, acidentes, usuários, permissões e trilha de auditoria | 233 mil | 35 s |
+
+Cada etapa gera em memória, confere a si mesma (chaves, carimbos e a régua parcial, que sai impressa) e só então grava, numa transação. Gravar duas vezes, ou fora de ordem, é recusado; regenerar é sempre recomeçar pela etapa 1 com `--zerar`, que esvazia a réplica inteira (pede a senha de `root` do `.env`). A etapa 4 é a que pesa: pico de 2,4 GB de RAM. No fim a réplica ocupa cerca de 1,5 GB de dado e índice.
+
+Depois, o aceite: a base inteira contra a régua inteira, com as linhas contadas na réplica.
+
+```bash
+.venv/bin/python -m rh_fictalent.gerador --aceite --replica
+```
+
+Termina em **`RÉGUA APROVADA: 165 de 165`** e reescreve `dados/regua/medidas.json` e `laudo.txt` com o mesmo conteúdo que está versionado (se `git status` mostrar diferença, a sua base não é a do repositório). O que cada check confere está em [Régua de Validação](06_regua_de_validacao.md).
+
+## 7. O que está onde
 
 | endereço | o quê | credencial |
 |---|---|---|
@@ -89,7 +116,7 @@ Lint, tipos, testes (os de integração rodam porque a plataforma está de pé),
 
 Tudo escuta só em `127.0.0.1`: nada fica acessível a partir da rede. Para um cliente de banco (DBeaver, por exemplo), use esses endereços; no MySQL deixe o campo *Database* vazio para ver os 10 databases.
 
-## 7. Atualizar, recomeçar, desinstalar
+## 8. Atualizar, recomeçar, desinstalar
 
 **Atualizar** para uma versão nova do repositório:
 
@@ -107,7 +134,7 @@ docker compose down -v && docker compose up -d --build && bash scripts/saude.sh
 
 **Desinstalar**: `docker compose down -v --rmi local` remove containers, volumes e a imagem do Dagster; apagar a pasta do repositório remove o resto. As imagens públicas baixadas (MySQL, Postgres, SeaweedFS, Grafana, Python) ficam no Docker até `docker image prune`.
 
-## 8. Reproduzir numa máquina limpa
+## 9. Reproduzir numa máquina limpa
 
 O trilho `réplica provada` da CI faz exatamente isto a cada PR, num runner descartável do GitHub: clona, gera um `.env`, sobe a réplica e roda os testes de integração. É a prova de que este documento não depende de nada que só exista na máquina do autor. Se um passo daqui falhar na sua máquina e não na CI, a diferença está no ambiente (versão do Docker, porta ocupada, WSL sem memória), e a seção 9 do manual de operação tem os sintomas conhecidos.
 
