@@ -136,7 +136,7 @@ Apaga **todos os dados**: bancos, lake, histórico do Dagster, configurações d
 docker compose down -v
 ```
 
-Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana. Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
+Depois disso, a primeira subida da seção 2 recria tudo, inclusive os usuários só de leitura do Grafana; a réplica volta vazia, e a base sintética se regenera em 7 minutos com os comandos da seção 6 de [Instalação e Reprodução](07_instalacao_e_reproducao.md). Se você trocar uma senha no `.env` depois que os volumes já existem, o banco **não** muda a senha sozinho: ou se troca a senha dentro do banco, ou se recomeça do zero. Exceção: as senhas dos três usuários de serviço da réplica (`pipeline`, `relatorios_cliente`, `replicador`) acompanham o `.env` sempre que `bash scripts/aplicar_ddl.sh` roda.
 
 ## 6. O Dagster: interface e o primeiro job
 

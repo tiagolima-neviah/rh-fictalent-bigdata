@@ -1,6 +1,6 @@
 # O aceite da base sintética
 
-A base sintética da Fictalent só vale se passar na régua: 165 checks em seis famílias (escala e forma, naturalidade, a história do caso, sazonalidade contra o Novo CAGED, coerência interna e a sujeira na medida certa). O contrato está em [`validacao/bandas.py`](../../src/rh_fictalent/validacao/bandas.py), com cada revisão datada e motivada.
+A base sintética da Fictalent só vale se passar na régua: 165 checks em seis famílias (escala e forma, naturalidade, a história do caso, sazonalidade contra o Novo CAGED, coerência interna e a sujeira na medida certa). O contrato está em [`validacao/bandas.py`](../../src/rh_fictalent/validacao/bandas.py), com cada revisão datada e motivada, e explicado em [Régua de Validação](../../docs/06_regua_de_validacao.md).
 
 - `medidas.json`: os números que a base entrega, no formato do contrato (`{medida: {chave: valor}}`);
 - `laudo.txt`: o veredito da régua sobre esses números, check a check.

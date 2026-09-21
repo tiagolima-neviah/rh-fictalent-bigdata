@@ -129,7 +129,8 @@ rh-fictalent-bigdata/
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
 - [05 · Segurança e LGPD](docs/05_seguranca_e_lgpd.md): o modelo de ameaça camada a camada, o comando que prova cada garantia, a LGPD princípio por princípio e o que ainda não existe.
-- [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa; atualizar, recomeçar, desinstalar.
+- [06 · Régua de Validação](docs/06_regua_de_validacao.md): o contrato de aceite do dado sintético, 165 checks em seis famílias, de onde vem cada alvo, o laudo versionado e o que a régua não faz.
+- [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa, a geração da base sintética e o aceite; atualizar, recomeçar, desinstalar.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
 
