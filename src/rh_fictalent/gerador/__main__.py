@@ -7,11 +7,13 @@
     python -m rh_fictalent.gerador --etapa 3 --gravar          # funil e pessoas, ~1,3 mi de linhas
     python -m rh_fictalent.gerador --etapa 4 --gravar          # ponto e folha, ~6 mi de linhas
     python -m rh_fictalent.gerador --etapa 5 --gravar          # financeiro e as planilhas Excel
+    python -m rh_fictalent.gerador --etapa 6 --gravar          # SST, treinamento e segurança
 
 Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
 fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
 esvazia a réplica inteira, porque toda etapa depende das anteriores. Quando a etapa já permite
-tirar medidas, a régua parcial sai junto.
+tirar medidas, a régua parcial sai junto. A etapa 6 também preenche o entrevistador das
+entrevistas da etapa 3 (o usuário só passa a existir nela): é o único retoque do gerador.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+import pandas as pd
 from dotenv import load_dotenv
 
 from rh_fictalent.gerador import (
@@ -29,6 +32,7 @@ from rh_fictalent.gerador import (
     etapa3_pessoas,
     etapa4_ponto_folha,
     etapa5_financeiro,
+    etapa6_conformidade,
 )
 from rh_fictalent.gerador.nucleo import SEMENTE, Tabelas, assinatura, replica_do_ambiente
 from rh_fictalent.validacao.regua import Laudo
@@ -40,6 +44,7 @@ class Etapa:
     gerar: Callable[[], Tabelas]
     adiadas: dict[str, list[str]] = field(default_factory=dict)
     laudo: Callable[[Tabelas], Laudo] | None = None  # a régua parcial, quando a etapa já mede
+    retoques: Callable[[], dict[str, pd.DataFrame]] | None = None  # colunas de etapa anterior
 
 
 def _etapa_3() -> Tabelas:
@@ -62,6 +67,19 @@ def _etapa_5() -> Tabelas:
     _BASE.clear()
     _BASE.update(base)
     return tabelas
+
+
+def _etapa_6() -> Tabelas:
+    tabelas, base = etapa6_conformidade.gerar_com_base()
+    etapa6_conformidade.conferir(tabelas, base)
+    _BASE.clear()
+    _BASE.update(base)
+    return tabelas
+
+
+def _retoques_da_etapa_6() -> dict[str, pd.DataFrame]:
+    retoques: dict[str, pd.DataFrame] = _BASE["retoques"]  # type: ignore[assignment]
+    return retoques
 
 
 _GABARITO: dict[str, object] = {}
@@ -94,6 +112,13 @@ ETAPAS = {
         {},
         lambda t: etapa5_financeiro.laudo_parcial(etapa5_financeiro.medir(t, _BASE)),
     ),
+    6: Etapa(
+        "conformidade e acesso",
+        _etapa_6,
+        {},
+        lambda t: etapa6_conformidade.laudo_parcial(etapa6_conformidade.medir(t, _BASE)),
+        _retoques_da_etapa_6,
+    ),
 }
 
 
@@ -120,8 +145,11 @@ def main(argumentos: list[str] | None = None) -> int:
         if args.zerar:
             zeradas = replica_do_ambiente("root").zerar()
             print(f"réplica zerada: {zeradas} tabelas")
-        gravadas = replica_do_ambiente("replicador").gravar(tabelas, etapa.adiadas)
+        retoques = etapa.retoques() if etapa.retoques else {}
+        gravadas = replica_do_ambiente("replicador").gravar(tabelas, etapa.adiadas, retoques)
         print(f"gravado na réplica: {sum(gravadas.values())} linhas em {len(gravadas)} tabelas")
+        for nome, quadro in retoques.items():
+            print(f"retocado: {nome}.{quadro.columns[-1]} em {len(quadro)} linhas")
         if args.etapa == 5:  # o consolidado também é arquivo: a fonte Excel do pipeline
             planilhas = etapa5_financeiro.escrever_planilhas(tabelas, _BASE)
             print(f"planilhas do consolidado: {len(planilhas)} arquivos em {planilhas[0].parent}")

@@ -33,6 +33,12 @@ Revisões do contrato:
 - 2026-09-21 (card 4.8, financeiro). A estimativa de linhas de `financeiro.fatura_item` cai de
   52 mil para 9,5 mil: o rascunho do modelo supunha um posto por posição, e a carteira abre
   postos com quantidade (um item de fatura por posto e mês, com várias pessoas dentro).
+- 2026-09-21 (card 4.9, SST). A estimativa de linhas de `sst.aso` cai de 40 mil para 20 mil:
+  o rascunho supunha gente de casa, com periódico e demissional; a operação é de temporário
+  (metade dos contratos de trabalho dura até 50 dias), então quase todo contrato tem só o
+  admissional: o demissional é dispensado quando o último exame é recente (NR-7) e o
+  periódico só chega para quem passa de um ano. SST-01 fica definido como prevalência: no
+  último dia de cada mês, a parte dos alocados sem ASO válido; o ano é a média dos meses.
 """
 
 from __future__ import annotations
@@ -61,7 +67,7 @@ LINHAS = {
     "folha.provisao": 114_000,
     "ats.candidato": 60_000,
     "financeiro.fatura_item": 9_500,
-    "sst.aso": 40_000,
+    "sst.aso": 20_000,
 }
 LINHAS_TOTAL = 8_300_000
 
