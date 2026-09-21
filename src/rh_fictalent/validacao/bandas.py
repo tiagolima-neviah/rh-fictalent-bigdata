@@ -30,6 +30,9 @@ Revisões do contrato:
   desligamentos; desvio médio de 0,15 para 0,25 e de 0,18 para 0,30). Definições fechadas:
   posto descoberto é dias sem ninguém por posição contratada por mês; o mix de 2024 é sobre
   pessoas em atendimento (alocados por tipo e efetivados por R&S na garantia de 90 dias).
+- 2026-09-21 (card 4.8, financeiro). A estimativa de linhas de `financeiro.fatura_item` cai de
+  52 mil para 9,5 mil: o rascunho do modelo supunha um posto por posição, e a carteira abre
+  postos com quantidade (um item de fatura por posto e mês, com várias pessoas dentro).
 """
 
 from __future__ import annotations
@@ -57,7 +60,7 @@ LINHAS = {
     "ponto.ocorrencia_ponto": 165_000,
     "folha.provisao": 114_000,
     "ats.candidato": 60_000,
-    "financeiro.fatura_item": 52_000,
+    "financeiro.fatura_item": 9_500,
     "sst.aso": 40_000,
 }
 LINHAS_TOTAL = 8_300_000

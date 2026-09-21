@@ -6,6 +6,7 @@
     python -m rh_fictalent.gerador --etapa 2 --gravar          # a etapa seguinte continua a base
     python -m rh_fictalent.gerador --etapa 3 --gravar          # funil e pessoas, ~1,3 mi de linhas
     python -m rh_fictalent.gerador --etapa 4 --gravar          # ponto e folha, ~6 mi de linhas
+    python -m rh_fictalent.gerador --etapa 5 --gravar          # financeiro e as planilhas Excel
 
 Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
 fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
@@ -27,6 +28,7 @@ from rh_fictalent.gerador import (
     etapa2_carteira,
     etapa3_pessoas,
     etapa4_ponto_folha,
+    etapa5_financeiro,
 )
 from rh_fictalent.gerador.nucleo import SEMENTE, Tabelas, assinatura, replica_do_ambiente
 from rh_fictalent.validacao.regua import Laudo
@@ -54,6 +56,14 @@ def _etapa_4() -> Tabelas:
     return tabelas
 
 
+def _etapa_5() -> Tabelas:
+    tabelas, base = etapa5_financeiro.gerar_com_base()
+    etapa5_financeiro.conferir(tabelas, base)
+    _BASE.clear()
+    _BASE.update(base)
+    return tabelas
+
+
 _GABARITO: dict[str, object] = {}
 _BASE: dict[str, object] = {}
 
@@ -77,6 +87,12 @@ ETAPAS = {
         _etapa_4,
         {},
         lambda t: etapa4_ponto_folha.laudo_parcial(etapa4_ponto_folha.medir(t, _BASE)),
+    ),
+    5: Etapa(
+        "financeiro",
+        _etapa_5,
+        {},
+        lambda t: etapa5_financeiro.laudo_parcial(etapa5_financeiro.medir(t, _BASE)),
     ),
 }
 
@@ -106,6 +122,9 @@ def main(argumentos: list[str] | None = None) -> int:
             print(f"réplica zerada: {zeradas} tabelas")
         gravadas = replica_do_ambiente("replicador").gravar(tabelas, etapa.adiadas)
         print(f"gravado na réplica: {sum(gravadas.values())} linhas em {len(gravadas)} tabelas")
+        if args.etapa == 5:  # o consolidado também é arquivo: a fonte Excel do pipeline
+            planilhas = etapa5_financeiro.escrever_planilhas(tabelas, _BASE)
+            print(f"planilhas do consolidado: {len(planilhas)} arquivos em {planilhas[0].parent}")
     return 0
 
 
