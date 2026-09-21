@@ -20,6 +20,7 @@ auditoria de qualidade, e não vai para a réplica.
 from __future__ import annotations
 
 from bisect import bisect_right
+from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from statistics import median
@@ -38,6 +39,7 @@ from rh_fictalent.validacao import bandas, derivadas
 from rh_fictalent.validacao.regua import Laudo, Medidas, Situacao, avaliar
 
 HOJE = FIM.date()
+JORNADA = 10 * 3600.0  # o expediente, das 8h às 18h, em segundos
 Linhas = list[tuple[Any, ...]]
 
 COLUNAS = {
@@ -241,6 +243,14 @@ class _Construtor:
             f["data"] for f in r(self.mundo["cadastro.feriado"]) if f["abrangencia"] == "NACIONAL"
         ]
         self.calendario = motor.Calendario(feriados)
+        # o eixo do horário comercial: os dias úteis da história, das 8h às 18h
+        todos = [INICIO + timedelta(days=i) for i in range((HOJE - INICIO).days + 15)]
+        folgas = set(feriados)
+        self.dia_util = [d.weekday() < 5 and d not in folgas for d in todos]
+        self.dias_uteis = [d for d, util in zip(todos, self.dia_util, strict=True) if util]
+        self.uteis_antes = [0]
+        for util in self.dia_util:
+            self.uteis_antes.append(self.uteis_antes[-1] + util)
 
         # piso por (município da convenção da filial, função), como na etapa 2
         municipio_da_convencao = {
@@ -631,6 +641,33 @@ class _Construtor:
         for indice in demais:
             self.candidatura(vaga_id, vaga, indice, janela, fim_da_vaga, aprovado=False)
 
+    def no_eixo(self, t: datetime, fim: bool = False) -> float:
+        """O instante em segundos de expediente desde o começo da história."""
+        d = (t.date() - INICIO).days
+        if not self.dia_util[d]:  # fim de semana ou feriado: o expediente vizinho
+            return self.uteis_antes[d] * JORNADA - (1.0 if fim else 0.0)
+        segundos = (t - datetime.combine(t.date(), time(8, 0))).total_seconds()
+        return self.uteis_antes[d] * JORNADA + min(max(segundos, 0.0), JORNADA - 1.0)
+
+    def horario_comercial(
+        self, abertura: datetime, limite: datetime
+    ) -> Callable[[datetime], datetime]:
+        """O funil é simulado em tempo corrido; quem trabalha nele tem expediente. Devolve a função
+        que leva cada instante entre a abertura da vaga e o limite dela para o horário comercial
+        (segunda a sexta, 8h às 18h, fora de feriado), sem inverter a ordem de nada e sem sair
+        da janela da vaga."""
+        a, b = self.no_eixo(abertura), self.no_eixo(limite, fim=True)
+        total = (limite - abertura).total_seconds()
+
+        def ajustar(t: datetime) -> datetime:
+            parte = min(max((t - abertura).total_seconds() / total, 0.0), 1.0) if total > 0 else 0.0
+            x = a + parte * max(b - a, 0.0)
+            n = min(int(x // JORNADA), len(self.dias_uteis) - 1)
+            abre = datetime.combine(self.dias_uteis[n], time(8, 0))
+            return abre + timedelta(seconds=x - n * JORNADA)
+
+        return ajustar
+
     def candidatura(
         self,
         vaga_id: int,
@@ -652,6 +689,7 @@ class _Construtor:
             days=float(u[1]) * janela * (0.35 if aprovado else 0.8), hours=float(u[2]) * 9
         )
         inscricao = min(inscricao, limite - timedelta(hours=2))
+        comercial = self.horario_comercial(datetime.combine(vaga.abertura, time(8, 0)), limite)
         # o caminho: lista de (etapa, resultado, motivo); quem é aprovado passa por tudo
         caminho: list[tuple[int, str, str | None]] = []
         entrevistas: dict[int, bool] = {}  # etapa -> compareceu
@@ -684,13 +722,14 @@ class _Construtor:
             if resultado == "PENDENTE" or (saida > limite and not aprovado):
                 # a vaga acabou (fechou, foi cancelada, a história parou) com a pessoa no caminho
                 interrompida = True
+                chegou = comercial(entrada)
                 linhas_de_etapa.append(
-                    ((candidatura_id, etapa, entrada, None, "PENDENTE", None), entrada, entrada)
+                    ((candidatura_id, etapa, chegou, None, "PENDENTE", None), chegou, chegou)
                 )
                 etapa_atual = etapa
                 break
             if etapa in entrevistas:
-                agendada = entrada + (saida - entrada) * 0.8
+                agendada = comercial(entrada + (saida - entrada) * 0.8)
                 compareceu = entrevistas[etapa]
                 self.linha(
                     "ats.entrevista",
@@ -705,12 +744,13 @@ class _Construtor:
                         if compareceu
                         else "NAO_COMPARECEU",
                     ),
-                    entrada,
-                    saida,
+                    comercial(entrada),
+                    comercial(saida),
                 )
             motivo_id = self.id_motivo[("REPROVACAO", motivo)] if motivo else None
+            chegou, saiu = comercial(entrada), comercial(saida)
             linhas_de_etapa.append(
-                ((candidatura_id, etapa, entrada, saida, resultado, motivo_id), entrada, saida)
+                ((candidatura_id, etapa, chegou, saiu, resultado, motivo_id), chegou, saiu)
             )
             etapa_atual, entrada = etapa, saida
         if interrompida:
@@ -718,6 +758,8 @@ class _Construtor:
             fim_da_candidatura: datetime | None = None if aberta else limite
         else:
             fim_da_candidatura = entrada
+        inscricao = comercial(inscricao)
+        fim_da_candidatura = comercial(fim_da_candidatura) if fim_da_candidatura else None
         self.linha(
             "ats.candidatura",
             (

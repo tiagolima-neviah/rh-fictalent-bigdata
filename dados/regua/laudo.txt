@@ -1,0 +1,182 @@
+Aceite da base sintética · semente 20260910
+8410929 linhas (contadas na réplica).
+Para refazer: python -m rh_fictalent.gerador --aceite --replica
+
+1 · Escala e forma: 50 ✓  0 ✗  0 …
+  ✓ E-01/2018                                12  banda [10, 14]               clientes ativos no fim do ano, 2018
+  ✓ E-01/2019                                19  banda [16,15, 21,85]         clientes ativos no fim do ano, 2019
+  ✓ E-01/2020                                17  banda [13,6, 18,4]           clientes ativos no fim do ano, 2020
+  ✓ E-01/2021                                23  banda [18,7, 25,3]           clientes ativos no fim do ano, 2021
+  ✓ E-01/2022                                35  banda [28,9, 39,1]           clientes ativos no fim do ano, 2022
+  ✓ E-01/2023                                50  banda [42,5, 57,5]           clientes ativos no fim do ano, 2023
+  ✓ E-01/2024                                65  banda [56,1, 75,9]           clientes ativos no fim do ano, 2024
+  ✓ E-01/2025                                53  banda [49,3, 66,7]           clientes ativos no fim do ano, 2025
+  ✓ E-01/2026                                45  banda [38,25, 51,75]         clientes ativos no fim do ano, 2026
+  ✓ E-02/2018                             86,13  banda [81, 99]               headcount médio, 2018
+  ✓ E-02/2019                             175,9  banda [162, 198]             headcount médio, 2019
+  ✓ E-02/2020                             146,4  banda [130,5, 159,5]         headcount médio, 2020
+  ✓ E-02/2021                             202,3  banda [189, 231]             headcount médio, 2021
+  ✓ E-02/2022                             369,1  banda [342, 418]             headcount médio, 2022
+  ✓ E-02/2023                             610,7  banda [558, 682]             headcount médio, 2023
+  ✓ E-02/2024                             907,1  banda [810, 990]             headcount médio, 2024
+  ✓ E-02/2025                              1049  banda [900, 1.100]           headcount médio, 2025
+  ✓ E-02/2026                             880,1  banda [765, 935]             headcount médio, 2026
+  ✓ E-03/2018                             150,7  banda [132, 168]             headcount no pico, 2018
+  ✓ E-03/2019                             287,3  banda [264, 336]             headcount no pico, 2019
+  ✓ E-03/2020                             176,9  banda [167,2, 212,8]         headcount no pico, 2020
+  ✓ E-03/2021                             302,4  banda [281,6, 358,4]         headcount no pico, 2021
+  ✓ E-03/2022                               572  banda [528, 672]             headcount no pico, 2022
+  ✓ E-03/2023                               934  banda [836, 1.064]           headcount no pico, 2023
+  ✓ E-03/2024                              1407  banda [1.232, 1.568]         headcount no pico, 2024
+  ✓ E-03/2025                              1203  banda [1.012, 1.288]         headcount no pico, 2025
+  ✓ E-03/2026                             869,9  banda [704, 896]             headcount no pico, 2026
+  ✓ E-04/2018                               382  banda [342, 418]             vagas abertas, 2018
+  ✓ E-04/2019                               814  banda [738, 902]             vagas abertas, 2019
+  ✓ E-04/2020                               536  banda [504, 616]             vagas abertas, 2020
+  ✓ E-04/2021                               965  banda [882, 1.078]           vagas abertas, 2021
+  ✓ E-04/2022                             1.902  banda [1.710, 2.090]         vagas abertas, 2022
+  ✓ E-04/2023                             3.121  banda [2.790, 3.410]         vagas abertas, 2023
+  ✓ E-04/2024                             4.497  banda [4.050, 4.950]         vagas abertas, 2024
+  ✓ E-04/2025                             4.113  banda [3.690, 4.510]         vagas abertas, 2025
+  ✓ E-04/2026                             2.602  banda [2.340, 2.860]         vagas abertas, 2026
+  ✓ E-05/TEMPORARIO                       0,543  banda [0,5, 0,6]             parcela de TEMPORARIO no headcount de 2024
+  ✓ E-05/TERCEIRIZACAO                   0,3503  banda [0,3, 0,4]             parcela de TERCEIRIZACAO no headcount de 2024
+  ✓ E-05/RS_EFETIVO                      0,1067  banda [0,07, 0,13]           parcela de RS_EFETIVO no headcount de 2024
+  ✓ E-06/ponto.marcacao               4.300.719  banda [3.080.000, 5.720.000] linhas em ponto.marcacao
+  ✓ E-06/ponto.apontamento            1.166.361  banda [770.000, 1.430.000]   linhas em ponto.apontamento
+  ✓ E-06/folha.folha_item               932.535  banda [602.000, 1.118.000]   linhas em folha.folha_item
+  ✓ E-06/ats.candidatura_etapa          577.126  banda [525.000, 975.000]     linhas em ats.candidatura_etapa
+  ✓ E-06/ats.candidatura                282.605  banda [210.000, 390.000]     linhas em ats.candidatura
+  ✓ E-06/ponto.ocorrencia_ponto         140.543  banda [115.500, 214.500]     linhas em ponto.ocorrencia_ponto
+  ✓ E-06/folha.provisao                 146.926  banda [79.800, 148.200]      linhas em folha.provisao
+  ✓ E-06/ats.candidato                   60.294  banda [42.000, 78.000]       linhas em ats.candidato
+  ✓ E-06/financeiro.fatura_item           9.116  banda [6.650, 12.350]        linhas em financeiro.fatura_item
+  ✓ E-06/sst.aso                         20.402  banda [14.000, 26.000]       linhas em sst.aso
+  ✓ E-06/total                        8.410.929  banda [6.640.000, 9.960.000] linhas na réplica inteira
+
+2 · Naturalidade das transições: 4 ✓  0 ✗  0 …
+  ✓ N-01                                 0,4174  banda <= 0,45                maior desvio do headcount mensal contra a média móvel de 3 meses, fora dos choques
+  ✓ N-02                                      2  banda <= 2                   maior número de clientes saindo no mesmo mês, fora da pandemia e da crise
+  ✓ N-03                                      3  banda <= 5                   maior número de clientes entrando no mesmo mês
+  ✓ N-04                                   0,25  banda <= 0,35                maior parcela das entradas de um ano concentrada num mês
+
+3 · A história: 82 ✓  0 ✗  0 …
+  ✓ H-01/2018                                 5  banda [4, 7]                 time to fill temporário, mediana em dias úteis, 2018
+  ✓ H-01/2019                                 5  banda [4, 7]                 time to fill temporário, mediana em dias úteis, 2019
+  ✓ H-01/2020                                 5  banda [4, 7]                 time to fill temporário, mediana em dias úteis, 2020
+  ✓ H-01/2021                                 6  banda [4, 7]                 time to fill temporário, mediana em dias úteis, 2021
+  ✓ H-01/2022                                 5  banda [4, 7]                 time to fill temporário, mediana em dias úteis, 2022
+  ✓ H-01/2023                                 7  banda [6, 8]                 time to fill temporário, mediana em dias úteis, 2023
+  ✓ H-01/2024                                 9  banda [8, 10]                time to fill temporário, mediana em dias úteis, 2024
+  ✓ H-01/2025                                11  banda [10, 12]               time to fill temporário, mediana em dias úteis, 2025
+  ✓ H-01/2026                                11  banda [10, 12]               time to fill temporário, mediana em dias úteis, 2026
+  ✓ H-02/2018                                18  banda [14, 20]               time to fill R&S efetivo, mediana em dias úteis, 2018
+  ✓ H-02/2019                              17,5  banda [14, 20]               time to fill R&S efetivo, mediana em dias úteis, 2019
+  ✓ H-02/2020                                16  banda [14, 20]               time to fill R&S efetivo, mediana em dias úteis, 2020
+  ✓ H-02/2021                                17  banda [14, 20]               time to fill R&S efetivo, mediana em dias úteis, 2021
+  ✓ H-02/2022                                16  banda [14, 20]               time to fill R&S efetivo, mediana em dias úteis, 2022
+  ✓ H-02/2023                                20  banda [18, 22]               time to fill R&S efetivo, mediana em dias úteis, 2023
+  ✓ H-02/2024                                23  banda [22, 26]               time to fill R&S efetivo, mediana em dias úteis, 2024
+  ✓ H-02/2025                                27  banda [25, 29]               time to fill R&S efetivo, mediana em dias úteis, 2025
+  ✓ H-02/2026                                27  banda [25, 29]               time to fill R&S efetivo, mediana em dias úteis, 2026
+  ✓ H-03/2018                             0,114  banda [0,1, 0,16]            no-show de entrevista, 2018
+  ✓ H-03/2019                            0,1315  banda [0,1, 0,16]            no-show de entrevista, 2019
+  ✓ H-03/2020                            0,1264  banda [0,1, 0,16]            no-show de entrevista, 2020
+  ✓ H-03/2021                            0,1275  banda [0,1, 0,16]            no-show de entrevista, 2021
+  ✓ H-03/2022                            0,1217  banda [0,1, 0,16]            no-show de entrevista, 2022
+  ✓ H-03/2023                            0,1705  banda [0,15, 0,19]           no-show de entrevista, 2023
+  ✓ H-03/2024                             0,212  banda [0,19, 0,23]           no-show de entrevista, 2024
+  ✓ H-03/2025                             0,254  banda [0,23, 0,27]           no-show de entrevista, 2025
+  ✓ H-03/2026                            0,2615  banda [0,23, 0,27]           no-show de entrevista, 2026
+  ✓ H-04/2018                           0,05114  banda [0,035, 0,065]         no-show de primeiro dia, 2018
+  ✓ H-04/2019                           0,05096  banda [0,035, 0,065]         no-show de primeiro dia, 2019
+  ✓ H-04/2020                           0,04792  banda [0,035, 0,065]         no-show de primeiro dia, 2020
+  ✓ H-04/2021                           0,05106  banda [0,035, 0,065]         no-show de primeiro dia, 2021
+  ✓ H-04/2022                           0,04792  banda [0,035, 0,065]         no-show de primeiro dia, 2022
+  ✓ H-04/2023                           0,07031  banda [0,055, 0,085]         no-show de primeiro dia, 2023
+  ✓ H-04/2024                           0,08875  banda [0,075, 0,105]         no-show de primeiro dia, 2024
+  ✓ H-04/2025                            0,1193  banda [0,105, 0,135]         no-show de primeiro dia, 2025
+  ✓ H-04/2026                            0,1187  banda [0,105, 0,135]         no-show de primeiro dia, 2026
+  ✓ H-05/2018                            0,1534  banda [0,12, 0,18]           turnover nos primeiros 90 dias, 2018
+  ✓ H-05/2019                            0,1515  banda [0,12, 0,18]           turnover nos primeiros 90 dias, 2019
+  ✓ H-05/2020                            0,1458  banda [0,12, 0,18]           turnover nos primeiros 90 dias, 2020
+  ✓ H-05/2021                            0,1574  banda [0,12, 0,18]           turnover nos primeiros 90 dias, 2021
+  ✓ H-05/2022                            0,1495  banda [0,12, 0,18]           turnover nos primeiros 90 dias, 2022
+  ✓ H-05/2023                            0,1901  banda [0,16, 0,22]           turnover nos primeiros 90 dias, 2023
+  ✓ H-05/2024                            0,2384  banda [0,21, 0,27]           turnover nos primeiros 90 dias, 2024
+  ✓ H-05/2025                            0,2986  banda [0,27, 0,33]           turnover nos primeiros 90 dias, 2025
+  ✓ H-05/2026                            0,2892  banda [0,26, 0,32]           turnover nos primeiros 90 dias, 2026
+  ✓ H-06/2018                             1,428  banda [1,1, 1,9]             dias descobertos por posição contratada por mês, 2018
+  ✓ H-06/2019                             1,443  banda [1,1, 1,9]             dias descobertos por posição contratada por mês, 2019
+  ✓ H-06/2020                             1,418  banda [1,1, 1,9]             dias descobertos por posição contratada por mês, 2020
+  ✓ H-06/2021                             1,533  banda [1,1, 1,9]             dias descobertos por posição contratada por mês, 2021
+  ✓ H-06/2022                             1,507  banda [1,1, 1,9]             dias descobertos por posição contratada por mês, 2022
+  ✓ H-06/2023                             2,248  banda [1,8, 2,6]             dias descobertos por posição contratada por mês, 2023
+  ✓ H-06/2024                             3,127  banda [2,7, 3,5]             dias descobertos por posição contratada por mês, 2024
+  ✓ H-06/2025                             3,996  banda [3,6, 4,4]             dias descobertos por posição contratada por mês, 2025
+  ✓ H-06/2026                             4,213  banda [3,6, 4,4]             dias descobertos por posição contratada por mês, 2026
+  ✓ H-07/2018                            0,9577  banda [0,93, 0,97]           fill rate, 2018
+  ✓ H-07/2019                            0,9513  banda [0,93, 0,97]           fill rate, 2019
+  ✓ H-07/2020                             0,953  banda [0,93, 0,97]           fill rate, 2020
+  ✓ H-07/2021                             0,944  banda [0,93, 0,97]           fill rate, 2021
+  ✓ H-07/2022                            0,9603  banda [0,93, 0,97]           fill rate, 2022
+  ✓ H-07/2023                             0,917  banda [0,9, 0,94]            fill rate, 2023
+  ✓ H-07/2024                            0,8748  banda [0,85, 0,89]           fill rate, 2024
+  ✓ H-07/2025                            0,8216  banda [0,8, 0,84]            fill rate, 2025
+  ✓ H-07/2026                            0,8317  banda [0,81, 0,85]           fill rate, 2026
+  ✓ H-08/2018                            0,7719  banda [0,5, 1,1]             reclamações por 100 postos por mês, 2018
+  ✓ H-08/2019                             0,785  banda [0,5, 1,1]             reclamações por 100 postos por mês, 2019
+  ✓ H-08/2020                             0,806  banda [0,5, 1,1]             reclamações por 100 postos por mês, 2020
+  ✓ H-08/2021                            0,7845  banda [0,5, 1,1]             reclamações por 100 postos por mês, 2021
+  ✓ H-08/2022                            0,8091  banda [0,5, 1,1]             reclamações por 100 postos por mês, 2022
+  ✓ H-08/2023                             1,295  banda [1, 1,6]               reclamações por 100 postos por mês, 2023
+  ✓ H-08/2024                                 2  banda [1,7, 2,3]             reclamações por 100 postos por mês, 2024
+  ✓ H-08/2025                               2,6  banda [2,3, 2,9]             reclamações por 100 postos por mês, 2025
+  ✓ H-08/2026                             2,504  banda [2,2, 2,8]             reclamações por 100 postos por mês, 2026
+  ✓ H-09                                  6,735  banda [6, 9]                 defasagem entre a queda de qualidade e a perda do contrato, mediana em meses
+  ✓ H-10/2018                              0,04  banda [0,025, 0,055]         margem líquida, sempre positiva, 2018
+  ✓ H-10/2019                              0,07  banda [0,055, 0,085]         margem líquida, sempre positiva, 2019
+  ✓ H-10/2020                              0,03  banda [0,015, 0,045]         margem líquida, sempre positiva, 2020
+  ✓ H-10/2021                              0,08  banda [0,065, 0,095]         margem líquida, sempre positiva, 2021
+  ✓ H-10/2022                              0,11  banda [0,095, 0,125]         margem líquida, sempre positiva, 2022
+  ✓ H-10/2023                              0,12  banda [0,105, 0,135]         margem líquida, sempre positiva, 2023
+  ✓ H-10/2024                              0,12  banda [0,105, 0,135]         margem líquida, sempre positiva, 2024
+  ✓ H-10/2025                              0,08  banda [0,065, 0,095]         margem líquida, sempre positiva, 2025
+  ✓ H-10/2026                              0,04  banda [0,025, 0,055]         margem líquida, sempre positiva, 2026
+
+4 · Sazonalidade: 6 ✓  0 ✗  0 …
+  ✓ S-01/desvio_maximo                   0,4491  banda <= 0,45                admissoes: maior desvio mensal contra o índice do CAGED
+  ✓ S-01/desvio_medio                    0,1907  banda <= 0,25                admissoes: desvio médio contra o índice do CAGED
+  ✓ S-01/correlacao                      0,8951  banda >= 0,75                admissoes: correlação com o índice do CAGED
+  ✓ S-02/desvio_maximo                   0,7258  banda <= 1                   desligamentos: maior desvio mensal contra o índice do CAGED
+  ✓ S-02/desvio_medio                    0,2429  banda <= 0,3                 desligamentos: desvio médio contra o índice do CAGED
+  ✓ S-02/correlacao                      0,9193  banda >= 0,75                desligamentos: correlação com o índice do CAGED
+
+5 · Coerência interna: 5 ✓  0 ✗  0 …
+  ✓ C-01                                      0  banda = 0                    alocação sem contrato de trabalho vigente no período
+  ✓ C-02                                      0  banda = 0                    apontamento de ponto sem alocação vigente no dia
+  ✓ C-03                                      0  banda = 0                    fatura sem contrato comercial
+  ✓ C-04                                      0  banda = 0                    competência em que o custo da folha difere da soma do rateio
+  ✓ C-05                                      0  banda = 0                    posto com duas pessoas alocadas no mesmo dia
+
+6 · A sujeira na medida certa: 18 ✓  0 ✗  0 …
+  ✓ CAD-01                              0,03242  banda [0,028, 0,042]         candidatos duplicados
+  ✓ CAD-02                              0,00758  banda [0,0064, 0,0096]       CPF com dígito inválido
+  ✓ CAD-03                             0,001559  banda [0,001, 0,003]         data de nascimento impossível
+  ✓ PES-01/ate_2022                     0,05885  banda [0,05, 0,07]           admissão retroativa até 2022
+  ✓ PES-01/desde_2024                    0,1134  banda [0,095, 0,125]         admissão retroativa desde 2024
+  ✓ PES-02                              0,01699  banda [0,0144, 0,0216]       temporário além de 180 ou 270 dias sem aditivo
+  ✓ PES-02/parcela_desde_2023            0,8828  banda >= 0,6                 parcela dos PES-02 de 2023 em diante
+  ✓ PON-01                               0,0249  banda [0,022, 0,028]         dias com marcação faltante
+  ✓ PON-02                             0,005895  banda [0,0051, 0,0069]       dias com marcação duplicada
+  ✓ SST-01/2024                         0,03607  banda [0,032, 0,048]         alocados com ASO vencido em 2024
+  ✓ SST-01/2025                          0,0405  banda [0,032, 0,048]         alocados com ASO vencido em 2025
+  ✓ FIN-01                              0,01108  banda [0,0096, 0,0144]       títulos recebidos com valor diferente, sem desconto
+  ✓ GER-01/competencias_sem_divergencia              0  banda = 0                    competências desde 2022 em que o consolidado bate com a operação
+  ✓ GER-01/2022                        0,005859  banda [0,00375, 0,00625]     divergência do consolidado gerencial contra a operação, 2022
+  ✓ GER-01/2023                         0,02725  banda [0,01969, 0,03281]     divergência do consolidado gerencial contra a operação, 2023
+  ✓ GER-01/2024                          0,0475  banda [0,03563, 0,05937]     divergência do consolidado gerencial contra a operação, 2024
+  ✓ GER-01/2025                         0,06959  banda [0,05156, 0,08594]     divergência do consolidado gerencial contra a operação, 2025
+  ✓ GER-01/2026                         0,08639  banda [0,0675, 0,1125]       divergência do consolidado gerencial contra a operação, 2026
+
+RÉGUA APROVADA: 165 de 165 checks aprovados, 0 reprovados, 0 pendentes.

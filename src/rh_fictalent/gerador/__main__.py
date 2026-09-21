@@ -8,6 +8,7 @@
     python -m rh_fictalent.gerador --etapa 4 --gravar          # ponto e folha, ~6 mi de linhas
     python -m rh_fictalent.gerador --etapa 5 --gravar          # financeiro e as planilhas Excel
     python -m rh_fictalent.gerador --etapa 6 --gravar          # SST, treinamento e segurança
+    python -m rh_fictalent.gerador --aceite --replica          # a régua inteira na base gravada
 
 Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
 fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
@@ -27,6 +28,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from rh_fictalent.gerador import (
+    aceite,
     etapa1_cadastro,
     etapa2_carteira,
     etapa3_pessoas,
@@ -124,12 +126,19 @@ ETAPAS = {
 
 def main(argumentos: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Gerador determinístico da base sintética.")
-    parser.add_argument("--etapa", type=int, choices=sorted(ETAPAS), required=True)
+    parser.add_argument("--etapa", type=int, choices=sorted(ETAPAS))
+    parser.add_argument("--aceite", action="store_true", help="a base inteira contra a régua")
+    parser.add_argument("--replica", action="store_true", help="no aceite, conta na réplica")
     parser.add_argument("--gravar", action="store_true", help="grava na réplica como replicador")
     parser.add_argument("--zerar", action="store_true", help="zera a réplica inteira antes (root)")
     args = parser.parse_args(argumentos)
     if args.zerar and not args.gravar:
         parser.error("--zerar só faz sentido com --gravar")
+    if args.aceite:
+        load_dotenv()
+        return aceite.executar(replica_do_ambiente("replicador") if args.replica else None)
+    if args.etapa is None:
+        parser.error("informe --etapa ou --aceite")
 
     etapa = ETAPAS[args.etapa]
     tabelas = etapa.gerar()

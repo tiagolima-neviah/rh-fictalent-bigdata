@@ -796,7 +796,7 @@ def gerar_com_base(
     publicos: Path = etapa1_cadastro.PUBLICOS, fracao: float = 1.0
 ) -> tuple[Tabelas, dict[str, Any]]:
     etapa3, gabarito = etapa3_pessoas.gerar_com_gabarito(publicos)
-    base = {"etapa3": etapa3, "carteira": gabarito["carteira"], "mundo": gabarito["mundo"]}
+    base = {"etapa3": etapa3, **gabarito}  # carteira, mundo e o gabarito das duplicatas
     ponto, mensal = _ponto(base, fracao)
     folha = _folha(base, mensal, fracao)
     juntas = {**ponto, **folha}
