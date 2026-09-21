@@ -36,7 +36,7 @@ from rh_fictalent.validacao.regua import Laudo, Medidas, Situacao, avaliar
 # colunas que o gravador insere nulas e preenche depois (o ciclo centro_custo <-> contrato)
 ADIADAS = {"cadastro.centro_custo": ["contrato_id"]}
 POSICOES_PARA_CENTRO_DE_CUSTO = 30
-FOLGA_DO_ALVO = 0.03  # a carteira só reage a desvio maior que 3% do alvo de posições
+FOLGA_DO_ALVO = 0.01  # a carteira só reage a desvio maior que 1% do alvo de posições
 HOJE = FIM.date()
 PARCELA_QUE_REAGE = 0.38  # clientes que rompem quando a qualidade sentida passa do limite
 TOLERANCIA_MINIMA = 0.76  # o cliente mais sensível formaliza com a degradação em 0,76
@@ -378,7 +378,10 @@ class _Carteira:
     def abrir_posto(self, cliente: Cliente, contrato_id: int, quantidade: int, mes: str) -> None:
         primeiro, ultimo = historia.limites_do_mes(mes)
         k = self.contrato(contrato_id)
-        inicio = self.dia_util(max(primeiro, k["vigencia_inicio"]), ultimo)
+        # posto novo começa na primeira quinzena: o cliente quer o mês cheio (é o que o alvo supõe)
+        quinzena = min(ultimo, date(primeiro.year, primeiro.month, 15))
+        comeco = max(primeiro, k["vigencia_inicio"])
+        inicio = self.dia_util(comeco, max(comeco, quinzena))
         familia = self.sortear(com.SETORES[cliente.setor][1])
         funcoes = {
             str(i): com.PESO_DO_NIVEL[f.nivel]
@@ -393,13 +396,17 @@ class _Carteira:
             # reforço da temporada: a maioria encerra na última semana de dezembro (o CAGED
             # mostra o pico de desligamentos do setor em dezembro), o resto em janeiro
             ano = int(mes[:4])
-            em_dezembro = numero < 12 and self.rng.random() < 0.8
+            em_dezembro = numero < 12 and self.rng.random() < 0.60
             fim = (
-                date(ano, 12, int(self.rng.integers(20, 32)))
+                date(ano, 12, int(self.rng.integers(18, 32)))
                 if em_dezembro
-                else date(ano + 1, 1, int(self.rng.integers(5, 29)))
+                else date(ano + 1, 1, int(self.rng.integers(2, 21)))
             )
-        criado = max(inicio - timedelta(days=int(self.rng.integers(1, 11))), k["dt_assinatura"])
+        # o cliente pede o posto com antecedência, e a temporada é planejada mais cedo ainda
+        antecedencia = int(self.rng.integers(10, 31) if fim else self.rng.integers(5, 16))
+        if inicio.year >= 2026:
+            antecedencia *= 3  # escaldado pela demora de 2025, o cliente passa a pedir bem antes
+        criado = max(inicio - timedelta(days=antecedencia), k["dt_assinatura"])
         self.l_posto.append(
             {
                 "contrato_id": contrato_id,
@@ -638,6 +645,8 @@ class _Carteira:
                 chance += CHANCE_EXTRA_NA_PRIMEIRA if primeira_renovacao else 0.0
                 chance += CHANCE_EXTRA_EM_2020 if vence.year == 2020 else 0.0
                 chance *= 0.3 if cliente.ancora else 1.0
+                if cliente.ancora and vence.year == 2020:
+                    chance = 0.0  # a empresa atravessa a pandemia sem perder cliente âncora
                 cabe = self.cabe_mais_uma_saida(vence.strftime("%Y-%m"))
                 if self.rng.random() < chance and cabe:
                     self.agendar_saida(cliente, vence, self.sortear(com.SAIDA_POR_MERCADO))
@@ -710,7 +719,9 @@ class _Carteira:
             and p["vigencia_inicio"] < primeiro
             and self.contrato(p["contrato_id"])["tipo_servico"] == tipo
         ]
-        ordem = self.rng.permutation(len(abertos))
+        # primeiro o reforço de temporada que sobrou (tem fim marcado), depois o resto
+        sorteio = [int(i) for i in self.rng.permutation(len(abertos))]
+        ordem = sorted(sorteio, key=lambda i: abertos[i][1]["vigencia_fim"] is None)
         for posicao in ordem:
             if sobra < 1:
                 break
