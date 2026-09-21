@@ -17,6 +17,19 @@ As seis famílias:
 
 MEDIDAS é a outra metade do contrato: o nome, a chave e o significado de cada número que o
 gerador (ou a consulta na réplica) precisa entregar para a régua conferir.
+
+Revisões do contrato:
+
+- 2026-09-21 (card 4.6, ocupação dos postos). Naturalidade: o limite contra a média móvel
+  sobe de 0,35 para 0,45 (a subida da temporada, de outubro para novembro, passa de 35% nos
+  anos de maior amplitude sem ser degrau) e os choques declarados ganham 2018 (ano da
+  fundação: a base é pequena e cada contrato novo pesa) e a retomada de julho a setembro de
+  2020. Sazonalidade: a Fictalent vive de reforço de temporada, então o ritmo dela acompanha
+  o CAGED do setor no estado (correlação mínima sobe para 0,75) com amplitude maior que a do
+  agregado estadual (desvio máximo de 0,30 para 0,45 nas admissões e de 0,35 para 1,00 nos
+  desligamentos; desvio médio de 0,15 para 0,25 e de 0,18 para 0,30). Definições fechadas:
+  posto descoberto é dias sem ninguém por posição contratada por mês; o mix de 2024 é sobre
+  pessoas em atendimento (alocados por tipo e efetivados por R&S na garantia de 90 dias).
 """
 
 from __future__ import annotations
@@ -50,8 +63,10 @@ LINHAS = {
 LINHAS_TOTAL = 8_300_000
 
 # ───────────────────────────── 2 · naturalidade ───────────────────────────────
-DESVIO_MAXIMO_MEDIA_MOVEL = 0.35  # |mês ÷ média dos 3 meses anteriores - 1|, fora dos choques
+DESVIO_MAXIMO_MEDIA_MOVEL = 0.45  # |mês ÷ média dos 3 meses anteriores - 1|, fora dos choques
 PANDEMIA = ("2020-03", "2020-04", "2020-05", "2020-06")
+RETOMADA = ("2020-07", "2020-08", "2020-09")  # a volta da pandemia também é degrau declarado
+ANO_DA_FUNDACAO = 2018  # base pequena: cada contrato novo pesa, o check não se aplica
 INICIO_DA_CRISE = "2025-10"  # a perda de contratos começa aqui; antes, saída é evento raro
 SAIDAS_MAXIMAS_NO_MES = 2  # fora da pandemia e da crise
 ENTRADAS_MAXIMAS_NO_MES = 5  # a intensidade chega a ~2,4 por mês no auge; 6 já é "combinaram"
@@ -127,7 +142,7 @@ DEGRADACAO = (
     Indicador(
         "H-06",
         "posto_descoberto_dias",
-        "posto descoberto, média de dias",
+        "dias descobertos por posição contratada por mês",
         0.4,
         (1.5, 1.5),
         (2.2, 3.1, 4.0, 4.0),
@@ -149,8 +164,8 @@ DEGRADACAO = (
 CAGED_ESCOPO = "35"
 CAGED_GRUPO = "78"
 SAZONALIDADE = {
-    "sazonalidade_admissoes": {"desvio_maximo": 0.30, "desvio_medio": 0.15, "correlacao": 0.70},
-    "sazonalidade_desligamentos": {"desvio_maximo": 0.35, "desvio_medio": 0.18, "correlacao": 0.60},
+    "sazonalidade_admissoes": {"desvio_maximo": 0.45, "desvio_medio": 0.25, "correlacao": 0.75},
+    "sazonalidade_desligamentos": {"desvio_maximo": 1.00, "desvio_medio": 0.30, "correlacao": 0.75},
 }
 
 # ───────────────────────────── 5 · coerência interna ──────────────────────────
@@ -198,7 +213,10 @@ MEDIDAS = {
     "headcount_medio": "por ano: média diária de pessoas alocadas",
     "headcount_pico": "por ano: média de alocados em dezembro (2026: em setembro)",
     "vagas_abertas": "por ano: vagas abertas",
-    "mix_servico_2024": "por serviço: parcela do headcount médio de 2024",
+    "mix_servico_2024": (
+        "por serviço: parcela das pessoas em atendimento em 2024 (média diária de alocados "
+        "temporários e terceirizados, e de efetivados por R&S dentro da garantia de 90 dias)"
+    ),
     "linhas_tabela": "por schema.tabela, mais 'total': linhas na réplica",
     "naturalidade": (
         "headcount_desvio_maximo, saidas_max_mes_fora_crise, entradas_max_mes, "

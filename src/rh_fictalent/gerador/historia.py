@@ -20,8 +20,10 @@ from rh_fictalent.validacao.bandas import (
     HEADCOUNT_PICO,
 )
 
-# forma do ano (média 1): vale em fevereiro, subida de agosto a dezembro
-FORMA_DO_ANO = (0.80, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.98, 1.10, 1.25, 1.42, 1.55)
+# forma do ano (média 1): vale em fevereiro, subida de agosto a novembro. A contratação da
+# temporada termina em novembro (o CAGED mostra as admissões do setor despencando em dezembro);
+# dezembro sustenta o pico até a semana do Natal
+FORMA_DO_ANO = (0.80, 0.72, 0.74, 0.78, 0.82, 0.86, 0.90, 0.98, 1.10, 1.30, 1.52, 1.50)
 # anos que não seguem a forma: a fundação (rampa), a pandemia (o vale de abril a junho)
 # e 2026 (a crise: queda em linha reta até setembro)
 CURVAS_PROPRIAS = {

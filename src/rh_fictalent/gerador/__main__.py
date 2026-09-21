@@ -4,6 +4,7 @@
     python -m rh_fictalent.gerador --etapa 1 --gravar          # grava na réplica (replicador)
     python -m rh_fictalent.gerador --etapa 1 --gravar --zerar  # zera a réplica inteira antes (root)
     python -m rh_fictalent.gerador --etapa 2 --gravar          # a etapa seguinte continua a base
+    python -m rh_fictalent.gerador --etapa 3 --gravar          # funil e pessoas, ~1,3 mi de linhas
 
 Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
 fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
@@ -20,7 +21,7 @@ from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
-from rh_fictalent.gerador import etapa1_cadastro, etapa2_carteira
+from rh_fictalent.gerador import etapa1_cadastro, etapa2_carteira, etapa3_pessoas
 from rh_fictalent.gerador.nucleo import SEMENTE, Tabelas, assinatura, replica_do_ambiente
 from rh_fictalent.validacao.regua import Laudo
 
@@ -33,6 +34,16 @@ class Etapa:
     laudo: Callable[[Tabelas], Laudo] | None = None  # a régua parcial, quando a etapa já mede
 
 
+def _etapa_3() -> Tabelas:
+    tabelas, gabarito = etapa3_pessoas.gerar_com_gabarito()
+    etapa3_pessoas.conferir(tabelas, gabarito)
+    _GABARITO.update(gabarito)
+    return tabelas
+
+
+_GABARITO: dict[str, object] = {}
+
+
 ETAPAS = {
     1: Etapa("mundo cadastral", etapa1_cadastro.gerar),
     2: Etapa(
@@ -40,6 +51,12 @@ ETAPAS = {
         etapa2_carteira.gerar,
         etapa2_carteira.ADIADAS,
         lambda t: etapa2_carteira.laudo_parcial(etapa2_carteira.medir(t)),
+    ),
+    3: Etapa(
+        "funil e pessoas",
+        _etapa_3,
+        {},
+        lambda t: etapa3_pessoas.laudo_parcial(etapa3_pessoas.medir(t, _GABARITO)),
     ),
 }
 

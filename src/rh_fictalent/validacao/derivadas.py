@@ -14,7 +14,14 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
-from rh_fictalent.validacao.bandas import CAGED_ESCOPO, CAGED_GRUPO, INICIO_DA_CRISE, PANDEMIA
+from rh_fictalent.validacao.bandas import (
+    ANO_DA_FUNDACAO,
+    CAGED_ESCOPO,
+    CAGED_GRUPO,
+    INICIO_DA_CRISE,
+    PANDEMIA,
+    RETOMADA,
+)
 
 SerieMensal = Mapping[str, float]
 INDICE_CAGED = Path("dados/publicos/caged/indice_sazonal.csv")
@@ -22,9 +29,11 @@ INDICE_CAGED = Path("dados/publicos/caged/indice_sazonal.csv")
 
 def meses_de_choque(serie: SerieMensal) -> set[str]:
     """Meses em que variar muito é a história, não um defeito: janeiro (saída em massa dos
-    temporários), fevereiro (o vale, medido contra uma média que ainda tem dezembro) e a
-    pandemia (março a junho de 2020)."""
-    return {mes for mes in serie if mes[5:] in ("01", "02")} | set(PANDEMIA)
+    temporários), fevereiro (o vale, medido contra uma média que ainda tem dezembro), o ano da
+    fundação (base pequena) e a pandemia com a retomada (março a setembro de 2020)."""
+    sazonais = {mes for mes in serie if mes[5:] in ("01", "02")}
+    fundacao = {mes for mes in serie if int(mes[:4]) == ANO_DA_FUNDACAO}
+    return sazonais | fundacao | set(PANDEMIA) | set(RETOMADA)
 
 
 def desvio_maximo_da_media_movel(serie: SerieMensal, choques: Iterable[str] | None = None) -> float:
