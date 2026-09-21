@@ -136,7 +136,7 @@ docker compose down -v && docker compose up -d --build && bash scripts/saude.sh
 
 ## 9. Reproduzir numa máquina limpa
 
-O trilho `réplica provada` da CI faz exatamente isto a cada PR, num runner descartável do GitHub: clona, gera um `.env`, sobe a réplica e roda os testes de integração. É a prova de que este documento não depende de nada que só exista na máquina do autor. Se um passo daqui falhar na sua máquina e não na CI, a diferença está no ambiente (versão do Docker, porta ocupada, WSL sem memória), e a seção 9 do manual de operação tem os sintomas conhecidos.
+O trilho `réplica provada` da CI faz exatamente isto a cada PR, num runner descartável do GitHub: clona, gera um `.env`, sobe a réplica e roda os testes de integração. É a prova de que este documento não depende de nada que só exista na máquina do autor. Se um passo daqui falhar na sua máquina e não na CI, a diferença está no ambiente (versão do Docker, porta ocupada, WSL sem memória), e a seção 10 do manual de operação tem os sintomas conhecidos.
 
 ---
 

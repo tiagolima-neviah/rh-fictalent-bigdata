@@ -193,7 +193,63 @@ bash scripts/esteira.sh
 
 Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de pé), bandit e pip-audit; com docker disponível, também gitleaks e trivy por container. Termina com `ESTEIRA VERDE` ou com a contagem de falhas.
 
-## 8. A chave de cifra da réplica
+## 8. O rito de uma versão
+
+Cada fase fechada vira versão publicável ([ADR-0008](adr/0008-gitflow-por-versao-publicavel.md)). O rito tem
+**cinco passos, nesta ordem**, e a ordem importa: quem cria a tag antes do merge marca o commit errado, e quem
+faz o back-merge duas vezes descobre na recusa do push.
+
+**1. O card de fechamento.** Uma branch como qualquer outra, com o `CHANGELOG.md` da versão e o status no
+`README.md`. Entra em `develop` por PR, com a CI verde.
+
+**2. A versão: PR de `develop` para `main`.** Pela interface do GitHub, base `main`, comparação `develop`,
+título `vX.Y.Z · Nome da fase`. Espere a CI e faça o merge. **É este merge que a tag vai marcar.**
+
+**3. A tag, só depois do merge.** Atualize o local e confirme que o último commit é o merge do PR antes de marcar:
+
+```bash
+git checkout main && git pull --ff-only && git log -1 --oneline
+```
+
+```bash
+git tag -a vX.Y.Z -m "vX.Y.Z · Nome da fase" && git push origin vX.Y.Z
+```
+
+**4. O release no GitHub.** *Releases* → *Draft a new release* → escolha a tag que já existe (nunca deixe o
+GitHub criar a tag por você, ou ela nasce no commit errado), título igual ao da tag, texto a partir do
+`CHANGELOG.md`.
+
+**5. O back-merge, uma vez só.** A `main` recebeu o commit de merge do passo 2, que a `develop` não tem; sem o
+back-merge as duas divergem. Como a `develop` é protegida e exige PR com CI, o caminho é a interface: PR com
+base `develop` e comparação `main`, título `back-merge vX.Y.Z`. Depois, no terminal:
+
+```bash
+git checkout develop && git pull --ff-only && git log -1 --oneline
+```
+
+**Não faça também `git merge --ff-only main` localmente.** Os dois caminhos levam o mesmo conteúdo, mas por
+históricos diferentes: o seu `develop` local fica num commit que o servidor não tem, e o push é recusado com
+`Updates were rejected`. A recusa é o git protegendo o trabalho que só existe no servidor; a saída é sempre
+`git pull --ff-only`, nunca `--force`.
+
+### Se algo sair de ordem
+
+| sintoma | o que aconteceu | o que fazer |
+|---|---|---|
+| `! [rejected] develop -> develop (fetch first)` | o remoto tem um commit que você não tem (em geral o back-merge feito pela interface) | `git pull --ff-only`; se ele recusar, pare e olhe o grafo com `git log --oneline --graph --all -10` antes de qualquer coisa |
+| a tag aponta para o commit do card, não para o merge | a tag foi criada antes do merge do PR de versão | `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`, depois refaça o passo 3. Só vale enquanto ninguém usou a tag |
+| `error: branch '...' not found` na faxina | o GitHub já apagou a branch no merge (auto-delete) e a local também já saiu | nada: a faxina já estava feita |
+| `warning: deleting branch ... not yet merged to HEAD` | você apagou a branch antes de atualizar a `develop` local | nada: o commit está no remoto; o `git pull` seguinte traz tudo |
+
+Conferir, a qualquer momento, se as duas branches estão alinhadas e onde a tag caiu:
+
+```bash
+git fetch --all --tags && git log --oneline --graph --all -8 && git diff --stat origin/develop origin/main
+```
+
+Alinhadas, o `git diff` não imprime nada.
+
+## 9. A chave de cifra da réplica
 
 A réplica é cifrada em repouso ([Modelo de Dados, seção 8](04_modelo_dados_staging.md#8-cifra-em-repouso)). A chave mestra fica no volume `mysql_keyring`, nunca no repositório. Trocar a chave mestra, sem parar nada:
 
@@ -209,7 +265,7 @@ docker exec -e MYSQL_PWD="$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2
 
 Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manual de backup, v1.0.0).
 
-## 9. Quando algo não sobe
+## 10. Quando algo não sobe
 
 | sintoma | causa provável | o que fazer |
 |---|---|---|
