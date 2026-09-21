@@ -191,9 +191,9 @@ def test_replica_tem_exatamente_o_que_a_etapa_gera(tabelas: nucleo.Tabelas) -> N
     if replica.contar(["cadastro.regiao"])["cadastro.regiao"] == 0:
         pytest.skip("réplica ainda sem a etapa 1 (rode o gerador com --gravar)")
     for nome, quadro in tabelas.items():
-        na_replica = [
-            [_normal(v) for v in linha] for linha in replica.ler(nome, list(quadro.columns))
-        ]
+        faixa = (1, len(quadro))  # as etapas seguintes continuam endereco e centro_custo
+        lidas = replica.ler(nome, list(quadro.columns), faixa)
+        na_replica = [[_normal(v) for v in linha] for linha in lidas]
         gerado = [[_normal(v) for v in linha] for linha in nucleo.valores(quadro)]
         assert na_replica == gerado, nome
     assert isinstance(tabelas["cadastro.regiao"], pd.DataFrame)
