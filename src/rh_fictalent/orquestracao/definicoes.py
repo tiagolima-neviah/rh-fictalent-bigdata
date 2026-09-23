@@ -21,6 +21,7 @@ from rh_fictalent.orquestracao.fontes import (
     feriados_brasilapi,
     municipios_ibge,
 )
+from rh_fictalent.orquestracao.incremental import agenda_incremental, carga_incremental
 from rh_fictalent.orquestracao.logger_json import logger_json
 from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
 from rh_fictalent.orquestracao.sensores import SENSORES
@@ -41,7 +42,14 @@ defs = dg.Definitions(
         *REPLICA,
         *BRONZE,
     ],
-    jobs=[verificar_plataforma, carregar_municipios, carregar_feriados, backfill_bronze],
+    jobs=[
+        verificar_plataforma,
+        carregar_municipios,
+        carregar_feriados,
+        backfill_bronze,
+        carga_incremental,
+    ],
+    schedules=[agenda_incremental],
     sensors=SENSORES,  # fim de execução vira linhas em observabilidade.execucao(_passo)
     resources=recursos_do_ambiente(),
     loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON
