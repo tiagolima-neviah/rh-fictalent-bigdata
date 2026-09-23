@@ -23,6 +23,7 @@ from rh_fictalent.orquestracao.fontes import (
 )
 from rh_fictalent.orquestracao.incremental import agenda_incremental, carga_incremental
 from rh_fictalent.orquestracao.logger_json import logger_json
+from rh_fictalent.orquestracao.planilhas import carregar_consolidado, consolidado_em_planilha
 from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
 from rh_fictalent.orquestracao.sensores import SENSORES
 from rh_fictalent.orquestracao.verificacao import (
@@ -41,6 +42,7 @@ defs = dg.Definitions(
         feriados_brasilapi,
         *REPLICA,
         *BRONZE,
+        consolidado_em_planilha,
     ],
     jobs=[
         verificar_plataforma,
@@ -48,6 +50,7 @@ defs = dg.Definitions(
         carregar_feriados,
         backfill_bronze,
         carga_incremental,
+        carregar_consolidado,
     ],
     schedules=[agenda_incremental],
     sensors=SENSORES,  # fim de execução vira linhas em observabilidade.execucao(_passo)

@@ -23,3 +23,4 @@ Dois tipos de validação diferentes. O primeiro é **de esquema**: o consolidad
 
 - Todo arquivo que entra tem um esquema versionado no repositório.
 - A régua é o contrato do dado sintético com o dossiê: as bandas são documentadas (`docs/06`, v0.4.0).
+- Primeiro uso do pandera na v0.5.0 (card 5.4): o esquema do consolidado gerencial em `ingestao/planilhas.py`, com `strict=True` (coluna a mais é erro), unicidade de competência e filial, e checks de negócio no nível do quadro (competência é o primeiro do mês, lançamento não é anterior à competência, a pasta de trabalho do ano só tem competências daquele ano).

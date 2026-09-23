@@ -32,6 +32,7 @@ PRIMEIRO_DIA = "2018-01-02"
 ANOS = tuple(str(ano) for ano in range(2018, 2027))
 
 MODULO_META = "meta"  # a trilha de exclusões: infraestrutura da carga, não negócio
+MODULO_ARQUIVO = "arquivo"  # o que entra por planilha, não pela réplica nem por API
 GRUPO_FONTES = "fontes"
 PROVEDORES = ("ibge", "brasilapi")
 
@@ -42,7 +43,7 @@ PARTICAO_ANUAL = dg.StaticPartitionsDefinition(list(ANOS))
 def chave(camada: str, modulo: str, tabela: str) -> dg.AssetKey:
     if camada not in CAMADAS:
         raise ValueError(f"camada desconhecida: {camada!r}")
-    if modulo not in (*MODULOS, MODULO_META):
+    if modulo not in (*MODULOS, MODULO_META, MODULO_ARQUIVO):
         raise ValueError(f"módulo desconhecido: {modulo!r}")
     return dg.AssetKey([camada, modulo, tabela])
 
