@@ -64,7 +64,8 @@ def plataforma() -> tuple[Replica, Lake]:
 
 def test_um_asset_por_tabela_da_ddl_com_a_origem_correspondente() -> None:
     esperadas = sum(len(t) for t in TABELAS.values())
-    assert esperadas == 75 and list(TABELAS) == list(MODULOS_DE_NEGOCIO)
+    assert esperadas == 76  # as 75 de negócio mais a trilha de exclusões (card 5.3)
+    assert list(TABELAS) == [*MODULOS_DE_NEGOCIO, "meta"]
     assert len(ASSETS) == len(ORIGENS) == esperadas
     chaves = {tuple(k.path) for a in ASSETS for k in a.keys}
     origens = {tuple(o.key.path) for o in ORIGENS}
@@ -216,6 +217,7 @@ def test_particao_sem_linha_grava_arquivo_vazio_com_o_mesmo_esquema(
         "ativo",
         "criado_em",
         "atualizado_em",
+        "excluido_em",  # a coluna que a bronze acrescenta (card 5.3)
     ]
 
 

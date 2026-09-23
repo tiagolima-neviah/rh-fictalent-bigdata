@@ -16,13 +16,17 @@ de qualquer gente olhar o painel.
 """
 
 # sem `from __future__ import annotations`: o Dagster lê as anotações em tempo de execução
+from datetime import datetime
+
 import dagster as dg
 
 from rh_fictalent.ingestao import marca_dagua
+from rh_fictalent.ingestao.exclusoes import NOME_DA_TRILHA, TRILHA, ler_trilha, marcar
 from rh_fictalent.ingestao.incremental import (
     SOBREPOSICAO,
     Sincronizacao,
     agora_na_replica,
+    conferir,
     marca_da_bronze,
     refazer,
     sincronizar,
@@ -85,11 +89,28 @@ def sincronizar_bronze(
 
     con = replica.conectar()
     problemas: list[str] = []
-    tocadas = alteradas = 0
+    tocadas = alteradas = excluidas = 0
     try:
         corte = agora_na_replica(con)
+        # a trilha primeiro: marcar o que sumiu antes de conferir quantas linhas devem existir
+        da_trilha = marcas.get(NOME_DA_TRILHA)
+        desde_trilha = (da_trilha.marca - SOBREPOSICAO) if da_trilha else datetime.min
+        apagadas = ler_trilha(con, desde_trilha, corte)
         for modulo, tabela in alvos:
             nome = f"{modulo}.{tabela}"
+            if (modulo, tabela) in apagadas:
+                a = marcar(lake, modulo, tabela, apagadas[(modulo, tabela)])
+                excluidas += a.marcadas
+                # a partição que só teve exclusão não é tocada pelo merge: confere-se aqui
+                problemas += conferir(con, lake, modulo, tabela, a.particoes, corte)
+                context.log.info(
+                    "%s: %s exclusões (%s marcadas agora, %s já marcadas, %s fora da bronze)",
+                    nome,
+                    a.pedidas,
+                    a.marcadas,
+                    a.ja_marcadas,
+                    a.ausentes,
+                )
             anterior = marcas.get(nome)
             if config.refazer_tudo or anterior is None:
                 da_bronze = None if config.refazer_tudo else marca_da_bronze(lake, modulo, tabela)
@@ -120,14 +141,25 @@ def sincronizar_bronze(
                     s.alteradas,
                     len(s.particoes),
                 )
+        # a trilha também vai para a bronze: a linha apagada some da réplica, o registro fica
+        da_trilha_agora = refazer(con, lake, *TRILHA)
+        problemas += da_trilha_agora.divergencias
+        if not da_trilha_agora.divergencias:
+            marca_dagua.gravar(
+                warehouse,
+                marca_dagua.Marca(NOME_DA_TRILHA, corte, sum(len(v) for v in apagadas.values()), 0),
+                context.run_id,
+            )
     finally:
         con.close()
 
     context.log.info(
-        "carga incremental: %s tabelas, %s linhas alteradas, %s partições reescritas",
+        "carga incremental: %s tabelas, %s linhas alteradas, %s partições reescritas, "
+        "%s exclusões aplicadas",
         len(alvos),
         alteradas,
         tocadas,
+        excluidas,
     )
     if problemas:
         raise dg.Failure(

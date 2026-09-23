@@ -18,13 +18,16 @@ Rematerializar uma partição reescreve o parquet daquele ano inteiro. É de pro
 import dagster as dg
 
 from rh_fictalent.ingestao.backfill import copiar_ano
-from rh_fictalent.orquestracao.convencoes import PARTICAO_ANUAL, chave
+from rh_fictalent.ingestao.exclusoes import TRILHA
+from rh_fictalent.orquestracao.convencoes import MODULO_META, PARTICAO_ANUAL, chave
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
 from rh_fictalent.orquestracao.recursos import Lake, Replica
 from rh_fictalent.staging.gatilhos import tabelas_por_modulo
 
 GRUPO = "bronze"
-TABELAS = tabelas_por_modulo()  # da DDL, na ordem dos arquivos: tabela nova entra sozinha
+# da DDL, na ordem dos arquivos: tabela nova entra sozinha. A trilha de exclusões entra
+# junto porque a bronze precisa dela para saber o que foi apagado (card 5.3).
+TABELAS = tabelas_por_modulo() | {MODULO_META: [TRILHA[1]]}
 
 
 def _origem(modulo: str, tabela: str) -> dg.AssetSpec:

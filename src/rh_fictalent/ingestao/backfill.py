@@ -44,6 +44,7 @@ LOTE = 50_000
 IDENTIFICADOR = re.compile(r"^[a-z_][a-z0-9_]*$")
 CAMADA = "bronze"
 PARTICAO = "criado_em"  # a coluna que define o ano da partição, em toda tabela de negócio
+CONTROLE = "excluido_em"  # a coluna que a bronze acrescenta (ver ingestao.exclusoes)
 
 
 @dataclass(frozen=True)
@@ -128,6 +129,16 @@ def _coluna(valores: tuple[Any, ...], campo: pa.Field) -> pa.Array:
         raise ValueError(f"coluna {campo.name}: {erro}") from erro
 
 
+def esquema_bronze(campos: pa.Schema) -> pa.Schema:
+    """O esquema da origem mais a coluna de controle da bronze.
+
+    `excluido_em` é nula enquanto a linha existe na réplica e ganha o instante do `DELETE`
+    quando a trilha de exclusões diz que ela morreu. É a única coisa que a bronze acrescenta
+    ao que veio do cliente, e por isso fica no fim, depois de todas as colunas da DDL.
+    """
+    return campos.append(pa.field(CONTROLE, pa.timestamp("us"), nullable=True))
+
+
 def _faixa(ano: int) -> tuple[date, date]:
     return date(ano, 1, 1), date(ano + 1, 1, 1)
 
@@ -151,6 +162,7 @@ def copiar_ano(
     coluna = identificador(PARTICAO)
     inicio, fim = _faixa(ano)
     campos = esquema(con, modulo, tabela)
+    na_bronze = esquema_bronze(campos)
     caminho = lake.caminho(CAMADA, modulo, tabela, f"ano={ano}.parquet")
 
     con.rollback()  # fecha transação pendente: a foto tem de começar do zero
@@ -164,7 +176,7 @@ def copiar_ano(
         escritas = 0
         with (
             lake.sistema().open(caminho, "wb") as arquivo,
-            pq.ParquetWriter(arquivo, campos, compression="zstd") as escritor,
+            pq.ParquetWriter(arquivo, na_bronze, compression="zstd") as escritor,
             con.cursor(pymysql.cursors.SSCursor) as cur,
         ):
             nomes = ", ".join(identificador(c) for c in campos.names)
@@ -174,7 +186,8 @@ def copiar_ano(
             while linhas := cur.fetchmany(lote):
                 colunas = zip(*linhas, strict=True)
                 arrays = [_coluna(v, c) for v, c in zip(colunas, campos, strict=True)]
-                escritor.write_table(pa.Table.from_arrays(arrays, schema=campos))
+                arrays.append(pa.nulls(len(linhas), type=pa.timestamp("us")))  # nasce viva
+                escritor.write_table(pa.Table.from_arrays(arrays, schema=na_bronze))
                 escritas += len(linhas)
     finally:
         con.rollback()  # só leitura: a transação fecha sem deixar nada
