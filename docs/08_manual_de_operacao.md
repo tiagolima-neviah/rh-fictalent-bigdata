@@ -128,6 +128,8 @@ Estes comportamentos foram testados na subida da versão v0.2.0. Os comandos de 
 
 Os serviços têm política `unless-stopped`: se o Docker ou a máquina reiniciar, eles voltam sozinhos, a não ser que você os tenha parado de propósito.
 
+**Antes de desligar ou reiniciar a máquina, pare os containers.** O motivo é o banco, não a rede: desligado à força, o MySQL volta fazendo recuperação de crash (`XA crash recovery` no log), e é exatamente aí que uma base grande pode se corromper. `docker compose stop` antes; `docker compose up -d && bash scripts/saude.sh` depois. Nunca `down -v`, que apaga os volumes, a base e a chave de cifra.
+
 ## 5. Recomeçar do zero (destrutivo)
 
 Apaga **todos os dados**: bancos, lake, histórico do Dagster, configurações do Grafana e a chave de cifra da réplica (sem ela o dado cifrado seria irrecuperável de qualquer jeito). Use só quando quiser uma instalação limpa.
@@ -276,6 +278,8 @@ Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manua
 | Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
 | `mysql-staging` não sobe e o log fala em `keyring` ou `Component_keyring_file` | o volume da chave não está acessível ao usuário do MySQL, ou o manifesto não foi montado | `docker compose logs keyring-init mysql-staging`; confira que `infra/mysql/mysqld.my` e `component_keyring_file.cnf` existem |
 | a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
+| containers de pé e `healthy`, mas `dagster-daemon` ou `dagster-web` `unhealthy` com `connection to server at "pg-dagster" ... timed out` no log | a rede bridge do Docker quebrou (em geral depois de a máquina reiniciar ou hibernar): o DNS resolve, o TCP não passa, e **nenhum** container alcança outro. `restart`, `down`/`up` e recriar o container não resolvem, porque o problema é no `dockerd` | `sudo systemctl restart docker`, depois `docker compose up -d && bash scripts/saude.sh`. Os volumes não são tocados |
+| o log do `mysql-staging` mostra `XA crash recovery` na subida | a máquina foi desligada com os containers de pé | desta vez deu certo; da próxima, `docker compose stop` antes de desligar (seção 4) |
 
 ---
 
