@@ -18,7 +18,7 @@ Três cuidados entram junto, e cada um existe por uma falha concreta:
 
 - **Sobreposição de uma hora.** `atualizado_em` é gravado quando o `UPDATE` roda, mas a linha só fica visível no commit. Uma transação que grava 10:00:00 e commita 10:00:05 é invisível para a carga das 10:00:02 e ficaria abaixo da marca nova para sempre. A carga volta um pouco no tempo; reler é inofensivo porque a aplicação é por id.
 - **Foto renovada a cada tabela.** Em REPEATABLE READ, que é o padrão do InnoDB, a transação que o driver abre na primeira leitura congela o que a conexão enxerga. Sem descartá-la, a segunda carga na mesma conexão leria o mundo da primeira. Isso não é hipótese: foi o primeiro resultado da primeira prova contra a réplica.
-- **Exclusão não é problema da marca.** `DELETE` não deixa `atualizado_em` para ser encontrado. A conferência de contagem por partição detecta o buraco e a carga falha dizendo o que houve; aplicar a exclusão vem da trilha de `meta.exclusao_auditoria` (gatilhos da v0.2.0), no card 5.3.
+- **Exclusão não é problema da marca.** `DELETE` não deixa `atualizado_em` para ser encontrado. A conferência de contagem por partição detecta o buraco, e quem o explica é a trilha de `meta.exclusao_auditoria` (gatilhos da v0.2.0): a linha apagada **ganha `excluido_em` na bronze em vez de sumir**, e a conferência passa a contar as vivas (card 5.3).
 
 ## Alternativas consideradas
 

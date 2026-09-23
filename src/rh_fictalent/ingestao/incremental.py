@@ -26,6 +26,7 @@ réplica e compara. Se bater, a bronze é de novo espelho fiel.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -40,8 +41,10 @@ from rh_fictalent.ingestao.backfill import (
     _faixa,
     copiar_ano,
     esquema,
+    esquema_bronze,
     identificador,
 )
+from rh_fictalent.ingestao.exclusoes import vivas
 
 if TYPE_CHECKING:  # pragma: no cover
     import pymysql
@@ -145,19 +148,23 @@ def _alteradas(
 def _aplicar(
     lake: Lake, modulo: str, tabela: str, ano: int, campos: pa.Schema, linhas: list[tuple[Any, ...]]
 ) -> int:
-    """Merge da partição: o que já estava, menos os ids que voltaram, mais as versões novas."""
+    """Merge da partição: o que já estava, menos os ids que voltaram, mais as versões novas.
+
+    A linha que volta da réplica volta viva: se ela está lá para ser lida, não foi apagada. O
+    `excluido_em` das que não voltaram fica como estava.
+    """
     caminho = lake.caminho(CAMADA, modulo, tabela, f"ano={ano}.parquet")
     fs = lake.sistema()
-    novas = pa.Table.from_arrays(
-        [_coluna(v, c) for v, c in zip(zip(*linhas, strict=True), campos, strict=True)],
-        schema=campos,
-    )
+    na_bronze = esquema_bronze(campos)
+    arrays = [_coluna(v, c) for v, c in zip(zip(*linhas, strict=True), campos, strict=True)]
+    arrays.append(pa.nulls(len(linhas), type=pa.timestamp("us")))
+    novas = pa.Table.from_arrays(arrays, schema=na_bronze)
     if fs.exists(caminho):
         with fs.open(caminho, "rb") as arquivo:
             antiga = pq.read_table(arquivo)
         trocados = pa.compute.is_in(antiga["id"], value_set=novas["id"])
         mantidas = antiga.filter(pa.compute.invert(trocados))
-        juntas = pa.concat_tables([mantidas.cast(campos), novas])
+        juntas = pa.concat_tables([mantidas.cast(na_bronze), novas])
     else:
         juntas = novas
     juntas = juntas.sort_by([("id", "ascending")])
@@ -187,6 +194,32 @@ def _contar(
     return int(quantas)
 
 
+def conferir(
+    con: pymysql.connections.Connection[Any],
+    lake: Lake,
+    modulo: str,
+    tabela: str,
+    anos: Iterable[int],
+    ate: datetime,
+) -> list[str]:
+    """As linhas vivas de cada partição têm de ser as que a réplica tinha no corte.
+
+    Vale para toda partição que a carga mexeu, seja por alteração (o merge) ou por exclusão (a
+    marcação). Uma linha apagada não gera alteração nenhuma, então a partição dela só é
+    conferida se alguém disser explicitamente que ela mudou.
+    """
+    divergencias = []
+    for ano in sorted(set(anos)):
+        na_bronze = vivas(lake, modulo, tabela, ano)
+        na_replica = _contar(con, modulo, tabela, ano, ate)
+        if na_bronze != na_replica:
+            divergencias.append(
+                f"{modulo}.{tabela}/{ano}: {na_bronze} linhas vivas na bronze, {na_replica} na "
+                f"réplica (diferença de {na_bronze - na_replica})"
+            )
+    return divergencias
+
+
 def sincronizar(
     con: pymysql.connections.Connection[Any],
     lake: Lake,
@@ -202,14 +235,9 @@ def sincronizar(
     por_ano = _alteradas(con, modulo, tabela, campos, desde, ate)
     resultado.alteradas = sum(len(v) for v in por_ano.values())
     for ano, linhas in sorted(por_ano.items()):
-        depois = _aplicar(lake, modulo, tabela, ano, campos, linhas)
-        na_replica = _contar(con, modulo, tabela, ano, ate)
-        resultado.particoes[ano] = depois
-        if depois != na_replica:
-            resultado.divergencias.append(
-                f"{modulo}.{tabela}/{ano}: {depois} linhas na bronze, {na_replica} na réplica "
-                f"(diferença de {depois - na_replica}; exclusão na origem é o card 5.3)"
-            )
+        _aplicar(lake, modulo, tabela, ano, campos, linhas)
+        resultado.particoes[ano] = vivas(lake, modulo, tabela, ano)  # marcada não conta
+    resultado.divergencias += conferir(con, lake, modulo, tabela, por_ano, ate)
     con.rollback()  # a foto fecha com a tabela: a próxima começa a sua
     return resultado
 

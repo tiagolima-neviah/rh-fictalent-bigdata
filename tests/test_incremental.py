@@ -274,9 +274,10 @@ def test_a_carga_conserta_sozinha_uma_linha_repetida_na_bronze(
 
 
 def test_a_conferencia_acusa_a_linha_que_so_existe_na_bronze(replica: Replica, lake: Lake) -> None:
-    """Linha apagada na réplica não tem `atualizado_em` para ser encontrada: ela fica na bronze
-    e nenhuma carga a remove. Aqui a linha fantasma é fabricada no parquet, sem apagar nada da
-    base. A carga não conserta, e não finge que consertou: acusa. Aplicar exclusão é o card 5.3."""
+    """Linha que existe na bronze e não na réplica, sem uma exclusão na trilha que a explique:
+    a carga não conserta (ela não sabe de onde veio) e não finge que consertou, acusa. Quando a
+    causa é um `DELETE` de verdade, a trilha explica e a marcação resolve (card 5.3); quando não
+    há trilha que explique, como aqui, o que sobra é a conferência dizendo que algo está errado."""
     con = replica.conectar()
     caminho = lake.caminho("bronze", MODULO, TABELA, "ano=2019.parquet")
     try:
@@ -286,7 +287,7 @@ def test_a_conferencia_acusa_a_linha_que_so_existe_na_bronze(replica: Replica, l
         resultado = sincronizar(con, lake, MODULO, TABELA, marca, agora_na_replica(con))
         assert not resultado.confere
         (divergencia,) = [d for d in resultado.divergencias if "/2019" in d]
-        assert "card 5.3" in divergencia and "diferença de 1" in divergencia
+        assert "linhas vivas na bronze" in divergencia and "diferença de 1" in divergencia
     finally:
         refazer(con, lake, MODULO, TABELA)
         assert len(lake.ler_parquet(caminho)) == antes
