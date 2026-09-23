@@ -26,6 +26,7 @@ from rh_fictalent.orquestracao.logger_json import logger_json
 from rh_fictalent.orquestracao.planilhas import carregar_consolidado, consolidado_em_planilha
 from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
 from rh_fictalent.orquestracao.sensores import SENSORES
+from rh_fictalent.orquestracao.simulacao import agenda_simulacao, simular_dias
 from rh_fictalent.orquestracao.verificacao import (
     lake_pronto,
     replica_pronta,
@@ -51,8 +52,9 @@ defs = dg.Definitions(
         backfill_bronze,
         carga_incremental,
         carregar_consolidado,
+        simular_dias,
     ],
-    schedules=[agenda_incremental],
+    schedules=[agenda_incremental, agenda_simulacao],
     sensors=SENSORES,  # fim de execução vira linhas em observabilidade.execucao(_passo)
     resources=recursos_do_ambiente(),
     loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON
