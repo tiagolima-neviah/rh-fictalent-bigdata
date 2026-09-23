@@ -12,15 +12,21 @@ from __future__ import annotations
 
 import dagster as dg
 
+from rh_fictalent.orquestracao.bronze import ASSETS as BRONZE
+from rh_fictalent.orquestracao.bronze import ORIGENS as REPLICA
+from rh_fictalent.orquestracao.bronze import backfill_bronze
 from rh_fictalent.orquestracao.fontes import (
     carregar_feriados,
     carregar_municipios,
     feriados_brasilapi,
     municipios_ibge,
 )
+from rh_fictalent.orquestracao.incremental import agenda_incremental, carga_incremental
 from rh_fictalent.orquestracao.logger_json import logger_json
+from rh_fictalent.orquestracao.planilhas import carregar_consolidado, consolidado_em_planilha
 from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
 from rh_fictalent.orquestracao.sensores import SENSORES
+from rh_fictalent.orquestracao.simulacao import agenda_simulacao, simular_dias
 from rh_fictalent.orquestracao.verificacao import (
     lake_pronto,
     replica_pronta,
@@ -29,8 +35,26 @@ from rh_fictalent.orquestracao.verificacao import (
 )
 
 defs = dg.Definitions(
-    assets=[replica_pronta, lake_pronto, warehouse_pronto, municipios_ibge, feriados_brasilapi],
-    jobs=[verificar_plataforma, carregar_municipios, carregar_feriados],
+    assets=[
+        replica_pronta,
+        lake_pronto,
+        warehouse_pronto,
+        municipios_ibge,
+        feriados_brasilapi,
+        *REPLICA,
+        *BRONZE,
+        consolidado_em_planilha,
+    ],
+    jobs=[
+        verificar_plataforma,
+        carregar_municipios,
+        carregar_feriados,
+        backfill_bronze,
+        carga_incremental,
+        carregar_consolidado,
+        simular_dias,
+    ],
+    schedules=[agenda_incremental, agenda_simulacao],
     sensors=SENSORES,  # fim de execução vira linhas em observabilidade.execucao(_passo)
     resources=recursos_do_ambiente(),
     loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON

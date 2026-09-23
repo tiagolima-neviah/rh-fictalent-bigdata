@@ -128,6 +128,8 @@ Estes comportamentos foram testados na subida da versão v0.2.0. Os comandos de 
 
 Os serviços têm política `unless-stopped`: se o Docker ou a máquina reiniciar, eles voltam sozinhos, a não ser que você os tenha parado de propósito.
 
+**Antes de desligar ou reiniciar a máquina, pare os containers.** O motivo é o banco, não a rede: desligado à força, o MySQL volta fazendo recuperação de crash (`XA crash recovery` no log), e é exatamente aí que uma base grande pode se corromper. `docker compose stop` antes; `docker compose up -d && bash scripts/saude.sh` depois. Nunca `down -v`, que apaga os volumes, a base e a chave de cifra.
+
 ## 5. Recomeçar do zero (destrutivo)
 
 Apaga **todos os dados**: bancos, lake, histórico do Dagster, configurações do Grafana e a chave de cifra da réplica (sem ela o dado cifrado seria irrecuperável de qualquer jeito). Use só quando quiser uma instalação limpa.
@@ -193,7 +195,65 @@ bash scripts/esteira.sh
 
 Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de pé), bandit e pip-audit; com docker disponível, também gitleaks e trivy por container. Termina com `ESTEIRA VERDE` ou com a contagem de falhas.
 
-## 8. A chave de cifra da réplica
+**A esteira prova a venv, não a imagem.** Se a mudança tocou dependência (`pyproject.toml`) ou arquivo que o Dagster lê ao carregar (a DDL, os dados que um asset abre), reconstrua a imagem antes de rodar a esteira: `docker compose up -d --build dagster-web dagster-daemon && bash scripts/saude.sh`. O `test_saude` fala com o container que está de pé; se ele ainda for o da versão anterior, o teste passa e a imagem nova quebra. Foi assim na v0.5.0: a fábrica de assets lia a DDL no import, a imagem não a carregava, e a code location subiu com zero assets.
+
+## 8. O rito de uma versão
+
+Cada fase fechada vira versão publicável ([ADR-0008](adr/0008-gitflow-por-versao-publicavel.md)). O rito tem
+**cinco passos, nesta ordem**, e a ordem importa: quem cria a tag antes do merge marca o commit errado, e quem
+faz o back-merge duas vezes descobre na recusa do push.
+
+**1. O card de fechamento.** Uma branch como qualquer outra, com o `CHANGELOG.md` da versão e o status no
+`README.md`. Entra em `develop` por PR, com a CI verde.
+
+**2. A versão: PR de `develop` para `main`.** Pela interface do GitHub, base `main`, comparação `develop`,
+título `vX.Y.Z · Nome da fase`. Espere a CI e faça o merge. **É este merge que a tag vai marcar.**
+
+**3. A tag, só depois do merge.** Atualize o local e confirme que o último commit é o merge do PR antes de marcar:
+
+```bash
+git checkout main && git pull --ff-only && git log -1 --oneline
+```
+
+```bash
+git tag -a vX.Y.Z -m "vX.Y.Z · Nome da fase" && git push origin vX.Y.Z
+```
+
+**4. O release no GitHub.** *Releases* → *Draft a new release* → escolha a tag que já existe (nunca deixe o
+GitHub criar a tag por você, ou ela nasce no commit errado), título igual ao da tag, texto a partir do
+`CHANGELOG.md`.
+
+**5. O back-merge, uma vez só.** A `main` recebeu o commit de merge do passo 2, que a `develop` não tem; sem o
+back-merge as duas divergem. Como a `develop` é protegida e exige PR com CI, o caminho é a interface: PR com
+base `develop` e comparação `main`, título `back-merge vX.Y.Z`. Depois, no terminal:
+
+```bash
+git checkout develop && git pull --ff-only && git log -1 --oneline
+```
+
+**Não faça também `git merge --ff-only main` localmente.** Os dois caminhos levam o mesmo conteúdo, mas por
+históricos diferentes: o seu `develop` local fica num commit que o servidor não tem, e o push é recusado com
+`Updates were rejected`. A recusa é o git protegendo o trabalho que só existe no servidor; a saída é sempre
+`git pull --ff-only`, nunca `--force`.
+
+### Se algo sair de ordem
+
+| sintoma | o que aconteceu | o que fazer |
+|---|---|---|
+| `! [rejected] develop -> develop (fetch first)` | o remoto tem um commit que você não tem (em geral o back-merge feito pela interface) | `git pull --ff-only`; se ele recusar, pare e olhe o grafo com `git log --oneline --graph --all -10` antes de qualquer coisa |
+| a tag aponta para o commit do card, não para o merge | a tag foi criada antes do merge do PR de versão | `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`, depois refaça o passo 3. Só vale enquanto ninguém usou a tag |
+| `error: branch '...' not found` na faxina | o GitHub já apagou a branch no merge (auto-delete) e a local também já saiu | nada: a faxina já estava feita |
+| `warning: deleting branch ... not yet merged to HEAD` | você apagou a branch antes de atualizar a `develop` local | nada: o commit está no remoto; o `git pull` seguinte traz tudo |
+
+Conferir, a qualquer momento, se as duas branches estão alinhadas e onde a tag caiu:
+
+```bash
+git fetch --all --tags && git log --oneline --graph --all -8 && git diff --stat origin/develop origin/main
+```
+
+Alinhadas, o `git diff` não imprime nada.
+
+## 9. A chave de cifra da réplica
 
 A réplica é cifrada em repouso ([Modelo de Dados, seção 8](04_modelo_dados_staging.md#8-cifra-em-repouso)). A chave mestra fica no volume `mysql_keyring`, nunca no repositório. Trocar a chave mestra, sem parar nada:
 
@@ -209,7 +269,7 @@ docker exec -e MYSQL_PWD="$(grep -E '^STAGING_ROOT_PASSWORD=' .env | cut -d= -f2
 
 Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manual de backup, v1.0.0).
 
-## 9. Quando algo não sobe
+## 10. Quando algo não sobe
 
 | sintoma | causa provável | o que fazer |
 |---|---|---|
@@ -220,6 +280,8 @@ Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manua
 | Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
 | `mysql-staging` não sobe e o log fala em `keyring` ou `Component_keyring_file` | o volume da chave não está acessível ao usuário do MySQL, ou o manifesto não foi montado | `docker compose logs keyring-init mysql-staging`; confira que `infra/mysql/mysqld.my` e `component_keyring_file.cnf` existem |
 | a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
+| containers de pé e `healthy`, mas `dagster-daemon` ou `dagster-web` `unhealthy` com `connection to server at "pg-dagster" ... timed out` no log | a rede bridge do Docker quebrou (em geral depois de a máquina reiniciar ou hibernar): o DNS resolve, o TCP não passa, e **nenhum** container alcança outro. `restart`, `down`/`up` e recriar o container não resolvem, porque o problema é no `dockerd` | `sudo systemctl restart docker`, depois `docker compose up -d && bash scripts/saude.sh`. Os volumes não são tocados |
+| o log do `mysql-staging` mostra `XA crash recovery` na subida | a máquina foi desligada com os containers de pé | desta vez deu certo; da próxima, `docker compose stop` antes de desligar (seção 4) |
 
 ---
 
