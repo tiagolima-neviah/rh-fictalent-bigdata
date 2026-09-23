@@ -23,6 +23,7 @@ from rh_fictalent.gerador import (
     etapa6_conformidade,
 )
 from rh_fictalent.gerador.nucleo import SEMENTE, Replica, Tabelas
+from rh_fictalent.orquestracao.recursos import Lake
 from rh_fictalent.validacao import bandas
 from rh_fictalent.validacao.regua import Laudo, Medidas, Veredito, avaliar
 
@@ -71,9 +72,13 @@ def gerar_e_medir(publicos: Path = etapa1_cadastro.PUBLICOS) -> tuple[Juntas, di
 
 
 def fechar(
-    medidas: Juntas, linhas: dict[str, int], replica: Replica | None = None
+    medidas: Juntas,
+    linhas: dict[str, int],
+    replica: Replica | None = None,
+    conservacao: dict[str, tuple[int, int]] | None = None,
 ) -> tuple[Juntas, list[str]]:
-    """Fecha a medida de linhas: contadas na réplica, quando há, e iguais às do gerador."""
+    """Fecha as medidas que não saem do gerador: as linhas contadas na réplica (que têm de
+    ser as do gerador) e, quando o lake foi lido, a conservação réplica → bronze (C-06)."""
     contadas = replica.contar(sorted(linhas)) if replica else linhas
     problemas = [
         f"{nome}: {contadas[nome]} linhas na réplica, {linhas[nome]} geradas"
@@ -83,6 +88,9 @@ def fechar(
     completas = {medida: dict(valores) for medida, valores in medidas.items()}
     completas["linhas_tabela"] = {nome: float(contadas[nome]) for nome in bandas.LINHAS}
     completas["linhas_tabela"]["total"] = float(sum(contadas.values()))
+    if conservacao is not None:
+        divergentes = sum(1 for vivas, na_replica in conservacao.values() if vivas != na_replica)
+        completas["conservacao"] = {"bronze": float(divergentes)}
     return completas, problemas
 
 
@@ -91,9 +99,14 @@ def escrever(medidas: Juntas, laudo: Laudo, na_replica: bool, pasta: Path = PAST
     texto = json.dumps(medidas, ensure_ascii=False, indent=2, sort_keys=True)
     (pasta / "medidas.json").write_text(texto + "\n", encoding="utf-8")
     origem = "contadas na réplica" if na_replica else "contadas no que o gerador produz"
+    conservada = (
+        "conservação réplica → bronze medida no lake (C-06)."
+        if "conservacao" in medidas
+        else "conservação não medida: sem o lake, o C-06 fica pendente."
+    )
     cabecalho = [
         f"Aceite da base sintética · semente {SEMENTE}",
-        f"{int(medidas['linhas_tabela']['total'])} linhas ({origem}).",
+        f"{int(medidas['linhas_tabela']['total'])} linhas ({origem}); " + conservada,
         "Para refazer: python -m rh_fictalent.gerador --aceite --replica",
         "",
     ]
@@ -102,9 +115,28 @@ def escrever(medidas: Juntas, laudo: Laudo, na_replica: bool, pasta: Path = PAST
     )
 
 
-def executar(replica: Replica | None = None, pasta: Path = PASTA) -> int:
+def executar(
+    replica: Replica | None = None,
+    lake: Lake | None = None,
+    leitor: Replica | None = None,
+    pasta: Path = PASTA,
+) -> int:
+    """`replica` conta as linhas gravadas (o replicador, que as gravou); `leitor` é o usuário
+    de leitura do pipeline, o único que enxerga a trilha em `meta`, e é quem mede a
+    conservação junto com o lake."""
     medidas, linhas = gerar_e_medir()
-    completas, problemas = fechar(medidas, linhas, replica)
+    conservacao = None
+    if leitor is not None and lake is not None:
+        from rh_fictalent.lake import consulta
+
+        con = leitor.conectar()
+        try:
+            conservacao = consulta.conservacao(con, lake)
+        finally:
+            con.close()
+        for nome, (vivas, na_replica) in sorted(consulta.divergentes(conservacao).items()):
+            print(f"bronze diferente da réplica: {nome}: {vivas} vivas no lake, {na_replica} lá")
+    completas, problemas = fechar(medidas, linhas, replica, conservacao)
     laudo = avaliar(bandas.checks(), completas)
     print(laudo.texto(so_problemas=True))
     for problema in problemas:

@@ -3279,7 +3279,7 @@ requires-dist = [
     { name = "dagster", specifier = "==1.13.22" },
     { name = "dagster-postgres", specifier = "==0.29.22" },
     { name = "dagster-webserver", specifier = "==1.13.22" },
-    { name = "duckdb", specifier = ">=1.5.5" },
+    { name = "duckdb", specifier = ">=1.1" },
     { name = "fsspec", specifier = ">=2026.7.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "openpyxl", specifier = ">=3.1.5" },

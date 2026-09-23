@@ -24,3 +24,7 @@ DuckDB como motor SQL embarcado, lendo e escrevendo parquet (zstd, partição po
 - Mesmo padrão da Fictitur, o que permite comparar as duas obras.
 - Funções de janela explícitas e comentadas na gold (SQL analítico como evidência).
 - Volume por partição por ano; a régua confere conservação de linhas entre camadas.
+
+## Nota de 23/09/2026 (card 6.1): a leitura do lake é pelo `httpfs`, não pelo `fsspec`
+
+A decisão dizia "via fsspec", e a escrita continua assim: os parquets da bronze são gravados pelo recurso `Lake`, que é um `fsspec` apontado para o S3. A **leitura pelo DuckDB** entrou na v0.6.0 pela extensão `httpfs` do próprio DuckDB, configurada a partir do mesmo recurso (endpoint, chave, segredo e bucket vêm de um lugar só). A primeira medição, com uma tabela, dava 270 ms de diferença e não justificava a extensão; a medição com o lake inteiro justificou: contar as linhas vivas das 76 tabelas leva 0,3 s pelo `httpfs` e 14,2 s pelo `fsspec` registrado no DuckDB (cada arquivo é uma ida ao Python), e um join de 4,3 milhões por 1,2 milhão de linhas leva 0,09 s contra 2,7 s. Abrir as 79 views leva 3,6 s contra 5,2 s. A extensão é instalada na imagem do Dagster em tempo de build (`DUCKDB_EXTENSION_DIRECTORY`), para o container não depender de rede na primeira consulta. O que muda para quem lê: nada; o SQL é o mesmo, com os nomes da réplica. O que muda para quem opera: a imagem precisa ser reconstruída quando a versão do DuckDB mudar, porque a extensão é compilada por versão.

@@ -39,6 +39,11 @@ Revisões do contrato:
   admissional: o demissional é dispensado quando o último exame é recente (NR-7) e o
   periódico só chega para quem passa de um ano. SST-01 fica definido como prevalência: no
   último dia de cada mês, a parte dos alocados sem ASO válido; o ano é a média dos meses.
+- 2026-09-23 (card 6.1, DuckDB sobre a bronze). Entra o C-06, a conservação entre camadas:
+  o número de tabelas cuja contagem de linhas vivas na bronze difere da réplica tem de ser
+  zero. É o primeiro check que não sai do gerador: só o aceite com `--replica` o mede,
+  lendo o lake com DuckDB. Sem a plataforma ele fica pendente e o veredito é INCOMPLETA,
+  que é o correto: a régua inteira passa a exigir a bronze de pé.
 """
 
 from __future__ import annotations
@@ -236,6 +241,10 @@ MEDIDAS = {
     "sazonalidade_admissoes": "desvio_maximo, desvio_medio e correlacao contra o CAGED",
     "sazonalidade_desligamentos": "desvio_maximo, desvio_medio e correlacao contra o CAGED",
     "violacoes": "por invariante (C-01 a C-05): número de violações",
+    "conservacao": (
+        "bronze: tabelas cuja contagem de linhas vivas no lake difere da réplica "
+        "(medida pelo aceite com --replica, lendo o lake com DuckDB)"
+    ),
     "sujeira": "por defeito do catálogo: proporção observada (GER-01 por ano)",
     **{i.medida: f"por ano: {i.descricao}" for i in DEGRADACAO},
 }
@@ -426,6 +435,16 @@ def checks() -> list[Check]:
         lista.append(
             Check(codigo, "coerencia", descricao, "violacoes", codigo, Banda.exatamente(0))
         )
+    lista.append(
+        Check(
+            "C-06",
+            "coerencia",
+            "tabelas cuja contagem de linhas vivas na bronze difere da réplica",
+            "conservacao",
+            "bronze",
+            Banda.exatamente(0),
+        )
+    )
 
     # 6 · sujeira
     for codigo, (descricao, banda) in SUJEIRA.items():

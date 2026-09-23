@@ -125,6 +125,17 @@ class Warehouse(dg.ConfigurableResource):  # type: ignore[type-arg]
             return linhas
 
 
+def lake_do_ambiente() -> Lake:
+    """O lake fora do Dagster (linha de comando, aceite): os segredos vêm do ambiente já
+    carregado, como texto, porque um `EnvVar` só se resolve dentro de uma execução."""
+    return Lake(
+        endpoint=_ambiente("S3_ENDPOINT", "http://127.0.0.1:8333"),
+        chave=os.environ["S3_ACCESS_KEY"],
+        segredo=os.environ["S3_SECRET_KEY"],
+        bucket=_ambiente("S3_BUCKET", "fictalent-lake"),
+    )
+
+
 def recursos_do_ambiente() -> dict[str, Any]:
     """Os recursos, lendo o ambiente: hosts e portas com padrão local, segredos por EnvVar."""
     return {

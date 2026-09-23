@@ -15,6 +15,7 @@ import dagster as dg
 from rh_fictalent.orquestracao.bronze import ASSETS as BRONZE
 from rh_fictalent.orquestracao.bronze import ORIGENS as REPLICA
 from rh_fictalent.orquestracao.bronze import backfill_bronze
+from rh_fictalent.orquestracao.conservacao import conferir_bronze
 from rh_fictalent.orquestracao.fontes import (
     carregar_feriados,
     carregar_municipios,
@@ -53,6 +54,7 @@ defs = dg.Definitions(
         carga_incremental,
         carregar_consolidado,
         simular_dias,
+        conferir_bronze,
     ],
     schedules=[agenda_incremental, agenda_simulacao],
     sensors=SENSORES,  # fim de execução vira linhas em observabilidade.execucao(_passo)

@@ -90,7 +90,7 @@ bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 
 ```bash
 .venv/bin/python -m rh_fictalent.gerador --etapa 1 --gravar --zerar && for e in 2 3 4 5 6; do .venv/bin/python -m rh_fictalent.gerador --etapa $e --gravar || break; done
-.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 165 de 165
+.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 166 de 166
 ```
 
 São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. Depois, o backfill pela interface do Dagster (<http://127.0.0.1:3010>, job `backfill_bronze`, backfill das nove partições) leva a réplica inteira para o lake em cerca de 2 minutos, e a carga incremental das 5h traz só o que mudou; como o dado entra, e quanto custa, está em [Ingestão](docs/11_ingestao.md). O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
@@ -111,7 +111,7 @@ rh-fictalent-bigdata/
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── dados/publicos/          # tabelas de fonte pública (Novo CAGED, IBGE, BrasilAPI), cada uma com a fonte; o bruto fica fora do git
 ├── dados/gerencial/         # o consolidado gerencial em Excel (sintético): a fonte de arquivo do pipeline
-├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (165 de 165)
+├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (166 de 166)
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
@@ -134,7 +134,7 @@ rh-fictalent-bigdata/
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
 - [05 · Segurança e LGPD](docs/05_seguranca_e_lgpd.md): o modelo de ameaça camada a camada, o comando que prova cada garantia, a LGPD princípio por princípio e o que ainda não existe.
-- [06 · Régua de Validação](docs/06_regua_de_validacao.md): o contrato de aceite do dado sintético, 165 checks em seis famílias, de onde vem cada alvo, o laudo versionado e o que a régua não faz.
+- [06 · Régua de Validação](docs/06_regua_de_validacao.md): o contrato de aceite do dado sintético, 166 checks em seis famílias, de onde vem cada alvo, o laudo versionado e o que a régua não faz.
 - [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa, a geração da base sintética e o aceite; atualizar, recomeçar, desinstalar.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.

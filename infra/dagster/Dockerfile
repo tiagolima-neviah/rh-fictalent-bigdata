@@ -23,6 +23,9 @@ COPY src ./src
 COPY staging/ddl ./staging/ddl
 COPY dados/gerencial ./dados/gerencial
 RUN uv sync --frozen --no-dev
+# a extensao httpfs do DuckDB, pre-instalada: a primeira consulta ao lake nao depende de rede
+ENV DUCKDB_EXTENSION_DIRECTORY=/opt/dagster/app/.duckdb
+RUN /opt/dagster/venv/bin/python -c "import duckdb; c = duckdb.connect(); c.execute(\"SET extension_directory = '/opt/dagster/app/.duckdb'\"); c.execute('INSTALL httpfs')"
 
 COPY infra/dagster/workspace.yaml ./workspace.yaml
 
