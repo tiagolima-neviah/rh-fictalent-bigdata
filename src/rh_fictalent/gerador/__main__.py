@@ -37,6 +37,7 @@ from rh_fictalent.gerador import (
     etapa6_conformidade,
 )
 from rh_fictalent.gerador.nucleo import SEMENTE, Tabelas, assinatura, replica_do_ambiente
+from rh_fictalent.orquestracao.recursos import lake_do_ambiente
 from rh_fictalent.validacao.regua import Laudo
 
 
@@ -136,7 +137,13 @@ def main(argumentos: list[str] | None = None) -> int:
         parser.error("--zerar só faz sentido com --gravar")
     if args.aceite:
         load_dotenv()
-        return aceite.executar(replica_do_ambiente("replicador") if args.replica else None)
+        if args.replica:  # o aceite inteiro: a réplica conta as linhas, o lake mede a conservação
+            return aceite.executar(
+                replica_do_ambiente("replicador"),
+                lake_do_ambiente(),
+                leitor=replica_do_ambiente("pipeline"),
+            )
+        return aceite.executar()
     if args.etapa is None:
         parser.error("informe --etapa ou --aceite")
 

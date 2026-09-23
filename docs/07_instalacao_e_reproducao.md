@@ -102,7 +102,7 @@ Depois, o aceite: a base inteira contra a régua inteira, com as linhas contadas
 .venv/bin/python -m rh_fictalent.gerador --aceite --replica
 ```
 
-Termina em **`RÉGUA APROVADA: 165 de 165`** e reescreve `dados/regua/medidas.json` e `laudo.txt` com o mesmo conteúdo que está versionado (se `git status` mostrar diferença, a sua base não é a do repositório). O que cada check confere está em [Régua de Validação](06_regua_de_validacao.md).
+Termina em **`RÉGUA APROVADA: 166 de 166`** e reescreve `dados/regua/medidas.json` e `laudo.txt` com o mesmo conteúdo que está versionado (se `git status` mostrar diferença, a sua base não é a do repositório). O que cada check confere está em [Régua de Validação](06_regua_de_validacao.md).
 
 ## 7. O que está onde
 

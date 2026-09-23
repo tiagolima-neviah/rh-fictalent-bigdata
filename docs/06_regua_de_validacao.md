@@ -6,7 +6,7 @@
 [Home](../README.md) | [← Segurança e LGPD](05_seguranca_e_lgpd.md) | [Instalação e Reprodução →](07_instalacao_e_reproducao.md)
 <!-- nav:end -->
 
-> Dado sintético só serve se contar a história do caso, e "parece plausível" não é critério. Antes de existir uma linha de dado, este projeto escreveu o que a base precisava mostrar para ser aceita: 165 checks, cada um com um alvo e uma tolerância. Depois o gerador rodou, e a régua conferiu. Este documento explica o contrato, mostra de onde vem cada número e dá o comando para você conferir o veredito na sua máquina. Estado atual: **165 de 165 aprovados**, com as medidas e o laudo versionados em [`dados/regua`](../dados/regua/README.md).
+> Dado sintético só serve se contar a história do caso, e "parece plausível" não é critério. Antes de existir uma linha de dado, este projeto escreveu o que a base precisava mostrar para ser aceita: 166 checks, cada um com um alvo e uma tolerância. Depois o gerador rodou, e a régua conferiu. Este documento explica o contrato, mostra de onde vem cada número e dá o comando para você conferir o veredito na sua máquina. Estado atual: **166 de 166 aprovados**, com as medidas e o laudo versionados em [`dados/regua`](../dados/regua/README.md).
 
 ## 1. A ideia: primeiro a banda, depois o dado
 
@@ -48,7 +48,7 @@ O código de saída é o veredito: 0 aprovada, 1 reprovada, 2 incompleta. Um pip
 | 2 · naturalidade | 4 | nada acontece "de uma vez": o headcount não salta contra a média móvel, clientes não entram nem saem em bloco, fora dos choques declarados (fundação, pandemia, crise) | decisão de desenho: dado fabricado se entrega pelos degraus |
 | 3 · a história | 82 | oito indicadores de qualidade de serviço por ano, a defasagem entre a queda de qualidade e a perda de contrato, e a margem líquida | a degradação que explica 2025, e a regra de nunca fechar no vermelho |
 | 4 · sazonalidade | 6 | o ritmo do ano (admissões e desligamentos por mês) contra o índice sazonal do Novo CAGED para o setor no estado | dado público, em [`dados/publicos/caged`](../dados/publicos/caged/README.md) |
-| 5 · coerência interna | 5 | invariantes que não admitem nenhuma violação: alocação sem contrato de trabalho, ponto sem alocação, fatura sem contrato, folha que não fecha com o rateio, duas pessoas na mesma posição | o modelo de dados |
+| 5 · coerência interna | 6 | invariantes que não admitem nenhuma violação: alocação sem contrato de trabalho, ponto sem alocação, fatura sem contrato, folha que não fecha com o rateio, duas pessoas na mesma posição; e, desde a v0.6.0, a conservação de linhas entre a réplica e a bronze do lake (C-06) | o modelo de dados; a ingestão |
 | 6 · sujeira | 18 | cada defeito do catálogo na proporção combinada, nem mais, nem menos | o catálogo de sujeira do caso |
 
 ### A história em números
@@ -121,8 +121,9 @@ Toda mudança de banda está datada e motivada no topo de [`bandas.py`](../src/r
 | 21/09/2026, ocupação dos postos | sazonalidade: correlação mínima com o CAGED sobe para 0,75; desvios máximos e médios ficam mais largos | a Fictalent vive de reforço de temporada: acompanha o ritmo do setor com amplitude maior que a do agregado estadual |
 | 21/09/2026, financeiro | linhas de `financeiro.fatura_item` de 52 mil para 9,5 mil | o rascunho supunha um posto por posição; a carteira abre postos com quantidade |
 | 21/09/2026, SST | linhas de `sst.aso` de 40 mil para 20 mil; SST-01 definido como prevalência no fim de cada mês | metade dos contratos de trabalho dura até 50 dias: quase todos têm só o admissional, e a NR-7 dispensa o demissional quando o último exame é recente |
+| 23/09/2026, lake (card 6.1) | coerência: check novo **C-06**, tabelas cuja contagem de linhas vivas na bronze difere da réplica, banda exatamente 0; a medida `conservacao` é calculada pelo aceite lendo o lake com DuckDB | a bronze é espelho da réplica, e espelho se prova contando; a régua passa de 165 para 166 checks |
 
-Nenhuma revisão afrouxou um check que o dado reprovava por contar a história errada: duas corrigiram estimativas de volume do rascunho, e duas trocaram um limite genérico por um que descreve o negócio (temporada).
+Nenhuma revisão afrouxou um check que o dado reprovava por contar a história errada: duas corrigiram estimativas de volume do rascunho, duas trocaram um limite genérico por um que descreve o negócio (temporada), e a última não mexeu em banda nenhuma: acrescentou um check, porque a régua passou a alcançar uma camada que antes não existia.
 
 ## 7. O que a régua não faz
 
