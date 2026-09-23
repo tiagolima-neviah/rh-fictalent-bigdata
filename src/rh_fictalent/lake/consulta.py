@@ -107,16 +107,17 @@ def abrir(lake: Lake) -> duckdb.DuckDBPyConnection:
 
     `union_by_name` deixa o DuckDB juntar as nove partições de um ano mesmo que uma delas tenha
     nascido antes de a bronze ganhar a coluna de controle; hoje todas têm, e a opção é a rede
-    de segurança para a próxima coluna que a bronze acrescentar.
+    de segurança para a próxima coluna que a bronze acrescentar. Os nomes vêm da DDL, não de
+    quem consulta: por isso a montagem por f-string é aceitável aqui.
     """
     con = duckdb.connect()
     _apontar_para_o_lake(con, lake)
     for view in catalogo(lake):
+        alvo = f'"{view.esquema}"."{view.nome}"'
+        origem = f"read_parquet('{view.caminho}', union_by_name = true)"
         con.execute(f'CREATE SCHEMA IF NOT EXISTS "{view.esquema}"')
-        con.execute(
-            f'CREATE OR REPLACE VIEW "{view.esquema}"."{view.nome}" AS '
-            f"SELECT * FROM read_parquet('{view.caminho}', union_by_name = true)"
-        )
+        ddl = f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}"  # noqa: S608 # nosec B608
+        con.execute(ddl)
     return con
 
 
@@ -127,10 +128,9 @@ def sql(con: duckdb.DuckDBPyConnection, consulta: str, *parametros: Any) -> pd.D
 
 def vivas(con: duckdb.DuckDBPyConnection, esquema: str, tabela: str) -> int:
     """Linhas da tabela na bronze que não foram marcadas como excluídas."""
-    linhas = con.execute(
-        f'SELECT count(*) FROM "{esquema}"."{tabela}" WHERE "{CONTROLE}" IS NULL'
-    ).fetchall()
-    return int(linhas[0][0])
+    alvo = f'"{esquema}"."{tabela}"'
+    pergunta = f'SELECT count(*) FROM {alvo} WHERE "{CONTROLE}" IS NULL'  # noqa: S608 # nosec B608
+    return int(con.execute(pergunta).fetchall()[0][0])
 
 
 def contagens(con: duckdb.DuckDBPyConnection, lake: Lake) -> dict[str, int]:
