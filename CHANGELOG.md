@@ -2,6 +2,43 @@
 
 Cada versão fecha uma fase inteira, com código, testes e documentação. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.5.0] · 2026-09-23 · Ingestão
+
+O dado passou a entrar no pipeline pelas três portas que o caso tem: a réplica do sistema do cliente, as APIs públicas e a planilha da gerência. A bronze existe, é **espelho fiel** da réplica em parquet particionado por ano, e a carga diária traz só o que mudou. Ainda sem auditoria de qualidade nem silver: isso é a v0.6.0.
+
+### Backfill
+- A réplica inteira copiada para a bronze: **8.410.929 linhas em 162 MB** de parquet zstd (contra 1,5 GB em disco na réplica), em 124 segundos, 675 partições, nenhuma divergência de contagem.
+- 76 assets no Dagster gerados por uma fábrica a partir da lista de tabelas da DDL (tabela nova vira asset sozinha), com `replica/<modulo>/<tabela>` como origem da linhagem.
+- Leitura em lote por cursor de streaming; esquema declarado a partir do `information_schema`, nunca inferido do lote; contagem e leitura na mesma foto consistente do InnoDB, para a conferência comparar duas leituras do mesmo banco.
+- Partição pelo ano de `criado_em`, a data que não muda: uma linha nunca troca de arquivo. O limite está dito e testado: a partição é técnica, e a marcação da noite de 31/12 mora no ano seguinte.
+
+### Carga incremental
+- Só o que tem `atualizado_em` acima da marca d'água, aplicado por merge de id nas partições tocadas, com conferência de contagem por partição. Carga sem nada a fazer em **845 ms**.
+- A marca mora no warehouse (`ingestao.marca_dagua`), porque a réplica é do cliente e o pipeline não escreve nela; é um instante do relógio da réplica, não do relógio de quem roda o pipeline. Sem marca, ela é derivada do que a bronze já tem.
+- Três armadilhas tratadas, cada uma vinda de uma falha real: a sobreposição de uma hora contra a transação que grava antes do corte e commita depois; a foto renovada a cada tabela, porque em REPEATABLE READ a transação implícita do driver congela o que a conexão enxerga; e a conferência por `criado_em <= corte`, que é o universo que a bronze representa.
+- Primeira agenda do projeto: todo dia às 5h, ligada por padrão. A escolha entre marca d'água e captura pelo binlog está no [ADR-0011](docs/adr/0011-marca-dagua-nao-binlog.md).
+
+### Exclusões
+- `DELETE` na réplica vira **marcação**, não sumiço: a linha continua na bronze com `excluido_em`, lido da trilha `meta.exclusao_auditoria` que os gatilhos da v0.2.0 alimentam. Quem pergunta quantas linhas existem filtra as vivas; quem pergunta o que sumiu, quando e por quem, tem resposta.
+- A trilha é a 76ª tabela da bronze, porque a bronze com marcação não é reconstruível só a partir da réplica: recopiar traz o presente e esqueceria quem morreu.
+
+### Arquivo
+- As nove planilhas do consolidado gerencial entram com esquema **pandera** declarado (primeiro uso, como o [ADR-0006](docs/adr/0006-pandera-e-regua.md) previa): preparar (descartar título e TOTAL, renomear, consertar os tipos que a planilha misturou) e validar (`strict`, unicidade de competência e filial, checks de negócio) são etapas separadas. Esquema reprovado, asset reprovado. 237 linhas, com o nome do arquivo em cada uma.
+
+### Dias correntes
+- A réplica volta a se mexer: um job escreve o dia de operação que falta (ponto de quem está em campo, vagas fechando, alocações terminando, uma batida apagada de vez em quando), determinístico pela data, numa transação só. 3.816 linhas por dia.
+- A agenda dele nasce **desligada**, porque ligar faz a réplica deixar de ser exatamente a base que a régua aprovou; o que a operação acrescenta fica registrado em `ingestao.dia_simulado`, para a conferência continuar possível. A fronteira está declarada: é a operação continuando, não uma continuação do gerador.
+
+### Documentação e operação
+- `docs/11` ingestão: as três naturezas de fonte, a bronze, o backfill, a carga, as exclusões, a planilha, os dias correntes e a tabela de tempos medidos.
+- `docs/08` ganhou o rito de uma versão (seção 8), "antes de desligar a máquina, pare os containers" e dois sintomas novos: a rede bridge do Docker quebrada depois de reinício e o `XA crash recovery` do MySQL.
+
+### Esteira
+- 454 testes (eram 393 na v0.4.0). Os testes que mexem na réplica devolvem réplica e bronze ao estado anterior, e a bronze serviu de backup para isso.
+
+### Não inclui
+- Auditoria de qualidade, silver, gold, warehouse carregado, API. A ordem: v0.6.0 lake (bronze, auditoria, silver), v0.7.0 gold e warehouse, v1.0.0 API, auditoria, backup e nuvem.
+
 ## [0.4.0] · 2026-09-21 · Dado sintético
 
 A réplica deixou de ser um banco vazio: **8,4 milhões de linhas em 76 tabelas** contam a história da Fictalent de janeiro de 2018 a 10 de setembro de 2026. O dado não foi sorteado para parecer plausível; foi **simulado e conferido contra um contrato escrito antes de ele existir**, com 165 checks em seis famílias. Ainda sem ingestão: ler a réplica e os arquivos é a v0.5.0.
@@ -97,6 +134,7 @@ A réplica do sistema do cliente, de pé, cifrada, com controle de acesso e prov
 - Modelo relacional de 75 tabelas em 10 módulos aprovado; plano de sintetização aprovado.
 - Repositório público com Gitflow (`develop` como branch padrão).
 
+[0.5.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.5.0
 [0.4.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.4.0
 [0.3.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.3.0
 [0.2.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.2.0
