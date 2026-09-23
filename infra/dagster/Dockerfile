@@ -18,6 +18,10 @@ COPY pyproject.toml uv.lock README.md LICENSE ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY src ./src
+# o que o Dagster le ao carregar as definicoes: a fabrica de assets da bronze le a lista de
+# tabelas na DDL, e o asset da planilha abre os arquivos do consolidado
+COPY staging/ddl ./staging/ddl
+COPY dados/gerencial ./dados/gerencial
 RUN uv sync --frozen --no-dev
 
 COPY infra/dagster/workspace.yaml ./workspace.yaml

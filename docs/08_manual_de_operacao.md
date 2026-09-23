@@ -195,6 +195,8 @@ bash scripts/esteira.sh
 
 Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de pé), bandit e pip-audit; com docker disponível, também gitleaks e trivy por container. Termina com `ESTEIRA VERDE` ou com a contagem de falhas.
 
+**A esteira prova a venv, não a imagem.** Se a mudança tocou dependência (`pyproject.toml`) ou arquivo que o Dagster lê ao carregar (a DDL, os dados que um asset abre), reconstrua a imagem antes de rodar a esteira: `docker compose up -d --build dagster-web dagster-daemon && bash scripts/saude.sh`. O `test_saude` fala com o container que está de pé; se ele ainda for o da versão anterior, o teste passa e a imagem nova quebra. Foi assim na v0.5.0: a fábrica de assets lia a DDL no import, a imagem não a carregava, e a code location subiu com zero assets.
+
 ## 8. O rito de uma versão
 
 Cada fase fechada vira versão publicável ([ADR-0008](adr/0008-gitflow-por-versao-publicavel.md)). O rito tem

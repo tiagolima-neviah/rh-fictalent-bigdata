@@ -1,6 +1,6 @@
 [project]
 name = "rh-fictalent-bigdata"
-version = "0.4.0"
+version = "0.5.0"
 description = "Pipeline de dados ponta a ponta da Fictalent RH (empresa ficticia, dados sinteticos): relacional modular -> backfill + incremental -> bronze/silver/gold -> multidimensional."
 readme = "README.md"
 requires-python = ">=3.12"

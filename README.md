@@ -68,8 +68,8 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 | v0.2.0 | Fundação segura: Compose, DDL dos 10 módulos na réplica MySQL, trilha de exclusões, DCL, cifra em repouso, dicionário, CI em três trilhos | concluído |
 | v0.3.0 | Orquestração (Dagster: recursos, convenções, primeiro job), logs em JSON, métricas por sensor, Grafana como código, saúde de ponta a ponta | concluído |
 | v0.4.0 | Dado sintético: CAGED e APIs públicas, régua de 165 checks, gerador de 2018 a 2026 e a réplica com 8,4 milhões de linhas | concluído |
-| v0.5.0 | Ingestão: backfill, incremental, exclusões, planilhas | próxima |
-| v0.6.0 | Lake: bronze, auditoria de qualidade, silver com pseudonimização | previsto |
+| v0.5.0 | Ingestão: a bronze em parquet (8,4 milhões de linhas em 162 MB), backfill, carga diária por marca d'água, exclusões como marcação, planilhas com pandera e a réplica em movimento | concluído |
+| v0.6.0 | Lake: auditoria de qualidade, silver com pseudonimização | próxima |
 | v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | previsto |
 | v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | previsto |
 | (outro repositório) | Painel web, Power BI e Tableau Public | previsto |
@@ -80,7 +80,7 @@ O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira oc
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.4.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster com o primeiro job e os sensores de métricas, Grafana com painel e alertas) e **gerar a base sintética da Fictalent**, de 2018 a setembro de 2026:
+O projeto está em construção. Na v0.5.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026 e **ingeri-la na bronze do lake**, com a carga diária rodando sozinha:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
@@ -93,7 +93,7 @@ bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 .venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 165 de 165
 ```
 
-São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
+São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. Depois, o backfill pela interface do Dagster (<http://127.0.0.1:3010>, job `backfill_bronze`, backfill das nove partições) leva a réplica inteira para o lake em cerca de 2 minutos, e a carga incremental das 5h traz só o que mudou; como o dado entra, e quanto custa, está em [Ingestão](docs/11_ingestao.md). O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
 
 ## Qualidade e segurança a cada mudança
 

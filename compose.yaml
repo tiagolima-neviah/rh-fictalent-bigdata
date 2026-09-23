@@ -197,7 +197,7 @@ services:
     build:
       context: .
       dockerfile: infra/dagster/Dockerfile
-    image: fictalent/dagster:0.4.0
+    image: fictalent/dagster:0.5.0
     container_name: fictalent_dagster_web
     command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/app/workspace.yaml"]
     environment: &ambiente_dagster
@@ -236,7 +236,7 @@ services:
 
   dagster-daemon:
     <<: *seguranca
-    image: fictalent/dagster:0.4.0
+    image: fictalent/dagster:0.5.0
     container_name: fictalent_dagster_daemon
     command: ["dagster-daemon", "run", "-w", "/opt/dagster/app/workspace.yaml"]
     environment: *ambiente_dagster
