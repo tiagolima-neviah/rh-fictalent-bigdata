@@ -3,7 +3,7 @@
 # Monitoramento e healthcheck · o que olhar, o que é normal, o que fazer
 
 <!-- nav:start -->
-[Home](../README.md) | [← Manual de Operação](08_manual_de_operacao.md)
+[Home](../README.md) | [← Manual de Operação](08_manual_de_operacao.md) | [Ingestão →](11_ingestao.md)
 <!-- nav:end -->
 
 > Três camadas de pergunta, cada uma com a sua ferramenta: **os containers estão vivos?** (healthcheck do Compose e `scripts/saude.sh`), **o pipeline está funcionando?** (Dagster e o painel do Grafana, alimentado pelas métricas de execução) e **o que aconteceu naquela execução?** (logs em JSON por `run_id`). Este documento diz, para cada indicador, o que é normal, o que é alerta e o que fazer.

@@ -185,6 +185,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | [instalação e reprodução](07_instalacao_e_reproducao.md) | do clone ao pipeline rodando, com requisitos e verificação final |
 | [operação](08_manual_de_operacao.md) | subir, parar, reiniciar um serviço ou todos, reprocessar um dia ou um ano |
 | [monitoramento e healthcheck](09_monitoramento_e_healthcheck.md) | o que cada painel do Grafana mostra, o que é normal, o que é alerta |
+| [ingestão](11_ingestao.md) | as três portas do dado, o backfill, a carga diária, as exclusões, a planilha e os dias correntes, com os tempos |
 | auditoria | onde está cada trilha e como consultar |
 | backup e restauração | dos bancos e do lake, com teste de restauração |
 | solução de problemas | as falhas conhecidas, o sintoma e o remédio |
