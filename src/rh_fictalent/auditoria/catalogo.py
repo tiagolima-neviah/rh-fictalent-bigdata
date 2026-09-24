@@ -24,7 +24,7 @@ o que autoriza a silver (card 6.4) a implementar a regra.
 # ruff: noqa: E501  (módulo de prosa: as duas redações de cada achado são texto corrido)
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 from pathlib import Path
 
@@ -544,6 +544,57 @@ ENTRADAS: list[Entrada] = [
         "a gold deriva o último acesso da trilha, não do campo",
     ),
 ]
+
+
+# A decisão sobre cada entrada, com data. Toda entrada nasce `proposta`; o que está aqui é o que
+# o Tiago decidiu, no papel de cliente do caso. Em 24/09/2026 as 40 foram aprovadas como
+# propostas. As de tratamento `pedir` ficam aprovadas como marcação: a resposta que num cliente
+# real viria de quem opera (a regra do rateio, a definição de headcount, a convenção da hora
+# noturna, se o par é duplicidade) só o gerador conhece aqui, e a auditoria às cegas não o
+# consulta; a silver marca e não inventa a regra, e a gold mostra os dois números lado a lado.
+DECISOES: dict[str, str] = {
+    "CAD-01": "aprovada",  # 24/09/2026
+    "CAD-02": "aprovada",  # 24/09/2026
+    "COM-01": "aprovada",  # 24/09/2026
+    "COM-02": "aprovada",  # 24/09/2026
+    "COM-03": "aprovada",  # 24/09/2026
+    "ATS-01": "aprovada",  # 24/09/2026
+    "ATS-02": "aprovada",  # 24/09/2026
+    "ATS-03": "aprovada",  # 24/09/2026
+    "ATS-04": "aprovada",  # 24/09/2026
+    "ATS-05": "aprovada",  # 24/09/2026
+    "ATS-06": "aprovada",  # 24/09/2026
+    "ATS-07": "aprovada",  # 24/09/2026
+    "ATS-08": "aprovada",  # 24/09/2026
+    "PES-01": "aprovada",  # 24/09/2026
+    "PES-02": "aprovada",  # 24/09/2026
+    "PES-03": "aprovada",  # 24/09/2026
+    "PES-04": "aprovada",  # 24/09/2026
+    "PON-01": "aprovada",  # 24/09/2026
+    "PON-02": "aprovada",  # 24/09/2026
+    "PON-03": "aprovada",  # 24/09/2026
+    "PON-04": "aprovada",  # 24/09/2026
+    "FOL-01": "aprovada",  # 24/09/2026
+    "FOL-02": "aprovada",  # 24/09/2026
+    "FOL-03": "aprovada",  # 24/09/2026
+    "FIN-01": "aprovada",  # 24/09/2026
+    "FIN-02": "aprovada",  # 24/09/2026
+    "FIN-03": "aprovada",  # 24/09/2026
+    "FIN-04": "aprovada",  # 24/09/2026
+    "FIN-05": "aprovada",  # 24/09/2026
+    "FIN-06": "aprovada",  # 24/09/2026
+    "FIN-07": "aprovada",  # 24/09/2026
+    "TSS-01": "aprovada",  # 24/09/2026
+    "TSS-02": "aprovada",  # 24/09/2026
+    "TSS-03": "aprovada",  # 24/09/2026
+    "TSS-04": "aprovada",  # 24/09/2026
+    "TSS-05": "aprovada",  # 24/09/2026
+    "TSS-06": "aprovada",  # 24/09/2026
+    "SEG-01": "aprovada",  # 24/09/2026
+    "SEG-02": "aprovada",  # 24/09/2026
+    "SEG-03": "aprovada",  # 24/09/2026
+}
+ENTRADAS = [replace(e, situacao=DECISOES.get(e.codigo, e.situacao)) for e in ENTRADAS]
 
 
 def registros() -> dict[tuple[str, str], Achado]:

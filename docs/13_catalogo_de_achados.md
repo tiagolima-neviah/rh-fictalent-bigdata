@@ -8,7 +8,7 @@
 
 > **Arquivo gerado** por `python -m rh_fictalent.auditoria --catalogo` a partir de `src/rh_fictalent/auditoria/catalogo.py` (as entradas, com as duas redações e a regra proposta) e de `dados/auditoria/*.json` (os achados que os notebooks gravaram, com linhas, total e fração). Não edite à mão: mude a entrada ou refaça a auditoria e gere de novo. O catálogo é a decisão sobre cada achado: o notebook descobre, o catálogo decide, a silver executa. Toda entrada nasce como **proposta**; a silver só implementa o que estiver **aprovado**, e a aprovação é registrada na própria entrada (`situacao`), com data no log de decisões do projeto.
 
-Estado: **40 achados com severidade** (4 altos, 17 médios, 19 baixos) e **21 registros que dizem o que não se trata**; situação das entradas: 40 proposta.
+Estado: **40 achados com severidade** (4 altos, 17 médios, 19 baixos) e **21 registros que dizem o que não se trata**; situação das entradas: 40 aprovada.
 
 ## 1. Os cinco verbos, e o que a silver nunca faz
 
@@ -35,56 +35,56 @@ O [`docs/02`](02_entendimento_dados.md), seção 11, lista o que o cliente já s
 
 | código | achado | tabela | linhas atingidas | tratamento | situação |
 |---|---|---|---|---|---|
-| [FIN-01](#fin-01) | O consolidado da gerência deixou de bater com a operação | `financeiro.consolidado_gerencial` | 158 de 237 (66,67%) | manter | proposta |
-| [ATS-01](#ats-01) | A mesma pessoa cadastrada mais de uma vez | `ats.candidato` | 2.735 de 60.294 (4,54%) | marcar | proposta |
-| [TSS-01](#tss-01) | Pessoa em campo com ASO vencido | `sst.aso` | 25 de 858 (2,91%) | derivar | proposta |
-| [PES-01](#pes-01) | Temporário além do prazo legal | `pessoas.contrato_trabalho` | 263 de 15.064 (1,75%) | derivar | proposta |
+| [FIN-01](#fin-01) | O consolidado da gerência deixou de bater com a operação | `financeiro.consolidado_gerencial` | 158 de 237 (66,67%) | manter | aprovada |
+| [ATS-01](#ats-01) | A mesma pessoa cadastrada mais de uma vez | `ats.candidato` | 2.735 de 60.294 (4,54%) | marcar | aprovada |
+| [TSS-01](#tss-01) | Pessoa em campo com ASO vencido | `sst.aso` | 25 de 858 (2,91%) | derivar | aprovada |
+| [PES-01](#pes-01) | Temporário além do prazo legal | `pessoas.contrato_trabalho` | 263 de 15.064 (1,75%) | derivar | aprovada |
 
 ### Severidade média
 
 | código | achado | tabela | linhas atingidas | tratamento | situação |
 |---|---|---|---|---|---|
-| [FIN-02](#fin-02) | Headcount e vagas do consolidado sem definição | `financeiro.consolidado_gerencial` | 220 de 237 (92,83%) | pedir | proposta |
-| [FOL-01](#fol-01) | O rateio não fecha com a folha | `folha.rateio_custo` | 39.104 de 63.445 (61,63%) | pedir | proposta |
-| [TSS-03](#tss-03) | CAT fora do prazo | `sst.cat` | 48 de 99 (48,48%) | derivar | proposta |
-| [CAD-01](#cad-01) | Funções sem o código de ocupação | `cadastro.funcao` | 17 de 45 (37,78%) | pedir | proposta |
-| [TSS-04](#tss-04) | Programa legal vencido em contrato ativo | `sst.programa_sst` | 5 de 41 (12,20%) | derivar | proposta |
-| [PES-02](#pes-02) | Admissão lançada depois do fato | `pessoas.contrato_trabalho` | 1.621 de 16.992 (9,54%) | derivar | proposta |
-| [PES-03](#pes-03) | Temporário sem data prevista de término | `pessoas.contrato_trabalho` | 1.281 de 15.064 (8,50%) | derivar | proposta |
-| [SEG-01](#seg-01) | Ação sem permissão vigente | `seguranca.log_auditoria` | 4.092 de 111.406 (3,67%) | marcar | proposta |
-| [PON-01](#pon-01) | A batida que falta | `ponto.marcacao` | 26.900 de 1.080.569 (2,49%) | marcar | proposta |
-| [ATS-05](#ats-05) | Nome escrito de vários jeitos | `ats.candidato` | 1.333 de 60.294 (2,21%) | conformar | proposta |
-| [FIN-03](#fin-03) | Fatura depois do fim do contrato | `financeiro.fatura` | 42 de 3.459 (1,21%) | marcar | proposta |
-| [TSS-02](#tss-02) | Admissional depois da admissão | `sst.aso` | 155 de 16.992 (0,91%) | derivar | proposta |
-| [COM-01](#com-01) | Contrato vencido que continua ativo | `comercial.contrato` | 1 de 128 (0,78%) | derivar | proposta |
-| [ATS-03](#ats-03) | CPF inválido | `ats.candidato` | 457 de 59.999 (0,76%) | marcar | proposta |
-| [ATS-02](#ats-02) | Mesmo nome e nascimento, CPFs diferentes | `ats.candidato` | 181 de 60.294 (0,30%) | pedir | proposta |
-| [PON-02](#pon-02) | A batida repetida | `ponto.marcacao` | 12.736 de 4.300.719 (0,30%) | marcar | proposta |
-| [ATS-04](#ats-04) | Data de nascimento impossível | `ats.candidato` | 94 de 60.294 (0,16%) | marcar | proposta |
+| [FIN-02](#fin-02) | Headcount e vagas do consolidado sem definição | `financeiro.consolidado_gerencial` | 220 de 237 (92,83%) | pedir | aprovada |
+| [FOL-01](#fol-01) | O rateio não fecha com a folha | `folha.rateio_custo` | 39.104 de 63.445 (61,63%) | pedir | aprovada |
+| [TSS-03](#tss-03) | CAT fora do prazo | `sst.cat` | 48 de 99 (48,48%) | derivar | aprovada |
+| [CAD-01](#cad-01) | Funções sem o código de ocupação | `cadastro.funcao` | 17 de 45 (37,78%) | pedir | aprovada |
+| [TSS-04](#tss-04) | Programa legal vencido em contrato ativo | `sst.programa_sst` | 5 de 41 (12,20%) | derivar | aprovada |
+| [PES-02](#pes-02) | Admissão lançada depois do fato | `pessoas.contrato_trabalho` | 1.621 de 16.992 (9,54%) | derivar | aprovada |
+| [PES-03](#pes-03) | Temporário sem data prevista de término | `pessoas.contrato_trabalho` | 1.281 de 15.064 (8,50%) | derivar | aprovada |
+| [SEG-01](#seg-01) | Ação sem permissão vigente | `seguranca.log_auditoria` | 4.092 de 111.406 (3,67%) | marcar | aprovada |
+| [PON-01](#pon-01) | A batida que falta | `ponto.marcacao` | 26.900 de 1.080.569 (2,49%) | marcar | aprovada |
+| [ATS-05](#ats-05) | Nome escrito de vários jeitos | `ats.candidato` | 1.333 de 60.294 (2,21%) | conformar | aprovada |
+| [FIN-03](#fin-03) | Fatura depois do fim do contrato | `financeiro.fatura` | 42 de 3.459 (1,21%) | marcar | aprovada |
+| [TSS-02](#tss-02) | Admissional depois da admissão | `sst.aso` | 155 de 16.992 (0,91%) | derivar | aprovada |
+| [COM-01](#com-01) | Contrato vencido que continua ativo | `comercial.contrato` | 1 de 128 (0,78%) | derivar | aprovada |
+| [ATS-03](#ats-03) | CPF inválido | `ats.candidato` | 457 de 59.999 (0,76%) | marcar | aprovada |
+| [ATS-02](#ats-02) | Mesmo nome e nascimento, CPFs diferentes | `ats.candidato` | 181 de 60.294 (0,30%) | pedir | aprovada |
+| [PON-02](#pon-02) | A batida repetida | `ponto.marcacao` | 12.736 de 4.300.719 (0,30%) | marcar | aprovada |
+| [ATS-04](#ats-04) | Data de nascimento impossível | `ats.candidato` | 94 de 60.294 (0,16%) | marcar | aprovada |
 
 ### Severidade baixa
 
 | código | achado | tabela | linhas atingidas | tratamento | situação |
 |---|---|---|---|---|---|
-| [ATS-07](#ats-07) | Telefone que não identifica a pessoa | `ats.candidato` | 60.294 de 60.294 (100,00%) | manter | proposta |
-| [CAD-02](#cad-02) | Complemento de endereço que ninguém preenche | `cadastro.endereco` | 15.721 de 15.721 (100,00%) | manter | proposta |
-| [SEG-02](#seg-02) | Usuário sem colaborador | `seguranca.usuario` | 40 de 40 (100,00%) | manter | proposta |
-| [TSS-05](#tss-05) | Turmas que podem ser a mesma turma | `treinamento.turma` | 192 de 5.411 (3,55%) | pedir | proposta |
-| [PES-04](#pes-04) | Afastamentos sobrepostos | `pessoas.afastamento` | 37 de 1.058 (3,50%) | marcar | proposta |
-| [COM-02](#com-02) | Postos que podem ser o mesmo posto | `comercial.posto` | 8 de 694 (1,15%) | pedir | proposta |
-| [FIN-05](#fin-05) | Valor pago diferente do título | `financeiro.titulo_receber` | 37 de 3.459 (1,07%) | derivar | proposta |
-| [TSS-06](#tss-06) | Curso obrigatório sem certificado válido | `treinamento.certificado` | 17 de 1.763 (0,96%) | derivar | proposta |
-| [ATS-08](#ats-08) | Experiência antes dos 14 anos | `ats.candidato_experiencia` | 667 de 71.668 (0,93%) | marcar | proposta |
-| [PON-03](#pon-03) | Horas noturnas acima das trabalhadas | `ponto.apontamento` | 6.269 de 1.166.361 (0,54%) | pedir | proposta |
-| [ATS-06](#ats-06) | Candidato sem CPF | `ats.candidato` | 295 de 60.294 (0,49%) | marcar | proposta |
-| [FIN-04](#fin-04) | Título vencido que continua aberto | `financeiro.titulo_receber` | 5 de 3.459 (0,14%) | derivar | proposta |
-| [FIN-06](#fin-06) | Alocação sem faturamento | `financeiro.fatura_item` | 4 de 4.678 (0,09%) | marcar | proposta |
-| [COM-03](#com-03) | Reclamação depois do fim do contrato | `comercial.contrato_ocorrencia` | 1 de 1.321 (0,08%) | marcar | proposta |
-| [PON-04](#pon-04) | A batida solta | `ponto.marcacao` | 292 de 1.080.569 (0,03%) | marcar | proposta |
-| [FIN-07](#fin-07) | Item de fatura que não fecha | `financeiro.fatura_item` | 1 de 9.116 (0,01%) | marcar | proposta |
-| [FOL-02](#fol-02) | Provisão que não encadeia | `folha.provisao` | 9 de 146.926 (0,01%) | marcar | proposta |
-| [FOL-03](#fol-03) | Rateio zerado | `folha.rateio_custo` | 7 de 63.470 (0,01%) | marcar | proposta |
-| [SEG-03](#seg-03) | Último acesso desatualizado | `seguranca.log_auditoria` | 9 de 146.520 (0,01%) | manter | proposta |
+| [ATS-07](#ats-07) | Telefone que não identifica a pessoa | `ats.candidato` | 60.294 de 60.294 (100,00%) | manter | aprovada |
+| [CAD-02](#cad-02) | Complemento de endereço que ninguém preenche | `cadastro.endereco` | 15.721 de 15.721 (100,00%) | manter | aprovada |
+| [SEG-02](#seg-02) | Usuário sem colaborador | `seguranca.usuario` | 40 de 40 (100,00%) | manter | aprovada |
+| [TSS-05](#tss-05) | Turmas que podem ser a mesma turma | `treinamento.turma` | 192 de 5.411 (3,55%) | pedir | aprovada |
+| [PES-04](#pes-04) | Afastamentos sobrepostos | `pessoas.afastamento` | 37 de 1.058 (3,50%) | marcar | aprovada |
+| [COM-02](#com-02) | Postos que podem ser o mesmo posto | `comercial.posto` | 8 de 694 (1,15%) | pedir | aprovada |
+| [FIN-05](#fin-05) | Valor pago diferente do título | `financeiro.titulo_receber` | 37 de 3.459 (1,07%) | derivar | aprovada |
+| [TSS-06](#tss-06) | Curso obrigatório sem certificado válido | `treinamento.certificado` | 17 de 1.763 (0,96%) | derivar | aprovada |
+| [ATS-08](#ats-08) | Experiência antes dos 14 anos | `ats.candidato_experiencia` | 667 de 71.668 (0,93%) | marcar | aprovada |
+| [PON-03](#pon-03) | Horas noturnas acima das trabalhadas | `ponto.apontamento` | 6.269 de 1.166.361 (0,54%) | pedir | aprovada |
+| [ATS-06](#ats-06) | Candidato sem CPF | `ats.candidato` | 295 de 60.294 (0,49%) | marcar | aprovada |
+| [FIN-04](#fin-04) | Título vencido que continua aberto | `financeiro.titulo_receber` | 5 de 3.459 (0,14%) | derivar | aprovada |
+| [FIN-06](#fin-06) | Alocação sem faturamento | `financeiro.fatura_item` | 4 de 4.678 (0,09%) | marcar | aprovada |
+| [COM-03](#com-03) | Reclamação depois do fim do contrato | `comercial.contrato_ocorrencia` | 1 de 1.321 (0,08%) | marcar | aprovada |
+| [PON-04](#pon-04) | A batida solta | `ponto.marcacao` | 292 de 1.080.569 (0,03%) | marcar | aprovada |
+| [FIN-07](#fin-07) | Item de fatura que não fecha | `financeiro.fatura_item` | 1 de 9.116 (0,01%) | marcar | aprovada |
+| [FOL-02](#fol-02) | Provisão que não encadeia | `folha.provisao` | 9 de 146.926 (0,01%) | marcar | aprovada |
+| [FOL-03](#fol-03) | Rateio zerado | `folha.rateio_custo` | 7 de 63.470 (0,01%) | marcar | aprovada |
+| [SEG-03](#seg-03) | Último acesso desatualizado | `seguranca.log_auditoria` | 9 de 146.520 (0,01%) | manter | aprovada |
 
 ## 4. Os achados, um a um
 
@@ -104,7 +104,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** marcar `q_cad_01` nas funções sem CBO; não preencher; quando o cliente enviar os códigos, eles entram pela réplica, não pela silver.
 
-**Correção na origem:** sim: informar o CBO das funções sem código no cadastro do sistema. **Situação:** proposta.
+**Correção na origem:** sim: informar o CBO das funções sem código no cadastro do sistema. **Situação:** aprovada.
 
 <a id="cad-02"></a>
 
@@ -118,7 +118,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (manter):** a silver mantém a coluna como está e a documenta como não coletada; o modelo dimensional não a leva até que passe a ser preenchida.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 ### comercial
 
@@ -134,7 +134,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `situacao_derivada` (vigente, vencido, encerrado) das datas e dos aditivos, preserva `status` e marca `q_com_01` onde os dois discordam.
 
-**Correção na origem:** sim: encerrar ou prorrogar o contrato vencido no sistema. **Situação:** proposta.
+**Correção na origem:** sim: encerrar ou prorrogar o contrato vencido no sistema. **Situação:** aprovada.
 
 <a id="com-02"></a>
 
@@ -148,7 +148,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** marcar `q_com_02` nos dois postos de cada par; nunca fundir.
 
-**Correção na origem:** sim: confirmar, par a par, se são postos distintos ou duplicidade. **Situação:** proposta.
+**Correção na origem:** sim: confirmar, par a par, se são postos distintos ou duplicidade. **Situação:** aprovada.
 
 <a id="com-03"></a>
 
@@ -162,7 +162,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_com_03`; o indicador de SLA da gold considera a ocorrência no último mês vigente do contrato.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 ### ats
 
@@ -178,7 +178,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** a silver marca `q_ats_01`, atribui `grupo_pessoa` (o CPF) a todos os cadastros do grupo e elege o cadastro canônico (o mais antigo com CPF válido) em `cadastro_canonico`; nunca funde.
 
-**Correção na origem:** sim: a tela de cadastro passa a buscar por CPF antes de criar; os grupos existentes são unificados por quem tem autoridade sobre o cadastro. **Situação:** proposta.
+**Correção na origem:** sim: a tela de cadastro passa a buscar por CPF antes de criar; os grupos existentes são unificados por quem tem autoridade sobre o cadastro. **Situação:** aprovada.
 
 <a id="ats-02"></a>
 
@@ -192,7 +192,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** marcar `q_ats_02` como duplicidade provável, sem grupo; a conferência é do cliente.
 
-**Correção na origem:** sim: conferir cada par com documento em mãos. **Situação:** proposta.
+**Correção na origem:** sim: conferir cada par com documento em mãos. **Situação:** aprovada.
 
 <a id="ats-03"></a>
 
@@ -206,7 +206,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_ats_03`; o valor fica como está (é evidência), e o CPF marcado não participa de `grupo_pessoa`.
 
-**Correção na origem:** sim: validar o dígito na tela de cadastro; corrigir os existentes. **Situação:** proposta.
+**Correção na origem:** sim: validar o dígito na tela de cadastro; corrigir os existentes. **Situação:** aprovada.
 
 <a id="ats-04"></a>
 
@@ -220,7 +220,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_ats_04`; o valor fica; a gold trata a idade como desconhecida onde a marca é verdadeira.
 
-**Correção na origem:** sim: validar a faixa de nascimento na tela; corrigir os existentes. **Situação:** proposta.
+**Correção na origem:** sim: validar a faixa de nascimento na tela; corrigir os existentes. **Situação:** aprovada.
 
 <a id="ats-05"></a>
 
@@ -234,7 +234,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (conformar):** a silver grava `nome_conformado` (caixa de título, espaços normalizados, sem abreviar o que não dá para expandir) e mantém `nome` como veio; a busca e o rótulo usam o conformado.
 
-**Correção na origem:** sim: a tela de cadastro padroniza a caixa ao salvar. **Situação:** proposta.
+**Correção na origem:** sim: a tela de cadastro padroniza a caixa ao salvar. **Situação:** aprovada.
 
 <a id="ats-06"></a>
 
@@ -248,7 +248,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_ats_06`; o cadastro sem CPF entra em `grupo_pessoa` só por nome e nascimento.
 
-**Correção na origem:** sim: completar o CPF na admissão. **Situação:** proposta.
+**Correção na origem:** sim: completar o CPF na admissão. **Situação:** aprovada.
 
 <a id="ats-07"></a>
 
@@ -262,7 +262,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (manter):** a silver não usa o telefone como chave nem como contato; documenta o achado.
 
-**Correção na origem:** sim: avaliar como o campo é preenchido no cadastro. **Situação:** proposta.
+**Correção na origem:** sim: avaliar como o campo é preenchido no cadastro. **Situação:** aprovada.
 
 <a id="ats-08"></a>
 
@@ -276,7 +276,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_ats_08`; a gold não conta a experiência marcada na senioridade.
 
-**Correção na origem:** sim: conferir a data da experiência ou o nascimento. **Situação:** proposta.
+**Correção na origem:** sim: conferir a data da experiência ou o nascimento. **Situação:** aprovada.
 
 ### pessoas
 
@@ -292,7 +292,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `dias_de_vinculo` e `dias_alem_do_prazo` (considerando prorrogações), marca `q_pes_01` e o alerta vai para o painel; o dado não muda.
 
-**Correção na origem:** sim: regularizar os contratos ativos (prorrogação ou encerramento) e criar o alerta de prazo no processo. **Situação:** proposta.
+**Correção na origem:** sim: regularizar os contratos ativos (prorrogação ou encerramento) e criar o alerta de prazo no processo. **Situação:** aprovada.
 
 <a id="pes-02"></a>
 
@@ -306,7 +306,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `dias_de_atraso_do_lancamento` e marca `q_pes_02`; a gold usa `dt_admissao` como fato e expõe a série de atraso por ano.
 
-**Correção na origem:** sim: lançar a admissão no dia; a série por ano mede o processo. **Situação:** proposta.
+**Correção na origem:** sim: lançar a admissão no dia; a série por ano mede o processo. **Situação:** aprovada.
 
 <a id="pes-03"></a>
 
@@ -320,7 +320,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver grava `dt_prevista_termino_derivada` (admissão mais o prazo legal) e marca `q_pes_03` onde foi derivada; a coluna original fica nula.
 
-**Correção na origem:** sim: exigir a data prevista na admissão do temporário. **Situação:** proposta.
+**Correção na origem:** sim: exigir a data prevista na admissão do temporário. **Situação:** aprovada.
 
 <a id="pes-04"></a>
 
@@ -334,7 +334,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_pes_04` nos dois afastamentos do par; a gold conta o dia uma vez.
 
-**Correção na origem:** sim: decidir qual afastamento prevalece. **Situação:** proposta.
+**Correção na origem:** sim: decidir qual afastamento prevalece. **Situação:** aprovada.
 
 ### ponto
 
@@ -350,7 +350,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** a silver marca `q_pon_01` no dia (na tabela de apontamento) e não infere a batida ausente; o cálculo de horas usa o apontamento, que já existe.
 
-**Correção na origem:** sim: o relógio ou o aplicativo avisa a batida que falta no fim do dia. **Situação:** proposta.
+**Correção na origem:** sim: o relógio ou o aplicativo avisa a batida que falta no fim do dia. **Situação:** aprovada.
 
 <a id="pon-02"></a>
 
@@ -364,7 +364,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** a silver marca `q_pon_02` na batida repetida e elege a primeira do tipo no dia como válida em `batida_valida`; nada é apagado.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 <a id="pon-03"></a>
 
@@ -378,7 +378,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** marcar `q_pon_03`; não recalcular.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 <a id="pon-04"></a>
 
@@ -392,7 +392,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_pon_04`; a gold ignora a batida marcada.
 
-**Correção na origem:** sim: decidir se descarta na origem. **Situação:** proposta.
+**Correção na origem:** sim: decidir se descarta na origem. **Situação:** aprovada.
 
 ### folha
 
@@ -408,7 +408,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** a silver grava `diferenca_rateio_folha` por pessoa-mês e marca `q_fol_01`; não corrige o rateio.
 
-**Correção na origem:** sim: dizer qual é a regra do rateio (o que entra no salário rateado e como se divide entre alocações). **Situação:** proposta.
+**Correção na origem:** sim: dizer qual é a regra do rateio (o que entra no salário rateado e como se divide entre alocações). **Situação:** aprovada.
 
 <a id="fol-02"></a>
 
@@ -422,7 +422,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_fol_02`.
 
-**Correção na origem:** sim: explicar a baixa ou o reinício. **Situação:** proposta.
+**Correção na origem:** sim: explicar a baixa ou o reinício. **Situação:** aprovada.
 
 <a id="fol-03"></a>
 
@@ -436,7 +436,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_fol_03`.
 
-**Correção na origem:** sim: conferir os rateios zerados. **Situação:** proposta.
+**Correção na origem:** sim: conferir os rateios zerados. **Situação:** aprovada.
 
 ### financeiro
 
@@ -452,7 +452,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (manter):** a gold usa a operação como fonte da verdade para faturamento e custo e guarda o consolidado como série informada, lado a lado, com a diferença por mês e filial.
 
-**Correção na origem:** sim: decidir a fonte da verdade e o destino da planilha de fechamento. **Situação:** proposta.
+**Correção na origem:** sim: decidir a fonte da verdade e o destino da planilha de fechamento. **Situação:** aprovada.
 
 <a id="fin-02"></a>
 
@@ -466,7 +466,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** a gold reporta os dois números com a origem de cada um; nada na silver.
 
-**Correção na origem:** sim: escrever a definição de headcount e de vaga aberta usada no fechamento. **Situação:** proposta.
+**Correção na origem:** sim: escrever a definição de headcount e de vaga aberta usada no fechamento. **Situação:** aprovada.
 
 <a id="fin-03"></a>
 
@@ -480,7 +480,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_fin_03`; a gold atribui a receita ao último mês vigente até o cliente dizer qual data está certa.
 
-**Correção na origem:** sim: dizer qual data está certa, a da fatura ou a do encerramento. **Situação:** proposta.
+**Correção na origem:** sim: dizer qual data está certa, a da fatura ou a do encerramento. **Situação:** aprovada.
 
 <a id="fin-04"></a>
 
@@ -494,7 +494,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `situacao_derivada` do título (em dia, vencido, pago em dia, pago com atraso) das datas e preserva `status`.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 <a id="fin-05"></a>
 
@@ -508,7 +508,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver grava `diferenca_pagamento` (pago menos devido) e marca `q_fin_05`.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 <a id="fin-06"></a>
 
@@ -522,7 +522,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_fin_06` no posto-mês.
 
-**Correção na origem:** sim: conferir o faturamento desses postos. **Situação:** proposta.
+**Correção na origem:** sim: conferir o faturamento desses postos. **Situação:** aprovada.
 
 <a id="fin-07"></a>
 
@@ -536,7 +536,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_fin_07`.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 ### treinamento e sst
 
@@ -552,7 +552,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva, por pessoa e dia, `aso_valido` e `dias_para_vencer`; marca `q_tss_01` onde a pessoa está alocada sem exame válido; o painel alerta com 30 dias de antecedência.
 
-**Correção na origem:** sim: renovar os exames vencidos e criar o alerta de vencimento no processo. **Situação:** proposta.
+**Correção na origem:** sim: renovar os exames vencidos e criar o alerta de vencimento no processo. **Situação:** aprovada.
 
 <a id="tss-02"></a>
 
@@ -566,7 +566,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `dias_de_atraso_do_admissional` e marca `q_tss_02`.
 
-**Correção na origem:** sim: o exame passa a ser condição da admissão no processo. **Situação:** proposta.
+**Correção na origem:** sim: o exame passa a ser condição da admissão no processo. **Situação:** aprovada.
 
 <a id="tss-03"></a>
 
@@ -580,7 +580,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `dias_alem_do_prazo_da_cat` e marca `q_tss_03`.
 
-**Correção na origem:** sim: emitir a CAT no primeiro dia útil. **Situação:** proposta.
+**Correção na origem:** sim: emitir a CAT no primeiro dia útil. **Situação:** aprovada.
 
 <a id="tss-04"></a>
 
@@ -594,7 +594,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `programa_vigente` por contrato e tipo e marca `q_tss_04`; o painel alerta.
 
-**Correção na origem:** sim: renovar os programas vencidos. **Situação:** proposta.
+**Correção na origem:** sim: renovar os programas vencidos. **Situação:** aprovada.
 
 <a id="tss-05"></a>
 
@@ -608,7 +608,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (pedir):** marcar `q_tss_05`; nunca fundir.
 
-**Correção na origem:** sim: confirmar se são turmas paralelas. **Situação:** proposta.
+**Correção na origem:** sim: confirmar se são turmas paralelas. **Situação:** aprovada.
 
 <a id="tss-06"></a>
 
@@ -622,7 +622,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (derivar):** a silver deriva `certificado_valido` por pessoa e curso obrigatório e marca `q_tss_06`; o painel alerta.
 
-**Correção na origem:** sim: treinar quem está descoberto. **Situação:** proposta.
+**Correção na origem:** sim: treinar quem está descoberto. **Situação:** aprovada.
 
 ### segurança
 
@@ -638,7 +638,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (marcar):** marcar `q_seg_01`; a auditoria de acesso da v1.0.0 lista por usuário e perfil.
 
-**Correção na origem:** sim: explicar os casos e revisar o controle de acesso. **Situação:** proposta.
+**Correção na origem:** sim: explicar os casos e revisar o controle de acesso. **Situação:** aprovada.
 
 <a id="seg-02"></a>
 
@@ -652,7 +652,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (manter):** nada na silver; a auditoria de acesso usa o login; a modelagem da retaguarda é decisão do cliente.
 
-**Correção na origem:** sim: modelar a retaguarda como colaborador, ou aceitar e documentar. **Situação:** proposta.
+**Correção na origem:** sim: modelar a retaguarda como colaborador, ou aceitar e documentar. **Situação:** aprovada.
 
 <a id="seg-03"></a>
 
@@ -666,7 +666,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Regra proposta (manter):** a gold deriva o último acesso da trilha, não do campo.
 
-**Correção na origem:** não. **Situação:** proposta.
+**Correção na origem:** não. **Situação:** aprovada.
 
 ## 5. O que não se trata
 
