@@ -140,6 +140,7 @@ rh-fictalent-bigdata/
 - [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa, a geração da base sintética e o aceite; atualizar, recomeçar, desinstalar.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
+- [Bibliografia](docs/bibliografia.md): o que ler, fase a fase e card a card, com livro e capítulo, dizendo o que está no acervo e o que ainda não; confirmado para o que já foi construído, plano para o que vem.
 
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma; Dagster, logs, métricas e a chave de cifra.
 - [09 · Monitoramento e Healthcheck](docs/09_monitoramento_e_healthcheck.md): as três camadas, o painel indicador a indicador, os alertas, como investigar uma execução e a rotina.
