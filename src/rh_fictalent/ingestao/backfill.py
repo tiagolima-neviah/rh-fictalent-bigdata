@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
 import pyarrow as pa
@@ -71,11 +71,25 @@ def identificador(nome: str) -> str:
     return f"`{nome}`"
 
 
-def _tipo_arrow(tipo: str, coluna: str, precisao: int | None, escala: int | None) -> pa.DataType:
-    """O tipo do MySQL vira o tipo do parquet, declarado, nunca inferido."""
-    if tipo in ("tinyint", "bool", "boolean"):
-        return pa.bool_()  # a DDL usa BOOLEAN, que o MySQL guarda como TINYINT(1)
-    if tipo in ("smallint", "mediumint", "int", "integer", "bigint"):
+def _tipo_arrow(
+    tipo: str,
+    coluna: str,
+    precisao: int | None,
+    escala: int | None,
+    tipo_completo: str = "",
+) -> pa.DataType:
+    """O tipo do MySQL vira o tipo do parquet, declarado, nunca inferido.
+
+    `tipo` é o `data_type` do information_schema; `tipo_completo` é o `column_type`, que é
+    o único lugar em que o MySQL distingue o BOOLEAN da DDL (guardado como `tinyint(1)`)
+    de um TINYINT que conta dias ou parcelas. A auditoria da v0.6.0 achou quatro
+    colunas inteiras copiadas como booleano por este mapeamento não olhar a largura.
+    """
+    if tipo in ("bool", "boolean") or (
+        tipo == "tinyint" and tipo_completo.startswith("tinyint(1)")
+    ):
+        return pa.bool_()
+    if tipo in ("tinyint", "smallint", "mediumint", "int", "integer", "bigint"):
         return pa.int64()
     if tipo == "decimal":
         return pa.decimal128(precisao or 38, escala or 0)
@@ -86,7 +100,7 @@ def _tipo_arrow(tipo: str, coluna: str, precisao: int | None, escala: int | None
     if tipo in ("datetime", "timestamp"):
         return pa.timestamp("us")
     if tipo == "time":
-        return pa.duration("us")
+        return pa.time64("us")  # hora do dia; duração viraria BIGINT no parquet lido pelo DuckDB
     if tipo in ("char", "varchar", "text", "tinytext", "mediumtext", "longtext", "json", "enum"):
         return pa.string()
     if tipo in ("binary", "varbinary", "blob", "tinyblob", "mediumblob", "longblob"):
@@ -98,8 +112,9 @@ def esquema(con: pymysql.connections.Connection[Any], modulo: str, tabela: str) 
     """O esquema do parquet, tirado do information_schema: a bronze copia o tipo, não o adivinha."""
     with con.cursor() as cur:
         cur.execute(
-            "SELECT column_name, data_type, numeric_precision, numeric_scale, is_nullable "
-            "FROM information_schema.columns WHERE table_schema = %s AND table_name = %s "
+            "SELECT column_name, data_type, numeric_precision, numeric_scale, is_nullable, "
+            "column_type FROM information_schema.columns "
+            "WHERE table_schema = %s AND table_name = %s "
             "ORDER BY ordinal_position",
             (modulo, tabela),
         )
@@ -110,10 +125,10 @@ def esquema(con: pymysql.connections.Connection[Any], modulo: str, tabela: str) 
         [
             pa.field(
                 str(nome),
-                _tipo_arrow(str(tipo), str(nome), precisao, escala),
+                _tipo_arrow(str(tipo), str(nome), precisao, escala, str(completo)),
                 nullable=anulavel == "YES",
             )
-            for nome, tipo, precisao, escala, anulavel in colunas
+            for nome, tipo, precisao, escala, anulavel, completo in colunas
         ]
     )
 
@@ -123,6 +138,10 @@ def _coluna(valores: tuple[Any, ...], campo: pa.Field) -> pa.Array:
     (é um TINYINT(1) no fio), e o Arrow não aceita inteiro onde o esquema diz booleano."""
     if pa.types.is_boolean(campo.type):
         valores = tuple(None if v is None else bool(v) for v in valores)
+    if pa.types.is_time(campo.type):
+        # o driver devolve TIME como timedelta; o Arrow quer time. A auditoria da v0.6.0 achou
+        # a hora da marcação gravada como duração, que o DuckDB lê como inteiro de microssegundos.
+        valores = tuple(None if v is None else (datetime.min + v).time() for v in valores)
     try:
         return pa.array(valores, type=campo.type)
     except pa.ArrowInvalid as erro:  # pragma: no cover - rede de segurança com nome da coluna

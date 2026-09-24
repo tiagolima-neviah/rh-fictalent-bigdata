@@ -1,0 +1,71 @@
+{
+  "dominio": "seguranca",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "seguranca",
+      "secao": "4",
+      "tabela": "seguranca.usuario",
+      "coluna": "colaborador_id",
+      "achado": "usuário sem vínculo com a tabela de colaboradores (a retaguarda não está modelada como colaborador)",
+      "linhas": 40,
+      "total": 40,
+      "severidade": "baixa",
+      "impacto": "a trilha diz o login mas não diz quem é a pessoa, em que setor e filial está e se ainda trabalha na empresa",
+      "acao": "modelar a retaguarda como colaborador, ou aceitar e documentar",
+      "declaracao": ""
+    },
+    {
+      "dominio": "seguranca",
+      "secao": "7",
+      "tabela": "seguranca.log_auditoria",
+      "coluna": "modulo, tabela, registro_id, dt_evento",
+      "achado": "hipótese refutada: todo registro nomeado pela trilha existe, todo CRIAR bate com o carimbo de criação e nenhum EDITAR é posterior à última atualização",
+      "linhas": 0,
+      "total": 87015,
+      "severidade": "nenhuma",
+      "impacto": "a trilha é fiel às tabelas que descreve e pode ser usada como prova",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "seguranca",
+      "secao": "7",
+      "tabela": "seguranca.log_auditoria",
+      "coluna": "usuario_id, modulo, acao, dt_evento",
+      "achado": "ação registrada na trilha sem permissão vigente do perfil do usuário naquele dia (a maioria exportações)",
+      "linhas": 4092,
+      "total": 111406,
+      "severidade": "media",
+      "impacto": "ou o controle de acesso do sistema falha, ou o perfil foi concedido depois do fato; a exportação é o caso sensível pela LGPD",
+      "acao": "a silver marca o evento; a auditoria de acesso lista por usuário; o cliente explica",
+      "declaracao": ""
+    },
+    {
+      "dominio": "seguranca",
+      "secao": "8",
+      "tabela": "seguranca.log_auditoria",
+      "coluna": "dt_evento, usuario.ultimo_acesso",
+      "achado": "evento posterior ao último acesso registrado do usuário",
+      "linhas": 9,
+      "total": 146520,
+      "severidade": "baixa",
+      "impacto": "o último acesso não é confiável como indicador de atividade",
+      "acao": "marcar; usar a trilha, não o campo, para saber quando o usuário acessou",
+      "declaracao": ""
+    },
+    {
+      "dominio": "seguranca",
+      "secao": "10",
+      "tabela": "seguranca.log_auditoria",
+      "coluna": "acao = EXPORTAR",
+      "achado": "exportações de dado pessoal crescendo em número e em peso (de 11.74% para 24.64% dos eventos), concentradas no perfil de assistente",
+      "linhas": 24391,
+      "total": 146520,
+      "severidade": "nenhuma",
+      "impacto": "não é defeito de dado: é o retrato de uma operação que vive de planilha, e a saída de dado pessoal que a LGPD manda monitorar",
+      "acao": "indicador de exportações por usuário e perfil no painel de auditoria de acesso da v1.0.0",
+      "declaracao": ""
+    }
+  ]
+}

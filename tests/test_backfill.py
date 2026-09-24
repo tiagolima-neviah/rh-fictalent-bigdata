@@ -87,11 +87,15 @@ def test_nome_de_tabela_nunca_vira_sql_sem_conferencia() -> None:
 
 def test_o_tipo_do_mysql_vira_o_tipo_declarado_do_parquet() -> None:
     assert backfill._tipo_arrow("bigint", "id", None, None) == pa.int64()
-    assert backfill._tipo_arrow("tinyint", "ativo", 3, 0) == pa.bool_()
+    # o BOOLEAN da DDL é tinyint(1) no MySQL; um TINYINT UNSIGNED que conta dias é inteiro
+    assert backfill._tipo_arrow("tinyint", "ativo", 3, 0, "tinyint(1)") == pa.bool_()
+    assert backfill._tipo_arrow("tinyint", "dias_ciclo", 3, 0, "tinyint unsigned") == pa.int64()
+    assert backfill._tipo_arrow("tinyint", "ordem", 3, 0) == pa.int64()
     assert backfill._tipo_arrow("decimal", "valor", 14, 2) == pa.decimal128(14, 2)
     assert backfill._tipo_arrow("date", "dt", None, None) == pa.date32()
     assert backfill._tipo_arrow("datetime", "criado_em", None, None) == pa.timestamp("us")
     assert backfill._tipo_arrow("json", "valor_novo", None, None) == pa.string()
+    assert backfill._tipo_arrow("time", "hora", None, None) == pa.time64("us")
     with pytest.raises(ValueError, match="sem correspondência"):
         backfill._tipo_arrow("geometry", "area", None, None)
 
@@ -103,6 +107,15 @@ def test_booleano_do_mysql_chega_como_inteiro_e_vira_booleano() -> None:
     assert backfill._coluna((1, None), numero).to_pylist() == [1, None]
     with pytest.raises(ValueError, match="coluna id"):
         backfill._coluna(("nao é número",), numero)
+
+
+def test_time_do_mysql_chega_como_timedelta_e_vira_hora() -> None:
+    from datetime import time, timedelta
+
+    campo = pa.field("hora", pa.time64("us"))
+    coluna = backfill._coluna((timedelta(hours=8, minutes=30), None), campo)
+    assert coluna.type == pa.time64("us")
+    assert coluna.to_pylist() == [time(8, 30), None]
 
 
 def test_o_esquema_do_parquet_e_o_da_ddl(plataforma: tuple[Replica, Lake]) -> None:
