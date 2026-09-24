@@ -1,0 +1,71 @@
+{
+  "dominio": "folha",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "folha",
+      "secao": "4",
+      "tabela": "folha.folha_competencia",
+      "coluna": "id (sem item)",
+      "achado": "folhas sem item: os três primeiros meses das filiais recém-abertas e as folhas abertas do mês corrente (regra, não defeito)",
+      "linhas": 0,
+      "total": 246,
+      "severidade": "nenhuma",
+      "impacto": "nenhum: filial sem admitidos não tem item",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "folha",
+      "secao": "7",
+      "tabela": "folha.folha_competencia",
+      "coluna": "total_proventos, total_descontos, total_encargos",
+      "achado": "hipótese refutada: os totais de cada competência batem com a soma dos itens em todas as folhas",
+      "linhas": 0,
+      "total": 246,
+      "severidade": "nenhuma",
+      "impacto": "a folha fecha consigo mesma",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "folha",
+      "secao": "7",
+      "tabela": "folha.provisao",
+      "coluna": "saldo_acumulado, valor_mes",
+      "achado": "provisão fora do encadeamento: saldo zerado sem baixa registrada, ou saldo reiniciado",
+      "linhas": 9,
+      "total": 146926,
+      "severidade": "baixa",
+      "impacto": "a provisão dessas pessoas não é reconstruível mês a mês",
+      "acao": "marcar na silver; o cliente explica a baixa",
+      "declaracao": ""
+    },
+    {
+      "dominio": "folha",
+      "secao": "7",
+      "tabela": "folha.rateio_custo",
+      "coluna": "valor_salario",
+      "achado": "salário rateado diferente dos proventos mensais pagos na folha da mesma pessoa e mês (sempre um pouco abaixo; 1,7% a menos no agregado)",
+      "linhas": 39104,
+      "total": 63445,
+      "severidade": "media",
+      "impacto": "o rateio é a base da margem por cliente; salário rateado menor que o pago faz a margem de cada contrato parecer maior do que é, sem que o total da folha acuse",
+      "acao": "o catálogo pede ao cliente a regra do rateio; a silver marca a diferença por pessoa-mês e não corrige",
+      "declaracao": ""
+    },
+    {
+      "dominio": "folha",
+      "secao": "7",
+      "tabela": "folha.rateio_custo",
+      "coluna": "custo_total",
+      "achado": "rateio com custo zero",
+      "linhas": 7,
+      "total": 63470,
+      "severidade": "baixa",
+      "impacto": "alocação no mês sem custo atribuído ao contrato",
+      "acao": "marcar; o cliente confere",
+      "declaracao": ""
+    }
+  ]
+}

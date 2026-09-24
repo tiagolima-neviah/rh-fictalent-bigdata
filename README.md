@@ -112,6 +112,8 @@ rh-fictalent-bigdata/
 ├── dados/publicos/          # tabelas de fonte pública (Novo CAGED, IBGE, BrasilAPI), cada uma com a fonte; o bruto fica fora do git
 ├── dados/gerencial/         # o consolidado gerencial em Excel (sintético): a fonte de arquivo do pipeline
 ├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (166 de 166)
+├── dados/auditoria/         # os achados da auditoria de qualidade, um JSON por domínio: a entrada do catálogo
+├── notebooks/auditoria/     # a auditoria às cegas da bronze: dez notebooks executados, com Nota Técnica por seção
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
@@ -141,6 +143,7 @@ rh-fictalent-bigdata/
 
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma; Dagster, logs, métricas e a chave de cifra.
 - [09 · Monitoramento e Healthcheck](docs/09_monitoramento_e_healthcheck.md): as três camadas, o painel indicador a indicador, os alertas, como investigar uma execução e a rotina.
+- [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
 - [11 · Ingestão](docs/11_ingestao.md): as três naturezas de fonte, a bronze, o backfill, a carga incremental por marca d'água, as exclusões, a planilha com esquema e os dias correntes, com os tempos medidos.
 
 Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 10 do manual de operação.

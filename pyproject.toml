@@ -40,6 +40,7 @@ dev = [
     "pip-audit>=2.10.1",
     "pandas-stubs>=3.0.5.260914",
     "types-openpyxl>=3.1.5.20260827",
+    "matplotlib>=3.11.2",
 ]
 
 [project.scripts]
@@ -54,6 +55,9 @@ packages = ["src/rh_fictalent"]
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
+# os notebooks da auditoria sao evidencia executada (SQL longo nas celulas), verificados por
+# `python -m rh_fictalent.auditoria --verificar`; o ruff le o codigo do pacote e dos testes
+extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]

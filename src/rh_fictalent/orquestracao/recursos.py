@@ -136,6 +136,18 @@ def lake_do_ambiente() -> Lake:
     )
 
 
+def warehouse_do_ambiente() -> Warehouse:
+    """O warehouse fora do Dagster (notebooks da auditoria lendo a marca d'água), pelo
+    mesmo motivo do lake: o segredo vem do ambiente já carregado, como texto."""
+    return Warehouse(
+        host=_ambiente("DW_HOST", "127.0.0.1"),
+        porta=int(_ambiente("DW_PORT", "5441")),
+        banco=_ambiente("DW_DB", "dw_fictalent"),
+        usuario=_ambiente("DW_ADMIN_USER", "fictalent_admin"),
+        senha=os.environ["DW_ADMIN_PASSWORD"],
+    )
+
+
 def recursos_do_ambiente() -> dict[str, Any]:
     """Os recursos, lendo o ambiente: hosts e portas com padrão local, segredos por EnvVar."""
     return {
