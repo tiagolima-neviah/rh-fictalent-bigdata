@@ -145,6 +145,8 @@ rh-fictalent-bigdata/
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma; Dagster, logs, métricas e a chave de cifra.
 - [09 · Monitoramento e Healthcheck](docs/09_monitoramento_e_healthcheck.md): as três camadas, o painel indicador a indicador, os alertas, como investigar uma execução e a rotina.
 - [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
+- [13 · Catálogo de achados](docs/13_catalogo_de_achados.md): a decisão sobre cada achado da auditoria, em duas redações (para quem decide e para quem implementa), com o tratamento proposto para a silver e o que nunca se faz; gerado do código e dos registros, aprovado entrada a entrada antes de qualquer transformação.
+- [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
 - [11 · Ingestão](docs/11_ingestao.md): as três naturezas de fonte, a bronze, o backfill, a carga incremental por marca d'água, as exclusões, a planilha com esquema e os dias correntes, com os tempos medidos.
 
 Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 10 do manual de operação.

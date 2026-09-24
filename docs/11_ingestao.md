@@ -3,7 +3,7 @@
 # Ingestão · da réplica, da API e do arquivo até a bronze
 
 <!-- nav:start -->
-[Home](../README.md) | [← Monitoramento e Healthcheck](09_monitoramento_e_healthcheck.md)
+[Home](../README.md) | [← Monitoramento e Healthcheck](09_monitoramento_e_healthcheck.md) | [Catálogo de achados →](13_catalogo_de_achados.md)
 <!-- nav:end -->
 
 > Como o dado entra no pipeline, pelas três portas que o caso tem: o banco do cliente (a réplica), as APIs públicas e a planilha da gerência. O documento explica o que cada carga faz, por que faz assim e quanto custa, com todo número medido na base completa. Estado atual: a bronze tem as 76 tabelas da réplica, as duas fontes de API e as nove planilhas; a carga diária roda sozinha às 5h e traz só o que mudou.
