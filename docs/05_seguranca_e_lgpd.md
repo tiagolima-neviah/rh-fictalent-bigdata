@@ -54,7 +54,7 @@ Peça por peça:
 | princípio (art. 6º) | como o projeto responde | onde |
 |---|---|---|
 | finalidade e adequação | a réplica existe para uma pergunta contratada (margem por cliente); o **mapa de escopo** diz que schema serve a que pergunta | [Arquitetura, seção 3](03_arquitetura.md) |
-| necessidade (minimização) | **réplica parcial por pertinência** como regra da casa; relatórios do cliente só veem colunas sem dado pessoal; a gold não terá nome nem CPF | ADR-0001, `13_papeis.sql`, silver (v0.6.0) |
+| necessidade (minimização) | **réplica parcial por pertinência** como regra da casa; relatórios do cliente só veem colunas sem dado pessoal; a gold não terá nome nem CPF | ADR-0001, `13_papeis.sql`, `silver/pseudonimizacao.py` |
 | segurança | cifra em repouso, controle de acesso por função, containers sem root, portas fechadas, CI de segurança | seção 2 |
 | prevenção | tudo acima é verificado a cada PR, não uma vez | CI |
 | transparência e prestação de contas | dicionário de dados com inventário de dado pessoal; ADRs com o porquê de cada escolha; trilha de exclusões; este documento | `docs/dicionario`, `docs/adr` |
@@ -62,16 +62,16 @@ Peça por peça:
 
 **Dado pessoal sensível.** O projeto tem quatro colunas de saúde (CID do afastamento, resultado do ASO, tipo e gravidade do acidente), etiquetadas `[LGPD:sensivel]`. Elas nunca chegam ao relatório do cliente nem à gold; servem só a indicadores agregados de absenteísmo e segurança, sem chave de pessoa.
 
-**Direitos do titular.** Eliminação e correção acontecem no sistema do cliente e chegam à réplica pela replicação; a trilha de exclusões prova que a eliminação foi aplicada, e a marcação lógica na bronze preserva o histórico agregado sem manter o dado identificável (v0.6.0). Na silver, pessoa vira chave derivada, irreversível sem o segredo, que fica fora do repositório.
+**Direitos do titular.** Eliminação e correção acontecem no sistema do cliente e chegam à réplica pela replicação; a trilha de exclusões prova que a eliminação foi aplicada. Na bronze, a linha excluída fica marcada (o histórico agregado continua respondendo "quantos existiam"), e o job de descarte apaga dela as colunas etiquetadas como pessoais: a linha conta, mas não diz mais quem era (`src/rh_fictalent/lgpd/descarte.py`).
 
-**Retenção.** Candidato não contratado tem prazo declarado em `cadastro.parametro`; o descarte é executado por job do Dagster e registrado (v0.6.0).
+**Pseudonimização** (art. 13, § 4º). Na silver, toda coluna etiquetada como pessoal tem uma decisão escrita, com o motivo (`src/rh_fictalent/silver/pseudonimizacao.py`): o documento (CPF, PIS, número de documento, login) vira chave, o HMAC-SHA256 do valor normalizado com o segredo `PSEUDONIMIZACAO_SEGREDO`, que vive só no `.env`; a data de nascimento vira o ano; nome, telefone, e-mail, logradouro e CEP não entram; a remuneração individual e as quatro colunas de saúde entram, com o motivo, para indicadores agregados. Com o segredo, o mesmo CPF dá a mesma chave no candidato e no colaborador, e a gold conta pessoas sem ver documento; sem ele, a chave não volta ao CPF. A construção da silver reprova se uma coluna de chave tiver valor que não seja um HMAC, e um teste reprova coluna pessoal nova na DDL até alguém decidir o que fazer com ela.
+
+**Retenção.** O prazo do candidato não contratado é decisão do cliente, declarada na réplica: `RETENCAO_CANDIDATO_DIAS` em `cadastro.parametro`, 730 dias contados da última atividade (cadastro ou candidatura), decidido pelo Tiago, no papel de cliente, em 01/10/2026. O descarte roda depois de toda carga incremental, dentro do job `construir_silver`: apaga na bronze o dado pessoal dos vencidos (a linha fica, para o funil histórico), refaz a silver e registra cada descarte em `lgpd.descarte`, no warehouse, sem dado pessoal: quando, quantas linhas, por que motivo e o efeito em cada regra da silver. Sem o parâmetro vigente, nada é descartado por retenção, e o registro diz por quê. O primeiro descarte, em 01/10/2026, alcançou 19.119 candidatos.
 
 ## 5. O que ainda não existe, e o que mudaria em produção
 
 | item | versão | observação |
 |---|---|---|
-| pseudonimização na silver (chave derivada com segredo fora do repositório) | v0.6.0 | |
-| job de retenção e descarte, com registro | v0.6.0 | |
 | isolamento por filial no warehouse (RLS do Postgres) com teste | v0.7.0 | os leitores de BI vivem no warehouse, não na réplica |
 | papéis de leitura por área no warehouse, sem dado pessoal | v0.7.0 | |
 | token por consumidor e `/saude` na API | v1.0.0 | |

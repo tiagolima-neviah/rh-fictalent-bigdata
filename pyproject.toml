@@ -1,6 +1,6 @@
 [project]
 name = "rh-fictalent-bigdata"
-version = "0.5.0"
+version = "0.6.0"
 description = "Pipeline de dados ponta a ponta da Fictalent RH (empresa ficticia, dados sinteticos): relacional modular -> backfill + incremental -> bronze/silver/gold -> multidimensional."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -11,7 +11,7 @@ dependencies = [
     "dagster-postgres==0.29.22",
     "dagster-webserver==1.13.22",
     "adbc-driver-postgresql>=1.12.0",
-    "duckdb>=1.5.5",
+    "duckdb>=1.1",
     "fsspec>=2026.7.0",
     "pandas>=3.0.5",
     "psycopg[binary]>=3.2",
@@ -40,6 +40,7 @@ dev = [
     "pip-audit>=2.10.1",
     "pandas-stubs>=3.0.5.260914",
     "types-openpyxl>=3.1.5.20260827",
+    "matplotlib>=3.11.2",
 ]
 
 [project.scripts]
@@ -54,6 +55,9 @@ packages = ["src/rh_fictalent"]
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
+# os notebooks da auditoria sao evidencia executada (SQL longo nas celulas), verificados por
+# `python -m rh_fictalent.auditoria --verificar`; o ruff le o codigo do pacote e dos testes
+extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]

@@ -1,0 +1,97 @@
+{
+  "dominio": "treinamento_sst",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "treinamento_sst",
+      "secao": "5",
+      "tabela": "treinamento.turma",
+      "coluna": "curso_id, filial_id, dt_inicio",
+      "achado": "turmas do mesmo curso, na mesma filial, começando no mesmo dia: paralelas legítimas ou cadastro em duplicidade",
+      "linhas": 192,
+      "total": 5411,
+      "severidade": "baixa",
+      "impacto": "turma duplicada dobra o custo de treinamento no rateio e o número de treinados no indicador",
+      "acao": "confirmar com o cliente; marcar, não fundir",
+      "declaracao": ""
+    },
+    {
+      "dominio": "treinamento_sst",
+      "secao": "7",
+      "tabela": "treinamento.certificado",
+      "coluna": "dt_validade (e sst.aso.dt_validade)",
+      "achado": "hipótese refutada: a validade derivada (emissão mais validade do curso; exame mais periodicidade) bate em todos os certificados e exames",
+      "linhas": 0,
+      "total": 29190,
+      "severidade": "nenhuma",
+      "impacto": "o alerta de vencimento pode ser calculado do dado sem regra de exceção",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "treinamento_sst",
+      "secao": "8",
+      "tabela": "sst.aso",
+      "coluna": "dt_exame (ADMISSIONAL)",
+      "achado": "exame admissional feito depois da admissão",
+      "linhas": 155,
+      "total": 16992,
+      "severidade": "media",
+      "impacto": "a pessoa trabalhou sem exame; irregularidade que a fiscalização autua",
+      "acao": "a silver marca e conta os dias de atraso; o cliente corrige o processo de admissão",
+      "declaracao": ""
+    },
+    {
+      "dominio": "treinamento_sst",
+      "secao": "8",
+      "tabela": "sst.cat",
+      "coluna": "dt_emissao",
+      "achado": "CAT emitida mais de dois dias depois do acidente (o prazo legal é o primeiro dia útil)",
+      "linhas": 48,
+      "total": 99,
+      "severidade": "media",
+      "impacto": "multa por CAT fora do prazo",
+      "acao": "a silver marca os dias além do prazo; o cliente corrige o processo",
+      "declaracao": ""
+    },
+    {
+      "dominio": "treinamento_sst",
+      "secao": "8",
+      "tabela": "sst.programa_sst",
+      "coluna": "dt_validade, contrato_id",
+      "achado": "contrato ativo com programa legal (PGR, PCMSO ou LTCAT) vencido e sem substituto",
+      "linhas": 5,
+      "total": 41,
+      "severidade": "media",
+      "impacto": "irregularidade em contrato em andamento; autuação para a Fictalent e para o cliente",
+      "acao": "a silver marca o contrato; o alerta vai para o painel; o cliente renova o programa",
+      "declaracao": ""
+    },
+    {
+      "dominio": "treinamento_sst",
+      "secao": "10",
+      "tabela": "sst.aso",
+      "coluna": "dt_validade, colaborador_id",
+      "achado": "pessoa alocada com o exame (ASO) vencido na data de referência; prevalência mensal crescendo de zero em 2018 a cerca de 4% em 2025",
+      "linhas": 25,
+      "total": 858,
+      "severidade": "alta",
+      "impacto": "risco jurídico imediato para a Fictalent e para o cliente; o processo de renovação do periódico não acompanhou o crescimento",
+      "acao": "a silver marca a pessoa e os dias de vencimento; o alerta vai para o painel com 30 dias de antecedência; o cliente renova na origem",
+      "declaracao": "ASO vencido com pessoa alocada: o exame expirou e ninguém foi avisado"
+    },
+    {
+      "dominio": "treinamento_sst",
+      "secao": "10",
+      "tabela": "treinamento.certificado",
+      "coluna": "curso_id, colaborador_id, dt_validade",
+      "achado": "pessoa alocada sem certificado válido de curso obrigatório da função",
+      "linhas": 17,
+      "total": 1763,
+      "severidade": "baixa",
+      "impacto": "exigência de NR descoberta em campo; pequena em número",
+      "acao": "a silver marca; o alerta vai para o painel",
+      "declaracao": ""
+    }
+  ]
+}

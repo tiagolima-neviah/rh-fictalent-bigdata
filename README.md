@@ -69,8 +69,8 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 | v0.3.0 | Orquestração (Dagster: recursos, convenções, primeiro job), logs em JSON, métricas por sensor, Grafana como código, saúde de ponta a ponta | concluído |
 | v0.4.0 | Dado sintético: CAGED e APIs públicas, régua de 165 checks, gerador de 2018 a 2026 e a réplica com 8,4 milhões de linhas | concluído |
 | v0.5.0 | Ingestão: a bronze em parquet (8,4 milhões de linhas em 162 MB), backfill, carga diária por marca d'água, exclusões como marcação, planilhas com pandera e a réplica em movimento | concluído |
-| v0.6.0 | Lake: auditoria de qualidade, silver com pseudonimização | próxima |
-| v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | previsto |
+| v0.6.0 | Lake: a bronze lida com SQL (DuckDB), auditoria de qualidade às cegas com 61 achados, catálogo aprovado antes de transformar, silver com cinco provas por tabela e prestação de contas, pseudonimização e descarte de dado pessoal por retenção | concluído |
+| v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | próxima |
 | v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | previsto |
 | (outro repositório) | Painel web, Power BI e Tableau Public | previsto |
 
@@ -80,7 +80,7 @@ O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira oc
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.5.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026 e **ingeri-la na bronze do lake**, com a carga diária rodando sozinha:
+O projeto está em construção. Na v0.6.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026, **ingeri-la na bronze do lake** e chegar à **silver pseudonimizada, com prestação de contas**, com a carga diária rodando sozinha:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
@@ -90,10 +90,10 @@ bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 
 ```bash
 .venv/bin/python -m rh_fictalent.gerador --etapa 1 --gravar --zerar && for e in 2 3 4 5 6; do .venv/bin/python -m rh_fictalent.gerador --etapa $e --gravar || break; done
-.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 165 de 165
+.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 166 de 166
 ```
 
-São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. Depois, o backfill pela interface do Dagster (<http://127.0.0.1:3010>, job `backfill_bronze`, backfill das nove partições) leva a réplica inteira para o lake em cerca de 2 minutos, e a carga incremental das 5h traz só o que mudou; como o dado entra, e quanto custa, está em [Ingestão](docs/11_ingestao.md). O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
+São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. Depois, o backfill pela interface do Dagster (<http://127.0.0.1:3010>, job `backfill_bronze`, backfill das nove partições) leva a réplica inteira para o lake em cerca de 2 minutos, e a carga incremental das 5h traz só o que mudou; como o dado entra, e quanto custa, está em [Ingestão](docs/11_ingestao.md). Ao fim de cada carga incremental, o pipeline descarta o dado pessoal vencido e refaz a silver sozinho, em cerca de 3 minutos: 76 tabelas pseudonimizadas, cada uma conferida contra a bronze antes de publicar, e a prestação de contas das 34 regras aprovadas no catálogo ([Bronze](docs/12_bronze.md), [Catálogo de achados](docs/13_catalogo_de_achados.md), [Silver](docs/14_silver.md)). O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
 
 ## Qualidade e segurança a cada mudança
 
@@ -111,7 +111,9 @@ rh-fictalent-bigdata/
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── dados/publicos/          # tabelas de fonte pública (Novo CAGED, IBGE, BrasilAPI), cada uma com a fonte; o bruto fica fora do git
 ├── dados/gerencial/         # o consolidado gerencial em Excel (sintético): a fonte de arquivo do pipeline
-├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (165 de 165)
+├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (166 de 166)
+├── dados/auditoria/         # os achados da auditoria de qualidade, um JSON por domínio: a entrada do catálogo
+├── notebooks/auditoria/     # a auditoria às cegas da bronze: dez notebooks executados, com Nota Técnica por seção
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
@@ -134,14 +136,19 @@ rh-fictalent-bigdata/
 - [03 · Arquitetura](docs/03_arquitetura.md): o pipeline inteiro etapa por etapa, a ferramenta de cada uma e o porquê de cada escolha.
 - [04 · Modelo de Dados](docs/04_modelo_dados_staging.md): a réplica em MySQL, módulo a módulo, com as convenções, o espinhaço da margem por cliente e como a DDL é aplicada e conferida.
 - [05 · Segurança e LGPD](docs/05_seguranca_e_lgpd.md): o modelo de ameaça camada a camada, o comando que prova cada garantia, a LGPD princípio por princípio e o que ainda não existe.
-- [06 · Régua de Validação](docs/06_regua_de_validacao.md): o contrato de aceite do dado sintético, 165 checks em seis famílias, de onde vem cada alvo, o laudo versionado e o que a régua não faz.
+- [06 · Régua de Validação](docs/06_regua_de_validacao.md): o contrato de aceite do dado sintético, 166 checks em seis famílias, de onde vem cada alvo, o laudo versionado e o que a régua não faz.
 - [07 · Instalação e Reprodução](docs/07_instalacao_e_reproducao.md): do clone à plataforma verificada numa máquina limpa, a geração da base sintética e o aceite; atualizar, recomeçar, desinstalar.
 - [Dicionário de dados](docs/dicionario/README.md): gerado da `information_schema` da réplica, coluna a coluna, com a classificação LGPD e o inventário de dado pessoal.
 - [Registros de decisão (ADR)](docs/adr/README.md): que necessidade do caso cada tecnologia atende, a começar por MySQL na réplica e Postgres no warehouse.
+- [Bibliografia](docs/bibliografia.md): o que ler, fase a fase e card a card, com livro e capítulo, dizendo o que está no acervo e o que ainda não; confirmado para o que já foi construído, plano para o que vem.
 
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma; Dagster, logs, métricas e a chave de cifra.
 - [09 · Monitoramento e Healthcheck](docs/09_monitoramento_e_healthcheck.md): as três camadas, o painel indicador a indicador, os alertas, como investigar uma execução e a rotina.
 - [11 · Ingestão](docs/11_ingestao.md): as três naturezas de fonte, a bronze, o backfill, a carga incremental por marca d'água, as exclusões, a planilha com esquema e os dias correntes, com os tempos medidos.
+- [12 · Bronze](docs/12_bronze.md): o que o lake guarda e o que a camada promete, os tipos do MySQL ao parquet e os dois defeitos que a auditoria achou, como ler a bronze com SQL, como conferir que ela ainda é o espelho da réplica, o dado pessoal e o descarte, e a investigação da queda de conexão com o lake.
+- [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
+- [13 · Catálogo de achados](docs/13_catalogo_de_achados.md): a decisão sobre cada achado da auditoria, em duas redações (para quem decide e para quem implementa), com o tratamento aprovado para a silver e o que nunca se faz; gerado do código e dos registros, aprovado entrada a entrada antes de qualquer transformação.
+- [14 · Silver](docs/14_silver.md): a bronze linha a linha, pseudonimizada, com as colunas das 34 regras aprovadas; as cinco provas de cada tabela, a prestação de contas contra a auditoria e a cadeia de custódia dos descartes, com os tempos medidos.
 
 Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 10 do manual de operação.
 

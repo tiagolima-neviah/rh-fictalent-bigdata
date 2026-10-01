@@ -10,6 +10,9 @@
     "2025": 53.0,
     "2026": 45.0
   },
+  "conservacao": {
+    "bronze": 0.0
+  },
   "defasagem_qualidade_perda": {
     "mediana_meses": 6.734559789750328
   },

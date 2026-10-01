@@ -1,5 +1,5 @@
 Aceite da base sintética · semente 20260910
-8410929 linhas (contadas na réplica).
+8410929 linhas (contadas na réplica); conservação réplica → bronze medida no lake (C-06).
 Para refazer: python -m rh_fictalent.gerador --aceite --replica
 
 1 · Escala e forma: 50 ✓  0 ✗  0 …
@@ -152,12 +152,13 @@ Para refazer: python -m rh_fictalent.gerador --aceite --replica
   ✓ S-02/desvio_medio                    0,2429  banda <= 0,3                 desligamentos: desvio médio contra o índice do CAGED
   ✓ S-02/correlacao                      0,9193  banda >= 0,75                desligamentos: correlação com o índice do CAGED
 
-5 · Coerência interna: 5 ✓  0 ✗  0 …
+5 · Coerência interna: 6 ✓  0 ✗  0 …
   ✓ C-01                                      0  banda = 0                    alocação sem contrato de trabalho vigente no período
   ✓ C-02                                      0  banda = 0                    apontamento de ponto sem alocação vigente no dia
   ✓ C-03                                      0  banda = 0                    fatura sem contrato comercial
   ✓ C-04                                      0  banda = 0                    competência em que o custo da folha difere da soma do rateio
   ✓ C-05                                      0  banda = 0                    posto com duas pessoas alocadas no mesmo dia
+  ✓ C-06                                      0  banda = 0                    tabelas cuja contagem de linhas vivas na bronze difere da réplica
 
 6 · A sujeira na medida certa: 18 ✓  0 ✗  0 …
   ✓ CAD-01                              0,03242  banda [0,028, 0,042]         candidatos duplicados
@@ -179,4 +180,4 @@ Para refazer: python -m rh_fictalent.gerador --aceite --replica
   ✓ GER-01/2025                         0,06959  banda [0,05156, 0,08594]     divergência do consolidado gerencial contra a operação, 2025
   ✓ GER-01/2026                         0,08639  banda [0,0675, 0,1125]       divergência do consolidado gerencial contra a operação, 2026
 
-RÉGUA APROVADA: 165 de 165 checks aprovados, 0 reprovados, 0 pendentes.
+RÉGUA APROVADA: 166 de 166 checks aprovados, 0 reprovados, 0 pendentes.

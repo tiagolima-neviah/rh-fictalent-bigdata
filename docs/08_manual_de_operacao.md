@@ -36,6 +36,14 @@ cp .env.example .env
 for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
 ```
 
+O segredo da pseudonimização da silver é mais longo e gerado à parte. O comando grava no `.env` sem mostrar o valor na tela, e serve também para um `.env` antigo que ainda não tem a linha (é o caso de quem vem da v0.5.0):
+
+```bash
+grep -q '^PSEUDONIMIZACAO_SEGREDO=troque' .env && sed -i "s/^PSEUDONIMIZACAO_SEGREDO=.*/PSEUDONIMIZACAO_SEGREDO=$(openssl rand -hex 32)/" .env; grep -q '^PSEUDONIMIZACAO_SEGREDO=' .env || printf 'PSEUDONIMIZACAO_SEGREDO=%s\n' "$(openssl rand -hex 32)" >> .env
+```
+
+Guarde o `.env` com o mesmo cuidado de sempre: a chave de cada pessoa na silver é o HMAC do documento com esse segredo. Perdê-lo não perde dado (a silver é refeita da bronze com um segredo novo), mas troca toda chave de pessoa; vazá-lo permite reverter a chave ao CPF por força bruta.
+
 **2. Construa a imagem do Dagster e suba tudo:**
 
 ```bash
@@ -50,7 +58,7 @@ A primeira subida baixa as imagens e constrói a do Dagster (cerca de 1 minuto m
 bash scripts/saude.sh
 ```
 
-O script tem duas fases. A primeira espera cada serviço ficar saudável e os dois jobs de inicialização terminarem. A segunda prova o que está **dentro** dos containers: a réplica responde ao usuário `pipeline` com as 76 tabelas, tem os 75 gatilhos, os 76 tablespaces cifrados e o keyring ativo; o lake tem o bucket; o warehouse aceita o `grafana_leitor` e informa quantas execuções registrou e há quantos minutos foi o último sucesso (aviso acima de 26 h); o Dagster carregou a code location e tem os 3 sensores ligados; o Grafana responde, com as duas fontes `OK`, o painel e as 2 regras provisionados. Cada verificação sai com `✓` ou `✗`, e o fim é `PLATAFORMA OK` ou a contagem de falhas. `SO_CONTAINERS=1 bash scripts/saude.sh` roda só a primeira fase (é o que a CI faz).
+O script tem duas fases. A primeira espera cada serviço ficar saudável e os dois jobs de inicialização terminarem. A segunda prova o que está **dentro** dos containers: a réplica responde ao usuário `pipeline` com as 76 tabelas, tem os 75 gatilhos, os 76 tablespaces cifrados e o keyring ativo; o lake tem o bucket; o warehouse aceita o `grafana_leitor` e informa quantas execuções registrou e há quantos minutos foi o último sucesso (aviso acima de 26 h); o Dagster carregou a code location e tem os 4 sensores ligados (3 de métricas e o da silver); o Grafana responde, com as duas fontes `OK`, o painel e as 2 regras provisionados. Cada verificação sai com `✓` ou `✗`, e o fim é `PLATAFORMA OK` ou a contagem de falhas. `SO_CONTAINERS=1 bash scripts/saude.sh` roda só a primeira fase (é o que a CI faz).
 
 **4. A réplica já nasce com as tabelas.** Na primeira inicialização o MySQL executa a DDL de `staging/ddl` (10 módulos, 76 tabelas). Se o volume da réplica já existia antes da DDL entrar no repositório, aplique por cima:
 
@@ -185,6 +193,28 @@ O sensor dispara até 15 segundos depois do fim da execução; se a tabela não 
 
 **O painel do Grafana** está em <http://127.0.0.1:3011> (usuário e senha do `.env`), pasta *Fictalent*, painel *Fictalent · Execuções do pipeline*: execuções e falhas nas últimas 24 h, **frescor** (minutos desde o último sucesso: verde até 1 h, âmbar até 25 h, vermelho depois), duração média, execuções por dia e status, duração por job e por passo, últimas execuções e os passos que falharam com o erro. O painel é arquivo (`infra/grafana/provisioning/dashboards/json/execucoes.json`) e a interface não o edita: mudou, mudou no repositório. Em *Alerting → Alert rules* estão as duas regras provisionadas (`infra/grafana/provisioning/alerting/regras.yaml`): **Execução do pipeline falhou** (falha nos últimos 15 minutos) e **Dado envelheceu** (sem execução com sucesso há mais de 26 horas; enquanto não há agenda diária, ela acende sempre que a plataforma passa um dia parada, o que é o comportamento certo). Sem ponto de contato externo neste laboratório: o alerta acende na interface.
 
+**A silver e a LGPD** (v0.6.0). O job `construir_silver` aplica o descarte de dado pessoal e monta as 76 tabelas da silver, pseudonimizadas, cada uma gravada em `silver/_em_conferencia/`, conferida e só então publicada; o último passo, `silver/prestacao_de_contas`, reprova se alguma regra não reproduzir o número esperado. Ele roda sozinho depois de toda carga incremental que termina bem (sensor `silver_depois_da_carga`, em *Automation*), porque a carga muda a bronze e pode trazer de volta, em claro, uma linha que o descarte já tinha apagado. O backfill não o dispara: são nove execuções, uma por ano, e quem fecha o ciclo depois de um backfill é a primeira carga incremental, que também cria a marca d'água de onde sai a data de referência. O job `aplicar_descarte` é o caminho curto, para rodar à mão: o descarte, a silver das 12 tabelas com dado pessoal e a prestação. Não rode os dois ao mesmo tempo: eles escrevem nos mesmos arquivos. Pela linha de comando, fora do Dagster:
+
+```bash
+.venv/bin/python -m rh_fictalent.lgpd --simular
+```
+
+```bash
+.venv/bin/python -m rh_fictalent.silver --prestar-contas
+```
+
+O primeiro mostra quantas linhas seriam descartadas, por tabela e motivo, sem apagar nada; o segundo mostra, por regra, o número esperado, de onde ele veio (a auditoria ou o último descarte) e o que a regra deu. O prazo de retenção é decisão do cliente e mora na réplica, em `cadastro.parametro`; neste laboratório quem faz o papel do cliente é o gerador:
+
+```bash
+.venv/bin/python -m rh_fictalent.gerador --parametro RETENCAO_CANDIDATO_DIAS 730 2026-10-01
+```
+
+Cada descarte fica registrado no warehouse, sem dado pessoal:
+
+```bash
+docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)" fictalent_pg_dw psql -U fictalent_admin -d dw_fictalent -c "SELECT executado_em, tabela, eliminadas, vencidas, regra_retencao FROM lgpd.descarte ORDER BY id"
+```
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:
@@ -280,7 +310,12 @@ Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manua
 | Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
 | `mysql-staging` não sobe e o log fala em `keyring` ou `Component_keyring_file` | o volume da chave não está acessível ao usuário do MySQL, ou o manifesto não foi montado | `docker compose logs keyring-init mysql-staging`; confira que `infra/mysql/mysqld.my` e `component_keyring_file.cnf` existem |
 | a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
-| containers de pé e `healthy`, mas `dagster-daemon` ou `dagster-web` `unhealthy` com `connection to server at "pg-dagster" ... timed out` no log | a rede bridge do Docker quebrou (em geral depois de a máquina reiniciar ou hibernar): o DNS resolve, o TCP não passa, e **nenhum** container alcança outro. `restart`, `down`/`up` e recriar o container não resolvem, porque o problema é no `dockerd` | `sudo systemctl restart docker`, depois `docker compose up -d && bash scripts/saude.sh`. Os volumes não são tocados |
+| containers de pé e `healthy`, mas `dagster-daemon` ou `dagster-web` `unhealthy` com `connection to server at "pg-dagster" ... timed out` no log | a rede bridge do Docker quebrou (em geral depois de a máquina reiniciar ou hibernar): o DNS resolve, o TCP não passa, e **nenhum** container alcança outro. `restart`, `down`/`up` e recriar o container não resolvem, porque o problema é no `dockerd` | primeiro `docker compose down` (**sem** `-v`) e `docker compose up -d`, que recria a rede e preserva os volumes (resolveu em 23/09 e 24/09); se não bastar, `sudo systemctl restart docker` e de novo `docker compose up -d && bash scripts/saude.sh` |
+| `required variable PSEUDONIMIZACAO_SEGREDO is missing a value` | `.env` anterior à v0.6.0 | gere o segredo com o comando da seção 2; nada mais muda |
+| a silver falha com `sem marca d'água: rode o job carga_incremental` | a silver foi pedida logo depois do backfill, antes de qualquer carga incremental | rode `carga_incremental` uma vez; ela cria a marca e dispara a silver |
+| a prestação de contas reprova as regras do candidato logo depois de recopiar uma tabela | a recópia trouxe o dado pessoal de volta e o descarte ainda não rodou | rode `construir_silver` (ou espere a próxima carga): o descarte registra o elo e a cadeia fecha |
+| um passo falha com `ChildProcessCrashException`, sem mais nada no erro | o kernel matou o processo do passo por falta de memória no container do daemon, que é quem executa agenda, sensor e o que a interface lança | confirme com `dmesg \| grep -i 'out of memory'`; o teto do daemon está em `compose.yaml` (3 GB) e o do DuckDB por passo em `DUCKDB_MEMORY_LIMIT` |
+| a silver falha com `defina PSEUDONIMIZACAO_SEGREDO no .env` | o container subiu sem o segredo | complete o `.env` e recrie os containers do Dagster: `docker compose up -d dagster-web dagster-daemon` |
 | o log do `mysql-staging` mostra `XA crash recovery` na subida | a máquina foi desligada com os containers de pé | desta vez deu certo; da próxima, `docker compose stop` antes de desligar (seção 4) |
 
 ---

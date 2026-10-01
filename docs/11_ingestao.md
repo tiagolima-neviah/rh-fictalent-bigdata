@@ -3,7 +3,7 @@
 # Ingestão · da réplica, da API e do arquivo até a bronze
 
 <!-- nav:start -->
-[Home](../README.md) | [← Monitoramento e Healthcheck](09_monitoramento_e_healthcheck.md)
+[Home](../README.md) | [← Monitoramento e Healthcheck](09_monitoramento_e_healthcheck.md) | [Bronze →](12_bronze.md)
 <!-- nav:end -->
 
 > Como o dado entra no pipeline, pelas três portas que o caso tem: o banco do cliente (a réplica), as APIs públicas e a planilha da gerência. O documento explica o que cada carga faz, por que faz assim e quanto custa, com todo número medido na base completa. Estado atual: a bronze tem as 76 tabelas da réplica, as duas fontes de API e as nove planilhas; a carga diária roda sozinha às 5h e traz só o que mudou.
@@ -31,6 +31,8 @@ A bronze é o **espelho fiel** da réplica, com três coisas que a réplica não
 **Uma coluna a mais, e só uma.** `excluido_em`, no fim, depois de todas as colunas da DDL. Fica nula enquanto a linha existe na réplica e ganha o instante do `DELETE` quando a trilha de exclusões diz que ela morreu (seção 5).
 
 O que sai: 8.410.929 linhas em **162 MB** de parquet, contra 1,5 GB da réplica em disco. A compressão colunar com zstd não é detalhe: é o que faz 8 milhões de linhas caberem numa leitura.
+
+O que a bronze virou depois da v0.6.0 (os tipos corrigidos, a leitura com SQL, a conferência, a auditoria às cegas e o descarte de dado pessoal) está em [Bronze](12_bronze.md); o que se faz com o que a auditoria achou, no [Catálogo de achados](13_catalogo_de_achados.md) e na [Silver](14_silver.md).
 
 ## 3. O backfill: tudo, uma vez
 
@@ -121,8 +123,7 @@ Máquina de referência: a estação de 16 núcleos descrita em [Instalação e 
 ## 9. O que ainda não existe
 
 - **Latência de segundos.** A carga é diária, e isso é a latência. Captura pelo binlog daria segundos, ao custo de configurar o servidor do cliente e operar mais um processo; o ADR-0011 registra que a escolha é reversível.
-- **Folha e faturamento nos dias correntes.** A simulação escreve o dia; o fechamento mensal (folha, fatura, provisão) é assunto da fase 6, quando a silver e a gold existirem para consumi-lo.
-- **Auditoria de qualidade e silver.** A bronze é a entrada. O catálogo de achados (candidato duplicado, CPF inválido, ASO vencido e os outros do caso) e as regras aprovadas de correção vêm na v0.6.0, com prestação de contas.
+- **Folha e faturamento nos dias correntes.** A simulação escreve o dia; o fechamento mensal (folha, fatura, provisão) fica para quando a gold existir para consumi-lo.
 - **Ingestão de arquivo além do consolidado.** O índice sazonal do CAGED é lido como tabela versionada pelo gerador e pela régua; entrar no lake como asset, com esquema, fica para quando a gold precisar dele.
 
 ---

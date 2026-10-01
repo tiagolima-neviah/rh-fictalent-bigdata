@@ -1,0 +1,58 @@
+{
+  "dominio": "comercial",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "comercial",
+      "secao": "5",
+      "tabela": "comercial.posto",
+      "coluna": "contrato_id, funcao_id, turno, endereco_id, vigencia_inicio",
+      "achado": "postos idênticos em contrato, função, turno, endereço e início, diferindo só em quantidade, escala ou fim",
+      "linhas": 8,
+      "total": 694,
+      "severidade": "baixa",
+      "impacto": "pode ser desdobramento legítimo (dois lotes de vagas) ou o mesmo posto cadastrado duas vezes; no segundo caso as vagas contam em dobro no headcount contratado",
+      "acao": "confirmar com o comercial; na silver, marcar o par, nunca fundir",
+      "declaracao": ""
+    },
+    {
+      "dominio": "comercial",
+      "secao": "5",
+      "tabela": "comercial.cliente",
+      "coluna": "razao_social, nome_fantasia, cnpj",
+      "achado": "hipótese refutada: não há cliente duplicado por grafia nem CNPJ repetido",
+      "linhas": 0,
+      "total": 100,
+      "severidade": "nenhuma",
+      "impacto": "não há conformação de cliente a fazer",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "comercial",
+      "secao": "8",
+      "tabela": "comercial.contrato_ocorrencia",
+      "coluna": "dt_ocorrencia",
+      "achado": "ocorrência lançada fora da vigência do contrato (depois do encerramento)",
+      "linhas": 1,
+      "total": 1321,
+      "severidade": "baixa",
+      "impacto": "indicador de SLA por contrato vigente perde a ocorrência ou a atribui a um período sem receita",
+      "acao": "manter e marcar na silver como ocorrência pós-encerramento",
+      "declaracao": ""
+    },
+    {
+      "dominio": "comercial",
+      "secao": "10",
+      "tabela": "comercial.contrato",
+      "coluna": "status, vigencia_fim",
+      "achado": "contrato ATIVO com vigência vencida e sem prorrogação que a cubra",
+      "linhas": 1,
+      "total": 128,
+      "severidade": "media",
+      "impacto": "o status não acompanha a vigência: o cliente conta como ativo, o SLA segue em cobrança e a carteira aparece maior em qualquer relatório por status",
+      "acao": "na silver, derivar a situação do contrato das datas (vigente, vencido, encerrado) e preservar o status original marcado; sugerir ao cliente o encerramento ou a prorrogação",
+      "declaracao": ""
+    }
+  ]
+}

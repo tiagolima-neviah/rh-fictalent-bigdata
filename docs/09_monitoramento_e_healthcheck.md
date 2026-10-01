@@ -89,7 +89,7 @@ docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)"
 
 ## 7. O que ainda não existe
 
-- Frescor **por asset** (cada tabela da bronze, silver e gold com a sua idade): entra quando houver dado (v0.6.0); hoje o frescor é por execução.
+- Frescor **por asset** (cada tabela da bronze, silver e gold com a sua idade): ainda não existe, embora o dado já exista; hoje o frescor é por execução, e entra com o warehouse carregado (v0.7.0).
 - Notificação externa dos alertas (e-mail, chat): ponto de contato por provisioning, fora deste laboratório.
 - Métricas de infraestrutura (CPU, memória, disco por container): `docker stats` cobre o suficiente para uma máquina só; Prometheus e exportadores entram apenas se o caso pedir (ADR-0007).
 - Auditoria de acesso à réplica (quem consultou o quê): v1.0.0, com ADR.

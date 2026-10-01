@@ -197,7 +197,7 @@ services:
     build:
       context: .
       dockerfile: infra/dagster/Dockerfile
-    image: fictalent/dagster:0.5.0
+    image: fictalent/dagster:0.6.0
     container_name: fictalent_dagster_web
     command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/app/workspace.yaml"]
     environment: &ambiente_dagster
@@ -219,6 +219,13 @@ services:
       DW_DB: ${DW_DB:-dw_fictalent}
       DW_ADMIN_USER: ${DW_ADMIN_USER:-fictalent_admin}
       DW_ADMIN_PASSWORD: ${DW_ADMIN_PASSWORD:?defina DW_ADMIN_PASSWORD no .env}
+      # a chave da pseudonimização da silver (card 6.5): sem ela a silver não nasce, e trocá-la
+      # troca toda chave de pessoa; vive só no .env, como as senhas
+      PSEUDONIMIZACAO_SEGREDO: ${PSEUDONIMIZACAO_SEGREDO:?defina PSEUDONIMIZACAO_SEGREDO no .env}
+      # teto de memória do DuckDB por passo: sem ele o DuckDB assume 80% do container inteiro, e
+      # não do que sobra nele. O que não cabe vai para a pasta temporária, em disco.
+      DUCKDB_MEMORY_LIMIT: 512MB
+      DUCKDB_TEMP_DIRECTORY: /tmp/duckdb
     ports:
       - "127.0.0.1:${DAGSTER_PORT:-3010}:3000"
     volumes:
@@ -236,7 +243,7 @@ services:
 
   dagster-daemon:
     <<: *seguranca
-    image: fictalent/dagster:0.5.0
+    image: fictalent/dagster:0.6.0
     container_name: fictalent_dagster_daemon
     command: ["dagster-daemon", "run", "-w", "/opt/dagster/app/workspace.yaml"]
     environment: *ambiente_dagster
@@ -251,10 +258,13 @@ services:
         condition: service_healthy
       dagster-web:
         condition: service_healthy
+    # é o daemon que executa tudo o que entra pela fila (agenda, sensor, interface): o teto dele
+    # é o do maior passo, não o de um serviço que só agenda. Medido em 01/10/2026: uns 600 MB
+    # parado, e 1,3 GB no passo da maior tabela da silver; com 1g o kernel matava o passo.
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 3g
 
   # ─────────────────────────────── observabilidade ───────────────────────────────
   grafana:

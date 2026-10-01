@@ -124,10 +124,12 @@ def test_medida_ausente_deixa_o_laudo_incompleto_e_reprovado_vence_pendente() ->
 
 
 def test_regua_por_familia_so_olha_a_familia_pedida() -> None:
-    medidas = {"violacoes": {c: 0.0 for c in bandas.INVARIANTES}}
+    # os cinco invariantes do gerador mais o C-06, a conservação réplica → bronze
+    medidas = {"violacoes": {c: 0.0 for c in bandas.INVARIANTES}, "conservacao": {"bronze": 0.0}}
     laudo = avaliar(bandas.checks(), medidas, familias=["coerencia"])
-    assert laudo.veredito == Veredito.APROVADA and len(laudo.resultados) == len(bandas.INVARIANTES)
-    assert laudo.resumo() == {"coerencia": {"APROVADO": 5, "REPROVADO": 0, "PENDENTE": 0}}
+    assert laudo.veredito == Veredito.APROVADA
+    assert len(laudo.resultados) == len(bandas.INVARIANTES) + 1
+    assert laudo.resumo() == {"coerencia": {"APROVADO": 6, "REPROVADO": 0, "PENDENTE": 0}}
     with pytest.raises(ValueError):
         avaliar(bandas.checks(), medidas, familias=["inexistente"])
 

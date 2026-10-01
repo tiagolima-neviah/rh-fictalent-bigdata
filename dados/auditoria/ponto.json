@@ -1,0 +1,110 @@
+{
+  "dominio": "ponto",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "ponto",
+      "secao": "3",
+      "tabela": "ponto.marcacao",
+      "coluna": "hora",
+      "achado": "defeito de ingestão encontrado e corrigido: TIME copiado para a bronze como duração (BIGINT de microssegundos)",
+      "linhas": 0,
+      "total": 5645710,
+      "severidade": "nenhuma",
+      "impacto": "sem a hora como hora, nenhuma pergunta sobre a ordem das batidas pode ser feita em SQL",
+      "acao": "feito nesta auditoria: o backfill grava TIME como time64 e a tabela foi recopiada; a checagem de tipo entrou em toda auditoria",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "4",
+      "tabela": "ponto.apontamento",
+      "coluna": "horas_noturnas, horas_trabalhadas",
+      "achado": "horas noturnas maiores que as horas trabalhadas do dia",
+      "linhas": 6269,
+      "total": 1166361,
+      "severidade": "baixa",
+      "impacto": "compatível com a hora noturna reduzida da CLT, mas só aparece numa fração dos dias noturnos: ou a redução é aplicada em parte, ou é defeito de cálculo; o adicional noturno da folha depende disso",
+      "acao": "o cliente diz qual convenção o sistema usa; a silver marca e não recalcula",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "4",
+      "tabela": "ponto.banco_horas",
+      "coluna": "saldo_anterior, creditos, debitos, saldo_final",
+      "achado": "hipótese refutada: o banco de horas fecha no mês e encadeia com o mês anterior em todos os fechamentos; status e horas do apontamento coerentes em todos os testes",
+      "linhas": 0,
+      "total": 21095,
+      "severidade": "nenhuma",
+      "impacto": "absenteísmo e horas extras podem ser calculados direto do apontamento",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "5",
+      "tabela": "ponto.marcacao",
+      "coluna": "colaborador_id, data, tipo",
+      "achado": "batida repetida: o mesmo tipo de batida registrado mais de uma vez no mesmo dia",
+      "linhas": 12736,
+      "total": 4300719,
+      "severidade": "media",
+      "impacto": "infla as marcações e, se o cálculo de horas pegar a batida errada, muda a jornada do dia",
+      "acao": "a silver marca a batida duplicada e elege a primeira do tipo no dia, sem apagar",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "7",
+      "tabela": "ponto.marcacao",
+      "coluna": "colaborador_id, data",
+      "achado": "dia trabalhado com uma batida a menos (duas ou três batidas em vez de quatro)",
+      "linhas": 26900,
+      "total": 1080569,
+      "severidade": "media",
+      "impacto": "sem uma das quatro batidas o cálculo de horas do dia depende de suposição",
+      "acao": "a silver marca o dia como incompleto e não infere a batida ausente; o cliente confere na origem",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "7",
+      "tabela": "ponto.marcacao",
+      "coluna": "colaborador_id, data",
+      "achado": "batida solta: dia com uma batida só e sem apontamento",
+      "linhas": 292,
+      "total": 1080569,
+      "severidade": "baixa",
+      "impacto": "registro sem dia de trabalho correspondente; ruído no total de marcações",
+      "acao": "marcar na silver; o cliente decide se descarta na origem",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "7",
+      "tabela": "ponto.marcacao",
+      "coluna": "hora",
+      "achado": "jornada noturna que vira a meia-noite: saída com hora menor que a entrada no mesmo dia (não é defeito, é o turno da noite)",
+      "linhas": 198925,
+      "total": 1058624,
+      "severidade": "nenhuma",
+      "impacto": "qualquer regra escrita com hora do dia acusaria esses dias como defeito; com o relógio deslocado pela entrada, nenhum dia está fora de ordem",
+      "acao": "regra para a silver e a gold: toda comparação de hora do ponto usa o relógio deslocado pela entrada",
+      "declaracao": ""
+    },
+    {
+      "dominio": "ponto",
+      "secao": "8",
+      "tabela": "ponto.apontamento",
+      "coluna": "data, alocacao_id",
+      "achado": "hipótese refutada: nenhum apontamento no futuro, fora da alocação, sem contrato ou sem escala; trabalho em feriado e falta em fim de semana são regra das escalas 6x1 e 12x36",
+      "linhas": 0,
+      "total": 1166361,
+      "severidade": "nenhuma",
+      "impacto": "o ponto respeita alocação e contrato em todos os dias",
+      "acao": "nenhuma; o adicional de feriado e o absenteísmo por escala são indicadores da gold",
+      "declaracao": ""
+    }
+  ]
+}

@@ -70,7 +70,8 @@ def test_o_laudo_versionado_e_o_da_base_que_o_gerador_produz() -> None:
     versionadas = json.loads((PASTA / "medidas.json").read_text(encoding="utf-8"))
     medidas, linhas = aceite.gerar_e_medir(RAIZ / "dados" / "publicos")
     completas, _ = aceite.fechar(medidas, linhas)
-    assert set(completas) == set(versionadas)
+    # a conservação réplica → bronze (C-06) só se mede com o lake de pé: não sai do gerador
+    assert set(completas) == set(versionadas) - {"conservacao"}
     for medida, valores in completas.items():
         assert valores == pytest.approx(versionadas[medida], rel=1e-9, abs=1e-12), medida
 

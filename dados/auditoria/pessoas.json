@@ -1,0 +1,97 @@
+{
+  "dominio": "pessoas",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "pessoas",
+      "secao": "4",
+      "tabela": "pessoas.contrato_trabalho",
+      "coluna": "dt_prevista_termino",
+      "achado": "contrato temporário sem data prevista de término",
+      "linhas": 1281,
+      "total": 15064,
+      "severidade": "media",
+      "impacto": "nenhum alerta de prazo alcança o contrato: é por aqui que o temporário passa dos 180 dias sem ninguém ver",
+      "acao": "a silver deriva a previsão (admissão mais o prazo legal) marcando que foi derivada; o cliente passa a exigir o campo na admissão",
+      "declaracao": ""
+    },
+    {
+      "dominio": "pessoas",
+      "secao": "4",
+      "tabela": "pessoas.desligamento",
+      "coluna": "dt_homologacao",
+      "achado": "desligamento sem homologação, todos dos últimos 30 dias: pendência de prazo, não defeito",
+      "linhas": 0,
+      "total": 16134,
+      "severidade": "nenhuma",
+      "impacto": "a homologação tem prazo legal; dentro dele o nulo é legítimo",
+      "acao": "nenhuma; o painel pode listar os pendentes",
+      "declaracao": ""
+    },
+    {
+      "dominio": "pessoas",
+      "secao": "5",
+      "tabela": "pessoas.afastamento",
+      "coluna": "dt_inicio, dt_fim",
+      "achado": "afastamentos da mesma pessoa que se cruzam no tempo",
+      "linhas": 37,
+      "total": 1058,
+      "severidade": "baixa",
+      "impacto": "o mesmo dia conta duas vezes no absenteísmo e no custo do afastamento",
+      "acao": "marcar o par na silver; o cliente decide qual prevalece",
+      "declaracao": ""
+    },
+    {
+      "dominio": "pessoas",
+      "secao": "5",
+      "tabela": "pessoas.alocacao",
+      "coluna": "colaborador_id, dt_inicio, dt_fim",
+      "achado": "hipótese refutada: nenhuma pessoa com duas alocações ou dois contratos ao mesmo tempo, nenhuma duplicidade de cadastro",
+      "linhas": 0,
+      "total": 16992,
+      "severidade": "nenhuma",
+      "impacto": "o headcount por dia pode ser contado direto da alocação",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "pessoas",
+      "secao": "7",
+      "tabela": "pessoas.colaborador",
+      "coluna": "cpf, dt_nascimento",
+      "achado": "hipótese refutada: nenhum CPF inválido nem nascimento impossível em pessoa admitida; a admissão filtra o que o cadastro de candidato deixa passar",
+      "linhas": 0,
+      "total": 15558,
+      "severidade": "nenhuma",
+      "impacto": "os defeitos de documento do ats são de cadastro de candidato, não de pessoa admitida",
+      "acao": "nenhuma",
+      "declaracao": "documentos inválidos: CPF com dígito verificador errado, data de nascimento impossível"
+    },
+    {
+      "dominio": "pessoas",
+      "secao": "8",
+      "tabela": "pessoas.contrato_trabalho",
+      "coluna": "dt_admissao, criado_em",
+      "achado": "admissão lançada depois do fato: data de admissão anterior ao dia em que o registro foi criado",
+      "linhas": 1621,
+      "total": 16992,
+      "severidade": "media",
+      "impacto": "headcount e custo do mês ficam errados até o lançamento, e a proporção sobe ano a ano: o processo está piorando com o volume",
+      "acao": "a silver marca admissao_retroativa e os dias de atraso; a gold usa a data de admissão como fato; o cliente acompanha a série por ano",
+      "declaracao": "datas retroativas: admissões lançadas depois do fato, com data anterior à do próprio cadastro"
+    },
+    {
+      "dominio": "pessoas",
+      "secao": "10",
+      "tabela": "pessoas.contrato_trabalho",
+      "coluna": "dt_admissao, dt_rescisao, prazo_legal_dias",
+      "achado": "contrato temporário além de 180 dias sem prorrogação registrada (parte deles ainda ativos; parte além de 270 dias no total)",
+      "linhas": 263,
+      "total": 15064,
+      "severidade": "alta",
+      "impacto": "irregularidade trabalhista com multa e risco de vínculo; a concentração recente diz que o controle se perdeu com o crescimento",
+      "acao": "a silver marca o contrato e os dias além do prazo; o alerta vai para o painel; o cliente regulariza na origem",
+      "declaracao": "contratos temporários fora do prazo legal: passaram de 180 ou 270 dias sem aditivo registrado"
+    }
+  ]
+}

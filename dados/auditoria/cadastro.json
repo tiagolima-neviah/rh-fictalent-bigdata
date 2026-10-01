@@ -1,0 +1,71 @@
+{
+  "dominio": "cadastro",
+  "referencia": "2026-09-24T15:02:06.227515",
+  "achados": [
+    {
+      "dominio": "cadastro",
+      "secao": "3",
+      "tabela": "cadastro.escala",
+      "coluna": "dias_ciclo, mes_data_base (e, em outros domínios, etapa_funil.ordem e titulo_receber.numero_parcela)",
+      "achado": "defeito de ingestão encontrado e corrigido: colunas TINYINT copiadas para a bronze como BOOLEAN (todo valor virava True)",
+      "linhas": 0,
+      "total": 17467,
+      "severidade": "nenhuma",
+      "impacto": "a bronze não era espelho no tipo; o tamanho do ciclo da escala e o mês da data-base tinham virado True em toda linha, sem que nenhuma contagem acusasse",
+      "acao": "feito nesta auditoria: o backfill passou a mapear como booleano só o tinyint(1) que a DDL usa para BOOLEAN, e as quatro tabelas foram recopiadas; a checagem de tipo entrou em toda auditoria",
+      "declaracao": ""
+    },
+    {
+      "dominio": "cadastro",
+      "secao": "4",
+      "tabela": "cadastro.funcao",
+      "coluna": "cbo",
+      "achado": "função sem código CBO",
+      "linhas": 17,
+      "total": 45,
+      "severidade": "media",
+      "impacto": "o CBO é o código de ocupação do eSocial e o que liga a função às estatísticas públicas de emprego; sem ele, 17 funções (líderes e analistas entre elas) ficam fora de qualquer cruzamento por ocupação",
+      "acao": "pedir os códigos ao cliente; na silver a ausência não se preenche (inventar CBO cria dado que ninguém coletou)",
+      "declaracao": ""
+    },
+    {
+      "dominio": "cadastro",
+      "secao": "4",
+      "tabela": "cadastro.endereco",
+      "coluna": "complemento",
+      "achado": "coluna nunca preenchida",
+      "linhas": 15721,
+      "total": 15721,
+      "severidade": "baixa",
+      "impacto": "a coluna existe e não informa nada; relatório que a use mostra vazio e parece defeito",
+      "acao": "documentar como não coletada e deixá-la fora do modelo dimensional até que passe a ser preenchida",
+      "declaracao": ""
+    },
+    {
+      "dominio": "cadastro",
+      "secao": "5",
+      "tabela": "cadastro.endereco",
+      "coluna": "logradouro, numero, complemento, bairro, municipio_id",
+      "achado": "hipótese refutada: não há endereço nem outro cadastro de referência duplicado por conteúdo",
+      "linhas": 0,
+      "total": 15721,
+      "severidade": "nenhuma",
+      "impacto": "não há conformação de cadastro a fazer neste domínio",
+      "acao": "nenhuma",
+      "declaracao": ""
+    },
+    {
+      "dominio": "cadastro",
+      "secao": "10",
+      "tabela": "cadastro.feriado",
+      "coluna": "data",
+      "achado": "feriados nacionais conferidos contra a BrasilAPI só nos anos que a fonte tem no lake (2024): 14 de 14; os demais anos aguardam a carga da fonte",
+      "linhas": 0,
+      "total": 156,
+      "severidade": "nenhuma",
+      "impacto": "feriado errado distorce todo indicador em dias úteis (tempo para preencher vaga, dias descobertos, apontamento); a conferência parcial não acusou nada",
+      "acao": "materializar fontes/brasilapi/feriados para 2018 a 2026 e repetir a conferência antes do catálogo (pendência do pipeline, não do dado)",
+      "declaracao": ""
+    }
+  ]
+}
