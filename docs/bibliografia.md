@@ -104,7 +104,7 @@ A fase em que o dado entra pelas três portas do caso (réplica, API, arquivo) e
 | 5.5 | os dias correntes: a réplica volta a se mexer, um dia por vez, idempotente | DEDP cap. 4, *Idempotency Design Patterns* · acervo; DDIA cap. 7, seção *Atomicity* · acervo | simular o mesmo dia duas vezes não pode fazer nada: é o padrão de escrita idempotente, e a transação única é a atomicidade do DDIA |
 | 5.6 | `docs/11`, a ingestão explicada com as três armadilhas reais | FoDE cap. 7, *Key Engineering Considerations for the Ingestion Phase* · acervo | a lista de perguntas do capítulo (bounded ou unbounded, frequência, síncrono ou não, serialização, confiabilidade) é o esqueleto do documento |
 
-## 8. Fase 6 · lake (v0.6.0, em construção)
+## 8. Fase 6 · lake (v0.6.0, concluída)
 
 A fase em que a bronze é auditada às cegas, o catálogo de achados é aprovado e a silver nasce com prestação de contas. As linhas dos cards ainda não construídos são plano e serão confirmadas quando cada card fechar.
 

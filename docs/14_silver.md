@@ -173,7 +173,7 @@ Na primeira vez que rodou, ela reprovou duas regras, e as duas pelo mesmo defeit
 
 **A cadeia de custódia.** O descarte de dado pessoal muda a medida. Apagar o CPF de 19.119 candidatos vencidos tira esses cadastros dos grupos de CPF repetido, e a regra passa a dar outro número, por força de lei. Exigir o número da auditoria para sempre obrigaria a escolher entre descumprir a LGPD e desligar a prova.
 
-A saída é registrar. Cada descarte mede, para toda regra que lê a tabela descartada, o número **antes** e **depois** de apagar, e grava os dois em `lgpd.descarte`, no warehouse, sem nenhum dado pessoal. O número esperado de uma regra passa a ser o da auditoria, trocado pelo "depois" de cada descarte, em ordem; e o "antes" de cada descarte tem de ser o esperado até ali. Se um elo não fecha (alguém apagou sem registrar, a bronze mudou entre dois descartes), a prestação reprova dizendo onde a cadeia quebrou.
+A saída é registrar. Cada descarte mede, para toda regra que lê a tabela descartada, o número **antes** e **depois** de apagar, e grava os dois em `lgpd.descarte`, no warehouse, sem nenhum dado pessoal. O número esperado de uma regra passa a ser o da auditoria, trocado pelo "depois" de cada descarte, em ordem; e o "antes" de cada descarte tem de ser o esperado até ali, ou o número da auditoria, que é o caso da tabela recopiada da réplica (a recópia traz o dado pessoal de volta, e o descarte seguinte o apaga de novo). Se um elo não fecha (alguém apagou sem registrar, a bronze mudou entre dois descartes), a prestação reprova dizendo onde a cadeia quebrou.
 
 O primeiro descarte, em 01/10/2026, deixou este registro para as regras do candidato:
 
@@ -199,14 +199,14 @@ Quando a prestação reprova sem descarte e sem mudança nas regras, a causa é 
 | asset | `lgpd/descarte` | apaga da bronze o dado pessoal eliminado ou vencido, e registra |
 | asset | `silver/prestacao_de_contas` | as 34 regras contra o número esperado; grava o relatório |
 | job | `construir_silver` | o descarte, as 76 tabelas e a prestação |
-| job | `aplicar_descarte` | o descarte, as 12 tabelas com dado pessoal e a prestação |
-| sensor | `descartar_depois_da_carga` | dispara `aplicar_descarte` depois de toda carga que termina bem |
+| job | `aplicar_descarte` | o caminho curto, à mão: o descarte, as 12 tabelas com dado pessoal e a prestação |
+| sensor | `silver_depois_da_carga` | dispara `construir_silver` depois de toda carga incremental que termina bem |
 
 A linhagem diz por que uma tabela muda. `silver/pessoas/alocacao` depende da bronze da alocação e também da bronze do ASO, do certificado e da fatura, porque as marcas dela leem essas tabelas. A silver de tabela com dado pessoal depende do `lgpd/descarte`: ela nunca é montada sobre dado vencido.
 
-O descarte roda depois de toda carga porque a carga pode trazer o dado de volta. A carga incremental troca na bronze as linhas que mudaram na réplica; o candidato vencido cujo cadastro foi alterado volta inteiro, em claro, e o descarte seguinte o apaga de novo.
+A silver inteira é refeita depois de toda carga incremental, porque a carga muda a bronze, e o descarte vai na frente porque a carga pode trazer o dado de volta: ela troca na bronze as linhas que mudaram na réplica, e o candidato vencido cujo cadastro foi alterado volta inteiro, em claro. O backfill não dispara nada: são nove execuções, uma por ano, e disparar a cada uma rodaria nove descartes, vários ao mesmo tempo, sobre os mesmos arquivos. Depois de um backfill, quem fecha o ciclo é a primeira carga incremental, que também cria a marca d'água de onde sai a data de referência.
 
-Duas decisões de operação: no máximo **duas tabelas por vez**, porque cada passo é um processo com o Dagster e o DuckDB carregados, e o padrão (um por núcleo) passa do limite de memória do container; e **nova tentativa só para falha de infraestrutura**. Reprovação na conferência não se repete: ela é determinística, e tentar de novo só adiaria a mesma resposta.
+Três decisões de operação. No máximo **duas tabelas por vez**, porque cada passo é um processo com o Dagster e o DuckDB carregados, e o padrão (um por núcleo) passa do limite de memória do container. **Nova tentativa só para falha de infraestrutura**: reprovação na conferência não se repete, porque é determinística, e tentar de novo só adiaria a mesma resposta. E **a memória é do daemon**: tudo o que entra pela fila (agenda, sensor, interface) é executado no container do daemon, não no da interface. Com o teto de 1 GB que ele tinha, o kernel matava o passo da maior tabela, e o erro que aparece é só `ChildProcessCrashException`; quem conta a causa é o contador `oom_kill` do container. O teto passou a 3 GB e o DuckDB ganhou limite próprio de 512 MB por passo, com o excedente indo para disco. Provado na silver disparada pelo sensor: 78 passos, nenhum processo morto. O uso de memória do container chega ao teto mesmo assim, porque a conta inclui o cache de arquivos, que o sistema devolve quando precisa; o que diz se faltou memória é o contador, não o pico.
 
 ## 8. Ler a silver
 
@@ -243,7 +243,7 @@ A conexão que `abrir` devolve tem as views da bronze e já sabe falar com o lak
 | prestação de contas | 34 regras sobre a bronze | 1,4 s |
 | a silver inteira, pela linha de comando | 76 tabelas, 8,4 milhões de linhas, com as cinco provas | 31 s |
 | a maior tabela (`ponto.marcacao`) | 4.300.719 linhas, montar, gravar e conferir | 3 s |
-| job `construir_silver`, no container | 78 passos, dois por vez | 185 s |
+| job `construir_silver`, no container | 78 passos, dois por vez | de 3 a 4 minutos (175 s quando disparado pelo sensor) |
 | o primeiro descarte | 19.119 candidatos em 7 arquivos, com conferência | 11 s |
 | job `aplicar_descarte`, sem alvo | 14 passos | 41 s |
 

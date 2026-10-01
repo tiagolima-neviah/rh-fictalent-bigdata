@@ -6,7 +6,7 @@
 [Home](../README.md) | [← Régua de Validação](06_regua_de_validacao.md) | [Manual de Operação →](08_manual_de_operacao.md)
 <!-- nav:end -->
 
-> O caminho completo para ter este projeto rodando numa máquina que nunca o viu, com o comando exato de cada passo e a verificação que diz se deu certo. Todo passo foi executado na versão em que entrou. Tempo total medido: cerca de 5 minutos para a plataforma (a maior parte baixando imagens) e mais 7 para gerar e conferir a base sintética, numa estação com 16 núcleos e conexão boa.
+> O caminho completo para ter este projeto rodando numa máquina que nunca o viu, com o comando exato de cada passo e a verificação que diz se deu certo. Todo passo foi executado na versão em que entrou. Tempo total medido: cerca de 5 minutos para a plataforma (a maior parte baixando imagens) e mais 7 para gerar e conferir a base sintética e cerca de 6 para levá-la à bronze e à silver do lake, numa estação com 16 núcleos e conexão boa.
 
 ## 1. O que precisa estar instalado
 
@@ -38,10 +38,10 @@ O compose se recusa a subir sem todas as senhas. Gere todas de uma vez:
 
 ```bash
 cp .env.example .env
-for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
+for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env && sed -i "s/^PSEUDONIMIZACAO_SEGREDO=.*/PSEUDONIMIZACAO_SEGREDO=$(openssl rand -hex 32)/" .env
 ```
 
-O `.env` nunca é versionado (`.gitignore`). Só letras e números nas senhas, para nenhuma string de conexão quebrar. As portas e os endereços locais (`127.0.0.1`) podem ficar como estão.
+O `.env` nunca é versionado (`.gitignore`). Só letras e números nas senhas, para nenhuma string de conexão quebrar. As portas e os endereços locais (`127.0.0.1`) podem ficar como estão. O último valor é o segredo da pseudonimização da silver: a chave de cada pessoa é derivada dele, e trocá-lo depois troca todas as chaves ([Silver, seção 3](14_silver.md)).
 
 ## 4. Subir a plataforma
 
@@ -104,7 +104,45 @@ Depois, o aceite: a base inteira contra a régua inteira, com as linhas contadas
 
 Termina em **`RÉGUA APROVADA: 166 de 166`** e reescreve `dados/regua/medidas.json` e `laudo.txt` com o mesmo conteúdo que está versionado (se `git status` mostrar diferença, a sua base não é a do repositório). O que cada check confere está em [Régua de Validação](06_regua_de_validacao.md).
 
-## 7. O que está onde
+## 7. Levar a base ao lake: bronze e silver
+
+A base está na réplica. Três passos a levam ao lake, e o terceiro é automático.
+
+**1. As cargas iniciais.** As 76 tabelas entram pelo backfill, na interface do Dagster (<http://127.0.0.1:3010>): *Jobs* → `backfill_bronze` → *Materialize all* → backfill das nove partições, de 2018 a 2026. São cerca de 2 minutos ([Ingestão, seção 3](11_ingestao.md)). As nove planilhas do consolidado entram do mesmo jeito, pelo job `carregar_consolidado`. As duas fontes públicas entram pela linha de comando:
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_municipios
+```
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_feriados --partition 2024
+```
+
+As quatro cargas são necessárias: a leitura do lake cria uma view por conjunto, e conjunto sem arquivo nenhum faz a abertura falhar.
+
+**2. A primeira carga incremental.** Ela cria a marca d'água de cada tabela, de onde sai a data de referência das regras com prazo:
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carga_incremental
+```
+
+**3. A silver, sozinha.** Ao fim da carga, o sensor `silver_depois_da_carga` dispara o job `construir_silver`: o descarte de dado pessoal, as 76 tabelas pseudonimizadas e conferidas, e a prestação de contas. São 78 passos em cerca de 3 minutos; acompanhe em *Runs*. Para conferir pela linha de comando:
+
+```bash
+.venv/bin/python -m rh_fictalent.silver --prestar-contas
+```
+
+Termina em **`34 regras conferidas; 0 reprovadas`**. O número bate porque o gerador é determinístico: a sua base é a mesma que foi auditada, e cada regra reproduz o que a auditoria mediu ([Silver, seção 6](14_silver.md)).
+
+**Opcional: o prazo de retenção.** A base gerada não traz prazo de retenção, porque ele é decisão do cliente. Para declará-lo, como o caso fez em 01/10/2026:
+
+```bash
+.venv/bin/python -m rh_fictalent.gerador --parametro RETENCAO_CANDIDATO_DIAS 730 2026-10-01
+```
+
+A carga incremental seguinte traz o parâmetro, e o descarte apaga da bronze o dado pessoal dos candidatos não contratados sem atividade há mais de 730 dias, registrando o efeito em cada regra. O número de candidatos alcançados depende do dia em que você roda, porque o prazo conta a partir da data da carga.
+
+## 8. O que está onde
 
 | endereço | o quê | credencial |
 |---|---|---|
@@ -116,7 +154,7 @@ Termina em **`RÉGUA APROVADA: 166 de 166`** e reescreve `dados/regua/medidas.js
 
 Tudo escuta só em `127.0.0.1`: nada fica acessível a partir da rede. Para um cliente de banco (DBeaver, por exemplo), use esses endereços; no MySQL deixe o campo *Database* vazio para ver os 10 databases.
 
-## 8. Atualizar, recomeçar, desinstalar
+## 9. Atualizar, recomeçar, desinstalar
 
 **Atualizar** para uma versão nova do repositório:
 
@@ -134,7 +172,7 @@ docker compose down -v && docker compose up -d --build && bash scripts/saude.sh
 
 **Desinstalar**: `docker compose down -v --rmi local` remove containers, volumes e a imagem do Dagster; apagar a pasta do repositório remove o resto. As imagens públicas baixadas (MySQL, Postgres, SeaweedFS, Grafana, Python) ficam no Docker até `docker image prune`.
 
-## 9. Reproduzir numa máquina limpa
+## 10. Reproduzir numa máquina limpa
 
 O trilho `réplica provada` da CI faz exatamente isto a cada PR, num runner descartável do GitHub: clona, gera um `.env`, sobe a réplica e roda os testes de integração. É a prova de que este documento não depende de nada que só exista na máquina do autor. Se um passo daqui falhar na sua máquina e não na CI, a diferença está no ambiente (versão do Docker, porta ocupada, WSL sem memória), e a seção 10 do manual de operação tem os sintomas conhecidos.
 
