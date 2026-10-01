@@ -219,6 +219,9 @@ services:
       DW_DB: ${DW_DB:-dw_fictalent}
       DW_ADMIN_USER: ${DW_ADMIN_USER:-fictalent_admin}
       DW_ADMIN_PASSWORD: ${DW_ADMIN_PASSWORD:?defina DW_ADMIN_PASSWORD no .env}
+      # a chave da pseudonimização da silver (card 6.5): sem ela a silver não nasce, e trocá-la
+      # troca toda chave de pessoa; vive só no .env, como as senhas
+      PSEUDONIMIZACAO_SEGREDO: ${PSEUDONIMIZACAO_SEGREDO:?defina PSEUDONIMIZACAO_SEGREDO no .env}
     ports:
       - "127.0.0.1:${DAGSTER_PORT:-3010}:3000"
     volumes:

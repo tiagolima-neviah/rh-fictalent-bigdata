@@ -182,8 +182,8 @@ ENTRADAS: list[Entrada] = [
         "Nome escrito de vários jeitos",
         "É o mecanismo da duplicidade: o cadastro repetido entra com o nome escrito de outro jeito e passa por qualquer busca. Também é rótulo de painel e de relatório.",
         "`ats.candidato.nome` em caixa alta integral ou com inicial abreviada no meio (`Wellington M. Fernandes`): {linhas} de {total} cadastros ({pct}%); centenas de formas normalizadas existem em mais de uma grafia.",
-        Tratamento.CONFORMAR,
-        "a silver grava `nome_conformado` (caixa de título, espaços normalizados, sem abreviar o que não dá para expandir) e mantém `nome` como veio; a busca e o rótulo usam o conformado",
+        Tratamento.MARCAR,
+        "marcar `q_ats_05`; a silver não guarda o nome (pseudonimização, ajuste decidido pelo Tiago em 01/10/2026 sobre a regra aprovada em 24/09, que conformava o nome na silver); a conformação (caixa de título, espaços normalizados, sem abreviar o que não dá para expandir) passa a ser recomendação ao cliente, feita na origem",
         origem=True,
         acao_cliente="a tela de cadastro padroniza a caixa ao salvar",
     ),
@@ -562,7 +562,7 @@ DECISOES: dict[str, str] = {
     "ATS-02": "aprovada",  # 24/09/2026
     "ATS-03": "aprovada",  # 24/09/2026
     "ATS-04": "aprovada",  # 24/09/2026
-    "ATS-05": "aprovada",  # 24/09/2026
+    "ATS-05": "aprovada",  # 24/09/2026; regra ajustada em 01/10/2026 (o nome sai da silver)
     "ATS-06": "aprovada",  # 24/09/2026
     "ATS-07": "aprovada",  # 24/09/2026
     "ATS-08": "aprovada",  # 24/09/2026

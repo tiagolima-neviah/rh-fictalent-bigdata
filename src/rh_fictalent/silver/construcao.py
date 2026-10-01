@@ -1,17 +1,24 @@
 """A silver de uma tabela: a bronze, linha a linha, mais as colunas que o catálogo aprovou.
 
 A silver tem o mesmo grão da bronze (uma linha da réplica, uma linha da silver) e as mesmas
-colunas, com os mesmos valores, na mesma ordem. Depois delas vêm as colunas das regras
-(`silver.regras`), na ordem do catálogo. Tabela sem regra atravessa igual: a silver é a
-camada que o resto do pipeline lê, e a gold não precisa saber quais tabelas tinham defeito.
+colunas, com os mesmos valores, na mesma ordem, **pseudonimizadas** (`silver.pseudonimizacao`,
+card 6.5): o documento vira chave, a data de nascimento vira ano, o que identifica e não serve
+sai. Depois delas vêm as colunas das regras (`silver.regras`), na ordem do catálogo. Tabela
+sem regra e sem dado pessoal atravessa igual: a silver é a camada que o resto do pipeline lê,
+e a gold não precisa saber quais tabelas tinham defeito.
 
 A construção se prova sozinha, tabela a tabela (`conferir`), e reprova se:
 
 1. a silver não tem o mesmo número de linhas da bronze, no total e em cada ano;
-2. alguma coluna original mudou de valor ou de tipo em alguma linha (a comparação é da
-   tabela inteira, `EXCEPT ALL` nos dois sentidos, não de uma amostra);
-3. as colunas não são as da bronze seguidas das novas, na ordem;
-4. alguma marca `q_` está preenchida em linha excluída, ou vazia em linha viva.
+2. alguma coluna original mudou de valor ou de tipo em alguma linha: a comparação é da
+   tabela inteira, `EXCEPT ALL` nos dois sentidos, contra a bronze **pseudonimizada pela
+   mesma regra** (assim a prova vale também para a chave, que é determinística);
+3. as colunas não são as da bronze pseudonimizada seguidas das novas, na ordem;
+4. alguma marca `q_` está preenchida em linha excluída ou descartada, ou vazia em linha
+   avaliada; e, na tabela com descarte, `pessoal_descartado` não conta as mesmas linhas que
+   a bronze mostra descartadas;
+5. alguma coluna de chave tem valor que não é um HMAC (64 dígitos hexadecimais): é a trava
+   contra o documento em claro que escapasse por engano.
 
 A prestação de contas contra a auditoria (a marca atinge o número de linhas que o achado
 gravou) é de outro módulo, `silver.contas`, porque depende da data da auditoria, e não da
@@ -36,7 +43,8 @@ from rh_fictalent.ingestao.backfill import CAMADA as CAMADA_BRONZE
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.ingestao.planilhas import MODULO as MODULO_ARQUIVO
 from rh_fictalent.ingestao.planilhas import TABELA as TABELA_ARQUIVO
-from rh_fictalent.silver import regras
+from rh_fictalent.silver import pseudonimizacao, regras
+from rh_fictalent.staging import lgpd
 from rh_fictalent.staging.gatilhos import tabelas_por_modulo
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -44,6 +52,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 CAMADA = "silver"
 EM_CONFERENCIA = "_em_conferencia"  # onde a tabela espera a conferência antes de publicar
+DESCARTADO = "pessoal_descartado"  # a linha cujo dado pessoal o descarte apagou (card 6.5)
 ANO = "_ano"  # a coluna de trabalho com o ano do arquivo; não vai para o lake
 ARQUIVO = "ano=*.parquet"
 
@@ -110,21 +119,59 @@ def com_ano(caminho: str) -> str:
     )
 
 
-def sql_da_silver(tabela: str, origem: str) -> str:
-    """O SELECT que monta a silver: a origem inteira e as colunas das derivações, pelo `id`."""
-    partes = ["b.*"]
+def originais(tabela: str, colunas_bronze: list[str]) -> list[tuple[str, str]]:
+    """Cada coluna da bronze que entra na silver: (nome na silver, expressão sobre `b`).
+
+    É a pseudonimização aplicada coluna a coluna; a coluna removida não aparece.
+    """
+    decisoes = pseudonimizacao.DECISOES.get(tabela, {})
+    entram = []
+    for coluna in colunas_bronze:
+        decisao = decisoes.get(coluna)
+        nome = pseudonimizacao.nome_na_silver(coluna, decisao)
+        if nome is not None:
+            entram.append((nome, pseudonimizacao.expressao(f"b.{_q(coluna)}", decisao)))
+    return entram
+
+
+def pseudonimizada(tabela: str, relacao: str, colunas_bronze: list[str]) -> str:
+    """A bronze (com `_ano`) pseudonimizada: o que a silver promete ser, sem as regras."""
+    partes = [f"{expr} AS {_q(nome)}" for nome, expr in originais(tabela, colunas_bronze)]
+    return f"(SELECT {', '.join(partes)}, b.{ANO} FROM {relacao} b)"  # noqa: S608 # nosec B608
+
+
+def sql_da_silver(tabela: str, origem: str, colunas_bronze: list[str]) -> str:
+    """O SELECT da silver: a origem pseudonimizada e as colunas das derivações, pelo `id`."""
+    partes = [f"{expr} AS {_q(nome)}" for nome, expr in originais(tabela, colunas_bronze)]
+    partes.append(f"b.{ANO}")
+    avaliada = f"b.{CONTROLE} IS NULL"  # a linha que as regras avaliam: viva e não descartada
+    descartada = lgpd.descartada(tabela, "b")
+    if descartada:
+        partes.append(f"coalesce({descartada}, FALSE) AS {DESCARTADO}")
+        avaliada += f" AND NOT coalesce({descartada}, FALSE)"
+    derivadas = pseudonimizacao.DERIVADAS.get(tabela, {})
     juncoes = []
     apelidos: dict[str, str] = {}
     for coluna in novas(tabela):
         apelido = apelidos.setdefault(coluna.tabela_da_regra, f"d{len(apelidos)}")
         if coluna.marca:
             valor = f"coalesce({apelido}.{coluna.nome}, FALSE)"
-            partes.append(f"CASE WHEN b.{CONTROLE} IS NULL THEN {valor} END AS {coluna.nome}")
+            partes.append(f"CASE WHEN {avaliada} THEN {valor} END AS {coluna.nome}")
         else:
-            partes.append(f"{apelido}.{coluna.nome} AS {coluna.nome}")
+            expr = pseudonimizacao.expressao(f"{apelido}.{coluna.nome}", derivadas.get(coluna.nome))
+            partes.append(f"{expr} AS {coluna.nome}")
     for tabela_da_regra, apelido in apelidos.items():
         juncoes.append(f"LEFT JOIN {tabela_da_regra} {apelido} ON {apelido}.id = b.id")
     return f"SELECT {', '.join(partes)} FROM {origem} b {' '.join(juncoes)}"  # noqa: S608 # nosec B608
+
+
+def _exige_pseudonimo(con: duckdb.DuckDBPyConnection) -> None:
+    sql = "SELECT count(*) FROM duckdb_functions() WHERE function_name = ?"
+    if not con.execute(sql, [pseudonimizacao.FUNCAO]).fetchall()[0][0]:
+        raise RuntimeError(
+            "a conexão não tem a função de pseudonimização: chame "
+            "pseudonimizacao.registrar(con, pseudonimizacao.segredo_do_ambiente()) antes"
+        )
 
 
 def construir(con: duckdb.DuckDBPyConnection, tabela: str, origem: str, referencia: date) -> str:
@@ -132,8 +179,11 @@ def construir(con: duckdb.DuckDBPyConnection, tabela: str, origem: str, referenc
 
     `origem` é a bronze da tabela com a coluna `_ano`; as regras leem a bronze pelas views com
     os nomes da réplica, que a conexão já precisa ter (`lake.consulta.abrir`, ou tabelas de
-    teste com os mesmos nomes).
+    teste com os mesmos nomes). A conexão também precisa da função de pseudonimização, com o
+    segredo (`pseudonimizacao.registrar`): sem ela, a construção recusa.
     """
+    _exige_pseudonimo(con)
+    colunas_bronze = [c for c, _ in _colunas(con, origem) if c != ANO]
     regras.preparar(con, referencia)
     for regra, derivacao in regras.por_tabela().get(tabela, []):
         regras.derivar(con, regra, derivacao)
@@ -145,7 +195,8 @@ def construir(con: duckdb.DuckDBPyConnection, tabela: str, origem: str, referenc
     modulo = tabela.split(".")[0]
     con.execute(f"CREATE SCHEMA IF NOT EXISTS {CAMADA}.{_q(modulo)}")
     nome = alvo(tabela)
-    con.execute(f"CREATE OR REPLACE TABLE {nome} AS {sql_da_silver(tabela, origem)}")  # noqa: S608 # nosec B608
+    sql = sql_da_silver(tabela, origem, colunas_bronze)
+    con.execute(f"CREATE OR REPLACE TABLE {nome} AS {sql}")  # noqa: S608 # nosec B608
     return nome
 
 
@@ -159,16 +210,24 @@ def _numero(con: duckdb.DuckDBPyConnection, sql: str) -> int:
 
 
 def conferir(con: duckdb.DuckDBPyConnection, tabela: str, bronze: str, silver: str) -> Resultado:
-    """As quatro provas da construção (ver o topo do módulo), sobre duas relações com `_ano`."""
+    """As cinco provas da construção (ver o topo do módulo), sobre duas relações com `_ano`.
+
+    A `bronze` é a bronze como está no lake; a comparação é feita contra ela pseudonimizada
+    pela mesma regra, na mesma conexão (que precisa da função com o segredo).
+    """
     resultado = Resultado(tabela)
+    _exige_pseudonimo(con)
+    bruta = bronze  # a bronze em claro: é nela que se vê qual linha foi descartada
+    bronze = pseudonimizada(tabela, bronze, [c for c, _ in _colunas(con, bronze) if c != ANO])
     colunas_bronze = [c for c in _colunas(con, bronze) if c[0] != ANO]
     colunas_silver = [c for c in _colunas(con, silver) if c[0] != ANO]
-    esperadas = [n.nome for n in novas(tabela)]
+    descartada = lgpd.descartada(tabela, "b")
+    esperadas = ([DESCARTADO] if descartada else []) + [n.nome for n in novas(tabela)]
     nomes_bronze = [c for c, _ in colunas_bronze]
     vieram = [c for c, _ in colunas_silver]
     if vieram != nomes_bronze + esperadas:
         resultado.problemas.append(
-            f"colunas: esperadas as da bronze e depois {esperadas}, vieram {vieram}"
+            f"colunas: esperadas as da bronze pseudonimizada e depois {esperadas}, vieram {vieram}"
         )
         return resultado  # sem as colunas certas, as outras provas não fazem sentido
     tipos_silver = dict(colunas_silver)
@@ -197,10 +256,18 @@ def conferir(con: duckdb.DuckDBPyConnection, tabela: str, bronze: str, silver: s
         if diferentes:
             resultado.problemas.append(f"valores originais: {diferentes} linhas {sentido}")
 
+    avaliada = f"{CONTROLE} IS NULL" + (f" AND NOT {DESCARTADO}" if descartada else "")
+    if descartada:  # a silver diz quantas foram descartadas; tem de ser o que a bronze mostra
+        na_bronze = _numero(con, f"SELECT count(*) FROM {bruta} b WHERE {descartada}")  # noqa: S608 # nosec B608
+        na_silver = _numero(con, f"SELECT count(*) FROM {silver} WHERE {DESCARTADO}")  # noqa: S608 # nosec B608
+        if na_bronze != na_silver:
+            resultado.problemas.append(
+                f"{DESCARTADO}: {na_silver} linhas na silver, {na_bronze} descartadas na bronze"
+            )
     for coluna in (n for n in novas(tabela) if n.marca):
         sql = (  # noqa: S608
             f"SELECT count(*) FILTER (WHERE {coluna.nome}), "  # nosec B608
-            f"count(*) FILTER (WHERE ({CONTROLE} IS NULL) <> ({coluna.nome} IS NOT NULL)) "
+            f"count(*) FILTER (WHERE ({avaliada}) <> ({coluna.nome} IS NOT NULL)) "
             f"FROM {silver}"
         )
         marcadas, fora_do_lugar = con.execute(sql).fetchall()[0]
@@ -209,6 +276,18 @@ def conferir(con: duckdb.DuckDBPyConnection, tabela: str, bronze: str, silver: s
             resultado.problemas.append(
                 f"{coluna.nome}: {fora_do_lugar} linhas com a marca vazia em linha viva "
                 "ou preenchida em linha excluída"
+            )
+
+    for coluna_de_chave in pseudonimizacao.colunas_de_chave(tabela):
+        padrao = pseudonimizacao.CHAVE_VALIDA
+        sql = (  # noqa: S608
+            f"SELECT count(*) FROM {silver} WHERE {coluna_de_chave} IS NOT NULL "  # nosec B608
+            f"AND NOT regexp_matches({coluna_de_chave}, '{padrao}')"
+        )
+        em_claro = _numero(con, sql)
+        if em_claro:
+            resultado.problemas.append(
+                f"{coluna_de_chave}: {em_claro} valores que não são chave (dado em claro?)"
             )
     return resultado
 

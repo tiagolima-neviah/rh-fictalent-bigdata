@@ -19,21 +19,25 @@ import duckdb
 from dotenv import load_dotenv
 
 from rh_fictalent.lake import consulta
+from rh_fictalent.lgpd import descarte
 from rh_fictalent.orquestracao.recursos import lake_do_ambiente, warehouse_do_ambiente
-from rh_fictalent.silver import construcao, contas
+from rh_fictalent.silver import construcao, contas, pseudonimizacao
 
 
 def _prestar_contas() -> int:
     lake = lake_do_ambiente()
+    elos = descarte.elos(warehouse_do_ambiente())  # a cadeia de custódia dos descartes
     con = consulta.abrir(lake)
     try:
-        resultado = contas.prestar(con)
+        resultado = contas.prestar(con, elos=elos)
     finally:
         con.close()
     for c in resultado:
         sinal = "ok " if c.confere else "NÃO"
-        numeros = f"auditoria {c.auditoria:>7}  regra {c.regra:>7}"
-        print(f"{sinal} {c.codigo:<7} {c.tabela:<34} {numeros}  em {c.referencia}  ({c.situacao})")
+        numeros = f"esperado {c.esperado:>7}  regra {c.regra:>7}"
+        print(f"{sinal} {c.codigo:<7} {c.tabela:<34} {numeros}  ({c.origem}; {c.situacao})")
+        if c.cadeia:
+            print(f"      cadeia quebrada: {c.cadeia}")
     ruins = contas.reprovadas(resultado)
     print(f"\n{len(resultado)} regras conferidas; {len(ruins)} reprovadas")
     return 1 if ruins else 0
@@ -44,8 +48,10 @@ def _publicar(tabelas: list[str]) -> int:
     referencia = construcao.referencia_atual(warehouse_do_ambiente())
     print(f"data de referência: {referencia:%d/%m/%Y}")
     reprovadas = 0
+    segredo = pseudonimizacao.segredo_do_ambiente()  # sem o segredo, a silver não nasce
     # uma conexão para todas: abrir as views custa uma ida ao lake por tabela
     con = consulta.abrir(lake)
+    pseudonimizacao.registrar(con, segredo)
     try:
         for tabela in tabelas or list(construcao.TABELAS):
             inicio = time.monotonic()
@@ -56,6 +62,7 @@ def _publicar(tabelas: list[str]) -> int:
                 print(f"    {tabela}: conexão com o lake caiu ({erro}); tentando de novo")
                 con.close()
                 con = consulta.abrir(lake)
+                pseudonimizacao.registrar(con, segredo)
                 resultado = construcao.publicar(con, lake, tabela, referencia)
             marcas = ", ".join(f"{m}={n}" for m, n in resultado.marcas.items())
             sinal = "ok " if resultado.aprovada else "NÃO"
@@ -74,7 +81,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m rh_fictalent.silver")
     grupo = parser.add_mutually_exclusive_group(required=True)
     grupo.add_argument(
-        "--prestar-contas", action="store_true", help="cada regra contra o número da auditoria"
+        "--prestar-contas", action="store_true", help="cada regra contra o número esperado"
     )
     grupo.add_argument(
         "--publicar", nargs="*", metavar="modulo.tabela", help="monta, grava e confere"

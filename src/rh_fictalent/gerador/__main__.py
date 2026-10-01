@@ -9,6 +9,7 @@
     python -m rh_fictalent.gerador --etapa 5 --gravar          # financeiro e as planilhas Excel
     python -m rh_fictalent.gerador --etapa 6 --gravar          # SST, treinamento e segurança
     python -m rh_fictalent.gerador --aceite --replica          # a régua inteira na base gravada
+    python -m rh_fictalent.gerador --parametro CHAVE VALOR AAAA-MM-DD  # decisão do cliente
 
 Gravar exige cada tabela exatamente no ponto em que a etapa a continua (gravar duas vezes, ou
 fora de ordem, é recusado): regenerar é sempre "zera e grava de novo", nunca remendo. Zerar
@@ -23,12 +24,14 @@ import argparse
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import date
 
 import pandas as pd
 from dotenv import load_dotenv
 
 from rh_fictalent.gerador import (
     aceite,
+    cliente,
     etapa1_cadastro,
     etapa2_carteira,
     etapa3_pessoas,
@@ -132,7 +135,19 @@ def main(argumentos: list[str] | None = None) -> int:
     parser.add_argument("--replica", action="store_true", help="no aceite, conta na réplica")
     parser.add_argument("--gravar", action="store_true", help="grava na réplica como replicador")
     parser.add_argument("--zerar", action="store_true", help="zera a réplica inteira antes (root)")
+    parser.add_argument(
+        "--parametro",
+        nargs=3,
+        metavar=("CHAVE", "VALOR", "DESDE"),
+        help="o cliente declara um parâmetro com vigência (cadastro.parametro)",
+    )
     args = parser.parse_args(argumentos)
+    if args.parametro:
+        load_dotenv()
+        chave, valor, desde = args.parametro
+        replica = replica_do_ambiente("replicador")
+        print(cliente.declarar_parametro(replica, chave, valor, date.fromisoformat(desde)))
+        return 0
     if args.zerar and not args.gravar:
         parser.error("--zerar só faz sentido com --gravar")
     if args.aceite:

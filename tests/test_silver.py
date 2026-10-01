@@ -13,7 +13,7 @@ import random
 import re
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import duckdb
 import fsspec
@@ -22,7 +22,7 @@ import pytest
 from rh_fictalent.auditoria import catalogo, checagens, esquema
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.orquestracao import silver as orquestracao
-from rh_fictalent.silver import construcao, contas, regras
+from rh_fictalent.silver import construcao, contas, pseudonimizacao, regras
 
 if TYPE_CHECKING:
     from fsspec.spec import AbstractFileSystem
@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from rh_fictalent.orquestracao.recursos import Lake
 
 REFERENCIA = date(2026, 9, 24)
+SEGREDO = b"segredo-de-teste-com-mais-de-trinta-e-dois"  # nunca o do .env
 TIPOS = {
     "BIGINT": "BIGINT", "INT": "BIGINT", "INTEGER": "BIGINT", "SMALLINT": "BIGINT",
     "TINYINT": "BIGINT", "MEDIUMINT": "BIGINT", "BOOLEAN": "BOOLEAN", "BOOL": "BOOLEAN",
@@ -52,6 +53,7 @@ def con() -> duckdb.DuckDBPyConnection:
     c = duckdb.connect()
     _vazia(c)
     regras.preparar(c, REFERENCIA)
+    pseudonimizacao.registrar(c, SEGREDO)
     return c
 
 
@@ -163,20 +165,6 @@ def test_o_cpf_da_silver_e_o_mesmo_da_auditoria(con: duckdb.DuckDBPyConnection) 
     assert con.execute("SELECT cpf_valido(NULL)").fetchall()[0][0] is None
 
 
-@pytest.mark.parametrize(
-    ("nome", "esperado"),
-    [
-        ("MARIA DA SILVA", "Maria da Silva"),
-        ("  joão   p. souza ", "João P. Souza"),
-        ("Ana Dos Santos E Lima", "Ana dos Santos e Lima"),
-    ],
-)
-def test_caixa_de_titulo_nao_inventa(
-    con: duckdb.DuckDBPyConnection, nome: str, esperado: str
-) -> None:
-    assert con.execute("SELECT caixa_de_titulo(?)", [nome]).fetchall()[0][0] == esperado
-
-
 # ------------------------------------------------------------------ regras em poucas linhas
 
 
@@ -202,15 +190,15 @@ def test_duplicidade_de_candidato_agrupa_elege_e_nunca_funde(
     linhas = {
         r[0]: r[1:]
         for r in con.execute(
-            f"SELECT id, q_ats_01, grupo_pessoa, cadastro_canonico, q_ats_03, q_ats_05, q_ats_06, nome_conformado FROM {nome}"  # noqa: S608
+            f"SELECT id, q_ats_01, grupo_pessoa, cadastro_canonico, q_ats_03, q_ats_05, q_ats_06, cpf_chave FROM {nome}"  # noqa: S608
         ).fetchall()
     }
-    grupo = "529.982.247-25"
+    grupo = pseudonimizacao.chave(SEGREDO, "cpf", valido)  # o grupo é a chave do CPF, não o CPF
     assert linhas[1][:3] == (True, grupo, 2)  # o repetido aponta o mais antigo com CPF válido
     assert linhas[2][:3] == (True, grupo, 2)
     assert linhas[3][:3] == (False, grupo, 2) and linhas[3][5] is True  # sem CPF: entra pelo nome
     assert linhas[4][:4] == (True, None, None, True)  # CPF inválido repetido: marcado, sem grupo
-    assert linhas[2][4] is True and linhas[2][6] == "Maria Souza"  # caixa alta conformada
+    assert linhas[2][4] is True and linhas[2][6] == grupo  # caixa alta marcada; CPF só como chave
     assert linhas[6][0] is None and linhas[6][3] is None  # a excluída não é avaliada
     assert con.execute(f"SELECT count(*) FROM {nome}").fetchall()[0][0] == 6  # noqa: S608
 
@@ -364,7 +352,12 @@ def test_as_datas_da_auditoria_sao_lidas_dos_registros() -> None:
 
 
 def test_a_conta_so_confere_com_o_numero_e_a_aprovacao() -> None:
-    base = {"codigo": "X-01", "dominio": "d", "tabela": "t", "referencia": "2026-09-24"}
+    base: dict[str, Any] = {
+        "codigo": "X-01",
+        "dominio": "d",
+        "tabela": "t",
+        "referencia": "2026-09-24",
+    }
     assert contas.Conta(**base, auditoria=5, regra=5, situacao="aprovada").confere
     assert not contas.Conta(**base, auditoria=5, regra=6, situacao="aprovada").confere
     assert not contas.Conta(**base, auditoria=5, regra=5, situacao="proposta").confere

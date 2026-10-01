@@ -26,13 +26,18 @@ import json
 import dagster as dg
 
 from rh_fictalent.lake import consulta
+from rh_fictalent.lgpd import descarte
 from rh_fictalent.orquestracao.convencoes import chave
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
 from rh_fictalent.orquestracao.recursos import Lake, Warehouse
-from rh_fictalent.silver import construcao, contas, regras
+from rh_fictalent.silver import construcao, contas, pseudonimizacao, regras
+from rh_fictalent.staging import lgpd as etiquetas
 
 GRUPO = "silver"
 PRESTACAO = dg.AssetKey(["silver", "prestacao_de_contas"])
+GRUPO_LGPD = "lgpd"
+# o descarte apaga o dado pessoal da bronze; a silver de tabela com dado pessoal vem depois dele
+DESCARTE = dg.AssetKey([GRUPO_LGPD, "descarte"])
 RELATORIO = "_prestacao_de_contas.json"  # no lake, ao lado das tabelas da silver
 MAX_CONCORRENTES = 2
 # Nova tentativa só para a falha de infraestrutura. Em 24/09 a conexão com o lake caiu duas
@@ -62,14 +67,20 @@ def _asset_silver(tabela: str) -> dg.AssetsDefinition:
         name=nome,
         key_prefix=["silver", modulo],
         group_name=GRUPO,
-        deps=[chave("bronze", *t.split(".")) for t in lidas(tabela)],
+        deps=[chave("bronze", *t.split(".")) for t in lidas(tabela)]
+        + ([DESCARTE] if tabela in etiquetas.colunas() else []),
         description=descricao,
         compute_kind="duckdb",
         retry_policy=NOVA_TENTATIVA,
     )
     def silver(context: dg.AssetExecutionContext, lake: Lake, warehouse: Warehouse) -> None:
+        try:
+            segredo = pseudonimizacao.segredo_do_ambiente()
+        except RuntimeError as erro:  # sem o segredo não há silver, e tentar de novo não o cria
+            raise dg.Failure(str(erro), allow_retries=False) from erro
         referencia = construcao.referencia_atual(warehouse)
         con = consulta.abrir(lake)
+        pseudonimizacao.registrar(con, segredo)
         try:
             resultado = construcao.publicar(con, lake, tabela, referencia)
         finally:
@@ -101,16 +112,20 @@ ASSETS = [_asset_silver(t) for t in construcao.TABELAS]
     group_name=GRUPO,
     deps=[a.key for a in ASSETS],
     description=(
-        "Cada regra da silver rodada na data da auditoria contra o número que a auditoria gravou "
-        "para o achado; reprova se algum não bater ou se a regra não estiver aprovada no catálogo."
+        "Cada regra da silver rodada na data da auditoria contra o número esperado: o que a "
+        "auditoria gravou, ou o que o último descarte registrado deixou (cadeia de custódia); "
+        "reprova se algum não bater, se a cadeia quebrar ou se a regra não estiver aprovada."
     ),
     compute_kind="duckdb",
     retry_policy=NOVA_TENTATIVA,
 )
-def prestacao_de_contas(context: dg.AssetExecutionContext, lake: Lake) -> None:
+def prestacao_de_contas(
+    context: dg.AssetExecutionContext, lake: Lake, warehouse: Warehouse
+) -> None:
+    elos = descarte.elos(warehouse)
     con = consulta.abrir(lake)
     try:
-        resultado = contas.prestar(con)
+        resultado = contas.prestar(con, elos=elos)
     finally:
         con.close()
     relatorio = contas.relatorio(resultado)
@@ -124,9 +139,10 @@ def prestacao_de_contas(context: dg.AssetExecutionContext, lake: Lake) -> None:
             "reprovadas": len(ruins),
             "caminho": caminho,
             "contas": dg.MetadataValue.md(
-                "| regra | tabela | auditoria | regra | confere |\n|---|---|---:|---:|---|\n"
+                "| regra | tabela | esperado | origem | regra | confere |\n"
+                "|---|---|---:|---|---:|---|\n"
                 + "\n".join(
-                    f"| {c.codigo} | {c.tabela} | {c.auditoria} | {c.regra} | "
+                    f"| {c.codigo} | {c.tabela} | {c.esperado} | {c.origem} | {c.regra} | "
                     f"{'sim' if c.confere else 'NÃO'} |"
                     for c in resultado
                 )
@@ -135,9 +151,10 @@ def prestacao_de_contas(context: dg.AssetExecutionContext, lake: Lake) -> None:
     )
     if ruins:
         raise dg.Failure(
-            "a silver não reproduz a auditoria:\n- "
+            "a silver não reproduz o número esperado:\n- "
             + "\n- ".join(
-                f"{c.codigo}: auditoria {c.auditoria}, regra {c.regra} ({c.situacao})"
+                f"{c.codigo}: esperado {c.esperado} ({c.origem}), regra {c.regra} "
+                f"({c.situacao}){'; ' + c.cadeia if c.cadeia else ''}"
                 for c in ruins
             ),
             allow_retries=False,
@@ -146,8 +163,12 @@ def prestacao_de_contas(context: dg.AssetExecutionContext, lake: Lake) -> None:
 
 construir_silver = dg.define_asset_job(
     name="construir_silver",
-    selection=dg.AssetSelection.groups(GRUPO),
-    description="Monta a silver inteira a partir da bronze e presta contas contra a auditoria.",
+    # o descarte entra primeiro: a silver nunca é montada sobre dado pessoal vencido
+    selection=dg.AssetSelection.groups(GRUPO_LGPD, GRUPO),
+    description=(
+        "Aplica o descarte, monta a silver inteira a partir da bronze, pseudonimizada, e "
+        "presta contas contra a auditoria."
+    ),
     config=CONFIG_LOGS_JSON,
     # cada passo é um processo com o Dagster e o DuckDB carregados; o padrão (um por núcleo)
     # passa do limite de memória do container. Duas tabelas por vez levaram a silver inteira

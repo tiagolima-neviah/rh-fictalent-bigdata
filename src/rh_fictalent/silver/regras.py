@@ -11,6 +11,8 @@ Três convenções valem para todas:
 
 - **Só linha viva entra na regra.** A linha marcada como excluída na bronze (`excluido_em`
   preenchido) segue na silver, mas as marcas dela ficam nulas: "não avaliada", não "falsa".
+  O mesmo vale para a linha cujo dado pessoal foi descartado por retenção (card 6.5): o dado
+  que a lei mandou apagar não vira defeito de origem.
 - **A data de referência é uma só por construção**, lida pela variável `referencia` do
   DuckDB (`preparar`). É o "hoje" do dado, o mesmo que a auditoria usou: a marca d'água mais
   recente da carga. Regra com prazo (vencido, além do prazo, vigente) depende dela.
@@ -30,6 +32,8 @@ import re
 from dataclasses import dataclass
 
 import duckdb
+
+from rh_fictalent.staging import lgpd
 
 REF = "CAST(getvariable('referencia') AS DATE)"  # o "hoje" do dado, uma data só
 SEM_FIM = "DATE '9999-12-31'"
@@ -80,12 +84,6 @@ MACROS = (
     "WHEN regexp_replace(digitos(x), left(digitos(x), 1), '', 'g') = '' THEN FALSE "
     "ELSE dv_modulo_11(digitos(x), 9) = TRY_CAST(digitos(x)[10] AS INTEGER) "
     "AND dv_modulo_11(digitos(x), 10) = TRY_CAST(digitos(x)[11] AS INTEGER) END)",
-    # caixa de título sem inventar: cada palavra com a inicial maiúscula, as partículas do
-    # nome em minúscula, o espaço normalizado; a inicial abreviada fica abreviada
-    "CREATE OR REPLACE MACRO caixa_de_titulo(x) AS array_to_string(list_transform("
-    "string_split(lower(regexp_replace(trim(x), '\\s+', ' ', 'g')), ' '), "
-    "lambda p: CASE WHEN p IN ('da', 'das', 'de', 'di', 'do', 'dos', 'e') THEN p "
-    "ELSE upper(left(p, 1)) || substr(p, 2) END), ' ')",
 )
 
 
@@ -132,10 +130,16 @@ class Regra:
 def _marca_simples(
     codigo: str, tabela: str, condicao: str, le: tuple[str, ...] = (), de: str = ""
 ) -> Regra:
-    """A regra mais comum: marcar as linhas vivas da tabela que atendem a condição."""
+    """A regra mais comum: marcar as linhas vivas da tabela que atendem a condição.
+
+    A linha cujo dado pessoal foi descartado (`staging.lgpd.DESCARTADA`) não é avaliada: o
+    CPF apagado por retenção não é "candidato sem CPF".
+    """
     marca = "q_" + codigo.lower().replace("-", "_")
     origem = de or f"{tabela} t"
-    sql = f"SELECT DISTINCT t.id, TRUE AS {marca} FROM {origem} WHERE t.excluido_em IS NULL AND ({condicao})"  # noqa: S608 # nosec B608
+    descartada = lgpd.descartada(tabela, "t")
+    avaliavel = f" AND NOT ({descartada})" if descartada else ""
+    sql = f"SELECT DISTINCT t.id, TRUE AS {marca} FROM {origem} WHERE t.excluido_em IS NULL{avaliavel} AND ({condicao})"  # noqa: S608 # nosec B608
     return Regra(codigo, (Derivacao(tabela, (marca,), sql, le),))
 
 
@@ -263,19 +267,11 @@ ATS_04 = _marca_simples(
     "t.dt_nascimento IS NOT NULL AND (date_diff('year', t.dt_nascimento, t.dt_cadastro) < 14 OR t.dt_nascimento < DATE '1930-01-01')",
 )
 
-ATS_05 = Regra(
-    "ATS-05",
-    (
-        Derivacao(
-            "ats.candidato",
-            ("nome_conformado", "q_ats_05"),
-            r"""
-            SELECT id, caixa_de_titulo(nome) AS nome_conformado,
-                   nome = upper(nome) OR regexp_matches(nome, ' [A-Z]\. ') AS q_ats_05
-            FROM ats.candidato WHERE excluido_em IS NULL
-            """,
-        ),
-    ),
+# a regra aprovada em 24/09 gravava também o nome conformado; em 01/10 o Tiago decidiu que o
+# nome não entra na silver (pseudonimização, card 6.5), e a conformação virou recomendação ao
+# cliente na origem. Fica a marca, que é medida de qualidade e não carrega o nome.
+ATS_05 = _marca_simples(
+    "ATS-05", "ats.candidato", r"t.nome = upper(t.nome) OR regexp_matches(t.nome, ' [A-Z]\. ')"
 )
 
 ATS_06 = _marca_simples("ATS-06", "ats.candidato", "t.cpf IS NULL")
