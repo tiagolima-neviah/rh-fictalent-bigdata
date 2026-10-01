@@ -53,7 +53,7 @@ O [`docs/02`](02_entendimento_dados.md), seção 11, lista o que o cliente já s
 | [PES-03](#pes-03) | Temporário sem data prevista de término | `pessoas.contrato_trabalho` | 1.281 de 15.064 (8,50%) | derivar | aprovada |
 | [SEG-01](#seg-01) | Ação sem permissão vigente | `seguranca.log_auditoria` | 4.092 de 111.406 (3,67%) | marcar | aprovada |
 | [PON-01](#pon-01) | A batida que falta | `ponto.marcacao` | 26.900 de 1.080.569 (2,49%) | marcar | aprovada |
-| [ATS-05](#ats-05) | Nome escrito de vários jeitos | `ats.candidato` | 1.333 de 60.294 (2,21%) | conformar | aprovada |
+| [ATS-05](#ats-05) | Nome escrito de vários jeitos | `ats.candidato` | 1.333 de 60.294 (2,21%) | marcar | aprovada |
 | [FIN-03](#fin-03) | Fatura depois do fim do contrato | `financeiro.fatura` | 42 de 3.459 (1,21%) | marcar | aprovada |
 | [TSS-02](#tss-02) | Admissional depois da admissão | `sst.aso` | 155 de 16.992 (0,91%) | derivar | aprovada |
 | [COM-01](#com-01) | Contrato vencido que continua ativo | `comercial.contrato` | 1 de 128 (0,78%) | derivar | aprovada |
@@ -232,7 +232,7 @@ Cada entrada tem as duas redações: a primeira para quem decide, a segunda para
 
 **Para quem implementa:** `ats.candidato.nome` em caixa alta integral ou com inicial abreviada no meio (`Wellington M. Fernandes`): 1.333 de 60.294 cadastros (2,21%); centenas de formas normalizadas existem em mais de uma grafia.
 
-**Regra proposta (conformar):** a silver grava `nome_conformado` (caixa de título, espaços normalizados, sem abreviar o que não dá para expandir) e mantém `nome` como veio; a busca e o rótulo usam o conformado.
+**Regra proposta (marcar):** marcar `q_ats_05`; a silver não guarda o nome (pseudonimização, ajuste decidido pelo Tiago em 01/10/2026 sobre a regra aprovada em 24/09, que conformava o nome na silver); a conformação (caixa de título, espaços normalizados, sem abreviar o que não dá para expandir) passa a ser recomendação ao cliente, feita na origem.
 
 **Correção na origem:** sim: a tela de cadastro padroniza a caixa ao salvar. **Situação:** aprovada.
 

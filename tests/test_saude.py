@@ -26,7 +26,7 @@ def test_script_cobre_as_verificacoes_de_ponta_a_ponta() -> None:
         "grafana_leitor conecta",
         "frescor",
         "code location carregada",
-        "sensores de métricas ligados",
+        "sensores ligados (3 de métricas, 1 de descarte)",
         "painel de execuções provisionado",
         "regras de alerta provisionadas",
         "SO_CONTAINERS",

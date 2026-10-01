@@ -22,7 +22,11 @@ Três decisões que valem explicação:
   que sustenta a foto, é o padrão do InnoDB, e por isso não é declarado aqui.
 
 O esquema do parquet é declarado a partir do `information_schema`, nunca inferido do lote: uma
-coluna toda nula num ano não pode virar um tipo diferente do mesmo campo em outro ano.
+coluna toda nula num ano não pode virar um tipo diferente do mesmo campo em outro ano. A única
+diferença de propósito é a nulidade das colunas etiquetadas como dado pessoal na DDL: na
+bronze elas aceitam nulo mesmo quando a réplica as declara obrigatórias, porque o descarte por
+eliminação ou retenção (`rh_fictalent.lgpd`) as apaga, e a carga seguinte precisa juntar a
+partição descartada sem recusar o nulo (card 6.5).
 """
 
 from __future__ import annotations
@@ -34,6 +38,8 @@ from typing import TYPE_CHECKING, Any
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+from rh_fictalent.staging import lgpd
 
 if TYPE_CHECKING:  # pragma: no cover
     import pymysql
@@ -121,12 +127,13 @@ def esquema(con: pymysql.connections.Connection[Any], modulo: str, tabela: str) 
         colunas = list(cur.fetchall())
     if not colunas:
         raise ValueError(f"tabela sem colunas no information_schema: {modulo}.{tabela}")
+    pessoais = lgpd.da_tabela(modulo, tabela)  # o descarte as apaga: aceitam nulo na bronze
     return pa.schema(
         [
             pa.field(
                 str(nome),
                 _tipo_arrow(str(tipo), str(nome), precisao, escala, str(completo)),
-                nullable=anulavel == "YES",
+                nullable=anulavel == "YES" or str(nome) in pessoais,
             )
             for nome, tipo, precisao, escala, anulavel, completo in colunas
         ]

@@ -131,7 +131,7 @@ versao=$(curl -s "$DAGSTER/server_info" | grep -o '"dagster_version": *"[^"]*"' 
 n=$(graphql '{ assetNodes { assetKey { path } } }' | grep -o '"path"' | wc -l)
 [ "${n:-0}" -ge 3 ] && ok "code location carregada: $n assets" || falha "code location: $n assets (esperados ao menos 3)"
 n=$(graphql '{ sensorsOrError(repositorySelector:{repositoryName:\"__repository__\", repositoryLocationName:\"rh_fictalent.orquestracao.definicoes\"}) { ... on Sensors { results { sensorState { status } } } } }' | grep -o '"RUNNING"' | wc -l)
-[ "${n:-0}" = "3" ] && ok "3 sensores de métricas ligados" || falha "sensores ligados: $n (esperados 3)"
+[ "${n:-0}" = "4" ] && ok "4 sensores ligados (3 de métricas, 1 de descarte)" || falha "sensores ligados: $n (esperados 4)"
 
 echo "Grafana"
 curl -s "$GRAFANA/api/health" | grep -q '"database": *"ok"' && ok "responde" || falha "não responde em $GRAFANA"
