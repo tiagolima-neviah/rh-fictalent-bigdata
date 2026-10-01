@@ -40,11 +40,12 @@ GRUPO_LGPD = "lgpd"
 DESCARTE = dg.AssetKey([GRUPO_LGPD, "descarte"])
 RELATORIO = "_prestacao_de_contas.json"  # no lake, ao lado das tabelas da silver
 MAX_CONCORRENTES = 2
-# Nova tentativa só para a falha de infraestrutura. Em 24/09 a conexão com o lake caiu duas
-# vezes em duas rodadas completas ("Failure when receiving data from the peer"), sem nenhum erro
-# no log do SeaweedFS; repetir é seguro porque a tabela só é publicada depois de conferida e a
-# construção é idempotente. A reprovação na conferência não se repete (`allow_retries=False`):
-# ela é determinística, e tentar de novo só adiaria a mesma resposta.
+# Nova tentativa só para a falha de infraestrutura (rede, lake fora do ar por um instante);
+# repetir é seguro porque a tabela só é publicada depois de conferida e a construção é
+# idempotente. A reprovação na conferência não se repete (`allow_retries=False`): ela é
+# determinística, e tentar de novo só adiaria a mesma resposta. A queda de 24/09 que motivou a
+# política tinha causa, achada em 01/10 e corrigida em `lake/consulta.py` (esgotamento de
+# portas por conexão nova a cada pedido); a política fica, como rede de segurança.
 NOVA_TENTATIVA = dg.RetryPolicy(max_retries=2, delay=10, backoff=dg.Backoff.EXPONENTIAL)
 
 

@@ -65,6 +65,14 @@ def test_o_catalogo_tem_tudo_o_que_a_bronze_tem(lake: Lake) -> None:
         assert v.caminho.startswith(f"s3://{lake.bucket}/")
 
 
+def test_as_conexoes_com_o_lake_sao_reaproveitadas(duck: duckdb.DuckDBPyConnection) -> None:
+    """Sem isto, cada abertura das views deixa mais de mil sockets em espera e, depois de umas
+    37 aberturas num minuto, o sistema fica sem portas e o lake recusa pedidos (a queda de
+    24/09/2026, explicada no topo de `lake/consulta.py`)."""
+    sql = "SELECT value FROM duckdb_settings() WHERE name = 'httpfs_connection_caching'"
+    assert duck.execute(sql).fetchall() == [("true",)]
+
+
 def test_as_views_tem_os_nomes_da_replica_e_o_sql_do_mysql_roda(
     duck: duckdb.DuckDBPyConnection, replica: Replica
 ) -> None:

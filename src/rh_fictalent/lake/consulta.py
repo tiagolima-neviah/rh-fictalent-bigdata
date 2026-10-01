@@ -12,7 +12,7 @@ aprender uma API para começar. As fontes públicas entram como `fontes.municipi
 `fontes.feriados`, a planilha como `arquivo.consolidado_gerencial`, a trilha de exclusões como
 `meta.exclusao_auditoria`.
 
-Duas escolhas ditas:
+Três escolhas ditas:
 
 - **As views são cruas.** Toda linha da bronze aparece, inclusive as marcadas como excluídas
   (`excluido_em` preenchido). Filtrar é do consulente: `WHERE excluido_em IS NULL`. A bronze é
@@ -25,6 +25,13 @@ Duas escolhas ditas:
   Python), e um join de 4,3 milhões por 1,2 milhão de linhas leva 0,09 s contra 2,7 s. A
   extensão é instalada na imagem do Dagster em tempo de build, para o container não depender
   de rede na primeira consulta.
+- **As conexões com o lake são reaproveitadas** (`httpfs_connection_caching`). Criar as 79
+  views lê a lista e o rodapé de cerca de 700 arquivos, e por padrão o `httpfs` abre uma
+  conexão TCP nova para cada pedido. Cada conexão fechada fica um minuto em espera no sistema
+  (`TIME_WAIT`) segurando uma porta, e há 28 mil portas: abrir as views umas 37 vezes em menos
+  de um minuto esgota as portas, e o lake passa a recusar pedidos ("Failure when receiving data
+  from the peer") até a fila esvaziar. Foi a queda de 24/09, que parecia aleatória e não era.
+  Medido em 01/10/2026: 1.421 sockets em espera por abertura sem o reaproveitamento, 18 com ele.
 """
 
 from __future__ import annotations
@@ -100,6 +107,8 @@ def _apontar_para_o_lake(con: duckdb.DuckDBPyConnection, lake: Lake) -> None:
     con.execute("SET s3_url_style = 'path'")  # o SeaweedFS não resolve bucket como subdomínio
     con.execute("SET s3_access_key_id = ?", [lake.chave])
     con.execute("SET s3_secret_access_key = ?", [lake.segredo])
+    # reaproveitar a conexão TCP entre pedidos (ver "Três escolhas ditas", no topo)
+    con.execute("SET httpfs_connection_caching = true")
 
 
 def abrir(lake: Lake) -> duckdb.DuckDBPyConnection:

@@ -3,7 +3,7 @@
 # Catálogo de achados · o que a auditoria achou e o que a silver vai fazer
 
 <!-- nav:start -->
-[Home](../README.md) | [Auditoria (notebooks)](../notebooks/auditoria/README.md) | [← Ingestão](11_ingestao.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [Auditoria (notebooks)](../notebooks/auditoria/README.md) | [← Bronze](12_bronze.md) | [Silver →](14_silver.md)
 <!-- nav:end -->
 
 > **Arquivo gerado** por `python -m rh_fictalent.auditoria --catalogo` a partir de `src/rh_fictalent/auditoria/catalogo.py` (as entradas, com as duas redações e a regra proposta) e de `dados/auditoria/*.json` (os achados que os notebooks gravaram, com linhas, total e fração). Não edite à mão: mude a entrada ou refaça a auditoria e gere de novo. O catálogo é a decisão sobre cada achado: o notebook descobre, o catálogo decide, a silver executa. Toda entrada nasce como **proposta**; a silver só implementa o que estiver **aprovado**, e a aprovação é registrada na própria entrada (`situacao`), com data no log de decisões do projeto.
