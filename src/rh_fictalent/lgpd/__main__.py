@@ -3,7 +3,7 @@
     python -m rh_fictalent.lgpd --simular     # o que seria apagado, sem apagar nada
     python -m rh_fictalent.lgpd --aplicar     # apaga, confere, registra
 
-No dia a dia quem descarta é o job `aplicar_descarte`, disparado depois de toda carga.
+No dia a dia quem descarta é o job `construir_silver`, disparado depois de toda carga incremental.
 """
 
 from __future__ import annotations

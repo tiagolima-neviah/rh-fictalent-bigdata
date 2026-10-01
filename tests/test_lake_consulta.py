@@ -65,6 +65,25 @@ def test_o_catalogo_tem_tudo_o_que_a_bronze_tem(lake: Lake) -> None:
         assert v.caminho.startswith(f"s3://{lake.bucket}/")
 
 
+def test_o_teto_de_memoria_do_duckdb_vem_do_ambiente(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Nos containers do Dagster o compose declara o teto; fora deles nada muda."""
+    padrao = duckdb.connect().execute("SELECT current_setting('memory_limit')").fetchall()
+    sem = duckdb.connect()
+    monkeypatch.delenv(consulta.VARIAVEL_DA_MEMORIA, raising=False)
+    consulta._limitar_a_memoria(sem)
+    assert sem.execute("SELECT current_setting('memory_limit')").fetchall() == padrao
+    com = duckdb.connect()
+    monkeypatch.setenv(consulta.VARIAVEL_DA_MEMORIA, "256MB")
+    monkeypatch.setenv(consulta.VARIAVEL_DO_TEMPORARIO, str(tmp_path))
+    consulta._limitar_a_memoria(com)
+    limite, temporario = com.execute(
+        "SELECT current_setting('memory_limit'), current_setting('temp_directory')"
+    ).fetchall()[0]
+    assert limite.startswith("244") and temporario == str(tmp_path)  # 256 MB em MiB
+
+
 def test_as_conexoes_com_o_lake_sao_reaproveitadas(duck: duckdb.DuckDBPyConnection) -> None:
     """Sem isto, cada abertura das views deixa mais de mil sockets em espera e, depois de umas
     37 aberturas num minuto, o sistema fica sem portas e o lake recusa pedidos (a queda de

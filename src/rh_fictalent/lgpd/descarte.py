@@ -26,7 +26,8 @@ original. O descarte é idempotente: a linha que já não tem dado pessoal não 
 
 **A carga traz o dado de volta, e o descarte o apaga de novo.** A carga incremental faz merge
 por id: a linha que não mudou na réplica fica como está na bronze, descartada; a que mudou
-volta inteira. Por isso o descarte roda depois de toda carga (sensor `descartar_depois_da_carga`).
+volta inteira. Por isso o descarte roda depois de toda carga incremental, dentro do job
+`construir_silver` (sensor `silver_depois_da_carga`).
 
 **Cada descarte deixa registro** em `lgpd.descarte`, no warehouse, sem nenhum dado pessoal:
 quando, sobre que data de referência, que tabela, quantas linhas por motivo, que colunas, e, para

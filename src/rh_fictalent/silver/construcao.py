@@ -295,6 +295,11 @@ def conferir(con: duckdb.DuckDBPyConnection, tabela: str, bronze: str, silver: s
 def referencia_atual(warehouse: Warehouse) -> date:
     """O "hoje" do dado: o dia da marca d'água mais recente da carga, como na auditoria."""
     marcas = marca_dagua.ler(warehouse)
+    if not marcas:
+        raise RuntimeError(
+            "sem marca d'água: rode o job carga_incremental uma vez depois do backfill; é a "
+            "carga que diz qual é a data de referência do dado"
+        )
     return max(m.marca for m in marcas.values()).date()
 
 

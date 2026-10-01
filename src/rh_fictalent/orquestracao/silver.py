@@ -22,6 +22,7 @@ reproduzir o número aprovado no catálogo; o relatório fica gravado no lake.
 # sem `from __future__ import annotations`: o Dagster lê a anotação de `context` em tempo de
 # execução e precisa do tipo, não da string
 import json
+from datetime import date
 
 import dagster as dg
 
@@ -47,6 +48,14 @@ MAX_CONCORRENTES = 2
 # política tinha causa, achada em 01/10 e corrigida em `lake/consulta.py` (esgotamento de
 # portas por conexão nova a cada pedido); a política fica, como rede de segurança.
 NOVA_TENTATIVA = dg.RetryPolicy(max_retries=2, delay=10, backoff=dg.Backoff.EXPONENTIAL)
+
+
+def referencia_da_carga(warehouse: Warehouse) -> date:
+    """A data de referência, ou uma falha que diz o que fazer (e que não adianta repetir)."""
+    try:
+        return construcao.referencia_atual(warehouse)
+    except RuntimeError as erro:
+        raise dg.Failure(str(erro), allow_retries=False) from erro
 
 
 def lidas(tabela: str) -> list[str]:
@@ -79,7 +88,7 @@ def _asset_silver(tabela: str) -> dg.AssetsDefinition:
             segredo = pseudonimizacao.segredo_do_ambiente()
         except RuntimeError as erro:  # sem o segredo não há silver, e tentar de novo não o cria
             raise dg.Failure(str(erro), allow_retries=False) from erro
-        referencia = construcao.referencia_atual(warehouse)
+        referencia = referencia_da_carga(warehouse)
         con = consulta.abrir(lake)
         pseudonimizacao.registrar(con, segredo)
         try:
@@ -176,3 +185,30 @@ construir_silver = dg.define_asset_job(
     # em 3 a 5 minutos nas rodadas de 24/09, e o gargalo é o lake, não a CPU.
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": MAX_CONCORRENTES}),
 )
+
+CARGA = "carga_incremental"
+
+
+@dg.run_status_sensor(
+    run_status=dg.DagsterRunStatus.SUCCESS,
+    name="silver_depois_da_carga",
+    request_job=construir_silver,
+    minimum_interval_seconds=30,
+    default_status=dg.DefaultSensorStatus.RUNNING,
+    monitor_all_code_locations=True,  # inclusive a carga lançada pela CLI (-m)
+    description=(
+        "Depois de toda carga incremental que termina bem, aplica o descarte de dado pessoal, "
+        "refaz a silver inteira e presta contas."
+    ),
+)
+def silver_depois_da_carga(context: dg.RunStatusSensorContext) -> dg.RunRequest | dg.SkipReason:
+    """A carga muda a bronze, e a silver é a bronze conformada: refaz-se depois de cada carga.
+
+    Só a carga incremental dispara. O backfill são nove execuções, uma por ano, e disparar a
+    cada uma rodaria nove descartes e nove silvers, vários ao mesmo tempo, sobre os mesmos
+    arquivos; depois de um backfill, quem fecha o ciclo é a primeira carga incremental (que
+    também cria a marca d'água de onde sai a data de referência).
+    """
+    if context.dagster_run.job_name != CARGA:
+        return dg.SkipReason(f"{context.dagster_run.job_name} não é a carga incremental")
+    return dg.RunRequest(run_key=f"silver-{context.dagster_run.run_id}")
