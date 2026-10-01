@@ -663,7 +663,7 @@ def gerar_markdown() -> str:
     w("<!-- nav:start -->")
     w(
         "[Home](../README.md) | [Auditoria (notebooks)](../notebooks/auditoria/README.md) | "
-        "[← Ingestão](11_ingestao.md) | [Bibliografia →](bibliografia.md)"
+        "[← Bronze](12_bronze.md) | [Silver →](14_silver.md)"
     )
     w("<!-- nav:end -->\n")
     w(

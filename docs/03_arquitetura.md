@@ -186,6 +186,9 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | [operação](08_manual_de_operacao.md) | subir, parar, reiniciar um serviço ou todos, reprocessar um dia ou um ano |
 | [monitoramento e healthcheck](09_monitoramento_e_healthcheck.md) | o que cada painel do Grafana mostra, o que é normal, o que é alerta |
 | [ingestão](11_ingestao.md) | as três portas do dado, o backfill, a carga diária, as exclusões, a planilha e os dias correntes, com os tempos |
+| [bronze](12_bronze.md) | o que o lake guarda, os tipos, como ler com SQL, como conferir, a auditoria às cegas e o descarte de dado pessoal |
+| [catálogo de achados](13_catalogo_de_achados.md) | a decisão sobre cada achado da auditoria e a regra aprovada para a silver |
+| [silver](14_silver.md) | as colunas das regras, a pseudonimização, as cinco provas de cada tabela e a prestação de contas |
 | auditoria | onde está cada trilha e como consultar |
 | backup e restauração | dos bancos e do lake, com teste de restauração |
 | solução de problemas | as falhas conhecidas, o sintoma e o remédio |

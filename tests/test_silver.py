@@ -381,3 +381,26 @@ def test_um_asset_por_tabela_com_a_linhagem_das_regras() -> None:
     assert set(orquestracao.prestacao_de_contas.dependency_keys) == {
         a.key for a in orquestracao.ASSETS
     }
+
+
+# ------------------------------------------------------------------ o documento acompanha o código
+
+
+def test_o_docs_14_cita_toda_regra_coluna_e_decisao_de_pseudonimizacao() -> None:
+    """`docs/14_silver.md` é escrito à mão, mas as tabelas dele saem do código: regra nova,
+    coluna nova ou decisão de pseudonimização nova sem linha no documento reprova aqui."""
+    texto = (Path(__file__).resolve().parents[1] / "docs" / "14_silver.md").read_text(
+        encoding="utf-8"
+    )
+    faltando = [r.codigo for r in regras.REGRAS if f"[{r.codigo}]" not in texto]
+    faltando += [
+        c for r in regras.REGRAS for d in r.derivacoes for c in d.colunas if f"`{c}`" not in texto
+    ]
+    for tabela, decisoes in pseudonimizacao.DECISOES.items():
+        for coluna, decisao in decisoes.items():
+            na_silver = pseudonimizacao.nome_na_silver(coluna, decisao) or "não entra"
+            linha = f"| `{tabela}` | `{coluna}` |"
+            if linha not in texto or na_silver not in texto:
+                faltando.append(f"{tabela}.{coluna}")
+    assert faltando == []
+    assert f"**{len(regras.REGRAS)} viram coluna na silver**" in texto
