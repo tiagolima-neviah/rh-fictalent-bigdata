@@ -58,7 +58,7 @@ def _publicar(tabelas: list[str]) -> int:
             try:
                 resultado = construcao.publicar(con, lake, tabela, referencia)
             except duckdb.IOException as erro:
-                # a queda de conexão com o lake vista em 24/09: uma nova tentativa, com conexão nova
+                # rede de segurança para falha de infraestrutura: uma nova tentativa, conexão nova
                 print(f"    {tabela}: conexão com o lake caiu ({erro}); tentando de novo")
                 con.close()
                 con = consulta.abrir(lake)
