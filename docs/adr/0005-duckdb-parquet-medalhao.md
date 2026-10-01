@@ -1,6 +1,6 @@
 # ADR-0005 · DuckDB sobre parquet como motor do lake
 
-**Situação:** aceito em 16/09/2026. Entra na v0.6.0.
+**Situação:** aceito em 16/09/2026. Em uso desde a v0.6.0.
 
 ## Contexto
 

@@ -24,17 +24,17 @@ from rh_fictalent.orquestracao.fontes import (
     municipios_ibge,
 )
 from rh_fictalent.orquestracao.incremental import agenda_incremental, carga_incremental
-from rh_fictalent.orquestracao.lgpd import (
-    aplicar_descarte,
-    descartar_depois_da_carga,
-    descarte_de_dado_pessoal,
-)
+from rh_fictalent.orquestracao.lgpd import aplicar_descarte, descarte_de_dado_pessoal
 from rh_fictalent.orquestracao.logger_json import logger_json
 from rh_fictalent.orquestracao.planilhas import carregar_consolidado, consolidado_em_planilha
 from rh_fictalent.orquestracao.recursos import recursos_do_ambiente
 from rh_fictalent.orquestracao.sensores import SENSORES
 from rh_fictalent.orquestracao.silver import ASSETS as SILVER
-from rh_fictalent.orquestracao.silver import construir_silver, prestacao_de_contas
+from rh_fictalent.orquestracao.silver import (
+    construir_silver,
+    prestacao_de_contas,
+    silver_depois_da_carga,
+)
 from rh_fictalent.orquestracao.simulacao import agenda_simulacao, simular_dias
 from rh_fictalent.orquestracao.verificacao import (
     lake_pronto,
@@ -70,9 +70,9 @@ defs = dg.Definitions(
         aplicar_descarte,
     ],
     schedules=[agenda_incremental, agenda_simulacao],
-    # fim de execução vira linhas em observabilidade.execucao(_passo); fim de carga dispara o
-    # descarte de dado pessoal
-    sensors=[*SENSORES, descartar_depois_da_carga],
+    # fim de execução vira linhas em observabilidade.execucao(_passo); fim de carga incremental
+    # dispara o descarte de dado pessoal e a silver
+    sensors=[*SENSORES, silver_depois_da_carga],
     resources=recursos_do_ambiente(),
     loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON
 )

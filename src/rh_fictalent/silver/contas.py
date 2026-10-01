@@ -12,9 +12,10 @@ do candidato vencido, e apagar o CPF muda quantos CPFs repetidos existem: a medi
 auditoria deixa de ser reproduzível, por força de lei. Por isso cada descarte
 (`rh_fictalent.lgpd.descarte`) mede as regras afetadas antes e depois de apagar e registra os
 dois números no warehouse. O esperado de uma regra é o da auditoria, trocado pelo "depois" de
-cada descarte, em ordem; e cada "antes" tem de ser o esperado até ali. Se um elo não fecha
-(alguém apagou sem registrar, ou a bronze mudou entre dois descartes), a prestação reprova
-dizendo onde a cadeia quebrou.
+cada descarte, em ordem; e cada "antes" tem de ser o esperado até ali, ou o número da
+auditoria, que é o caso da tabela recopiada da réplica (a recópia traz o dado pessoal de volta,
+e o descarte seguinte o apaga de novo). Se um elo não fecha (alguém apagou sem registrar, ou a
+bronze mudou entre dois descartes), a prestação reprova dizendo onde a cadeia quebrou.
 
 Ela reprova também quando a regra implementa uma entrada que não está aprovada no catálogo:
 a silver só faz o que foi decidido.
@@ -110,16 +111,26 @@ def contar_afetadas(
 
 
 def _esperado(auditoria: int, elos: list[Elo]) -> tuple[int, str, str]:
-    """(esperado, origem, onde a cadeia quebrou) a partir da auditoria e dos descartes."""
+    """(esperado, origem, onde a cadeia quebrou) a partir da auditoria e dos descartes.
+
+    O "antes" de um descarte fecha a cadeia de dois jeitos: é o esperado até ali (a bronze
+    estava como o descarte anterior deixou), ou é o número da auditoria (a tabela foi recopiada
+    da réplica, por `refazer` ou backfill, e voltou ao estado auditado, com o dado pessoal
+    de volta). Qualquer outro número é mudança sem registro.
+    """
     esperado, origem = auditoria, AUDITORIA
     for elo in sorted(elos, key=lambda e: e.ordem):
-        if elo.antes != esperado:
+        if elo.antes not in (esperado, auditoria):
             quebra = (
                 f"o descarte de {elo.quando} mediu {elo.antes} antes de apagar, "
-                f"mas o esperado até ali era {esperado} ({origem})"
+                f"mas o esperado até ali era {esperado} ({origem}) e a auditoria mediu {auditoria}"
             )
             return esperado, origem, quebra
-        esperado, origem = elo.depois, f"descarte de {elo.quando}"
+        recopiada = elo.antes == auditoria and esperado != auditoria
+        origem = f"descarte de {elo.quando}" + (
+            ", depois de recópia da réplica" if recopiada else ""
+        )
+        esperado = elo.depois
     return esperado, origem, ""
 
 

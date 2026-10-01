@@ -131,7 +131,7 @@ O que se faz com cada achado é assunto do [Catálogo de achados](13_catalogo_de
 
 A bronze é a única camada do lake com dado pessoal em claro: nome, CPF, telefone, e-mail. Ela precisa dele por um motivo só, as regras de qualidade da silver (o dígito verificador do CPF, a duplicidade por documento), e a silver já sai pseudonimizada. As 28 colunas alcançadas pela LGPD estão etiquetadas na DDL e listadas no [dicionário](dicionario/README.md).
 
-Dois descartes apagam dado pessoal da bronze, pelo job `aplicar_descarte`, que roda depois de toda carga ([Segurança e LGPD, seção 4](05_seguranca_e_lgpd.md)):
+Dois descartes apagam dado pessoal da bronze. Eles rodam depois de toda carga incremental, dentro do job `construir_silver` ([Segurança e LGPD, seção 4](05_seguranca_e_lgpd.md)):
 
 - **Eliminação.** A linha apagada na origem fica marcada, e as colunas pessoais dela são apagadas. O histórico continua contando a linha; ela só não diz mais de quem era.
 - **Retenção.** O candidato que nunca foi contratado e está sem atividade há mais de 730 dias (prazo declarado pelo cliente em `cadastro.parametro`) tem as colunas pessoais apagadas. Em 01/10/2026 foram 19.119 dos 60.294 candidatos.

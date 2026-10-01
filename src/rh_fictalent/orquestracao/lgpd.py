@@ -1,4 +1,4 @@
-"""O descarte de dado pessoal no Dagster: um asset, o job que o aplica e o sensor que o dispara.
+"""O descarte de dado pessoal no Dagster: um asset e o job que o aplica.
 
 O asset `lgpd/descarte` apaga da bronze o dado pessoal das linhas excluídas na origem e dos
 candidatos com retenção vencida (`rh_fictalent.lgpd.descarte`) e registra cada descarte no
@@ -8,9 +8,10 @@ depende dele. Assim o grafo mostra a ordem que a lei pede: a silver nunca é mon
 descarte.
 
 O job `aplicar_descarte` roda o descarte e tudo o que vem depois dele (a silver das tabelas
-com dado pessoal e a prestação de contas). O sensor `descartar_depois_da_carga` o dispara a
-cada carga que termina bem, incremental ou backfill, porque a carga pode trazer de volta, em
-claro, uma linha que mudou na réplica.
+com dado pessoal e a prestação de contas): é o caminho curto, para rodar à mão. No dia a dia
+o descarte roda dentro do `construir_silver`, que o sensor `silver_depois_da_carga`
+(`orquestracao.silver`) dispara depois de toda carga incremental, porque a carga pode trazer
+de volta, em claro, uma linha que mudou na réplica.
 """
 
 # sem `from __future__ import annotations`: o Dagster lê as anotações em tempo de execução
@@ -26,11 +27,10 @@ from rh_fictalent.orquestracao.silver import (
     GRUPO_LGPD,
     MAX_CONCORRENTES,
     NOVA_TENTATIVA,
+    referencia_da_carga,
 )
-from rh_fictalent.silver import construcao
 from rh_fictalent.staging import lgpd as etiquetas
 
-CARGAS = ("carga_incremental", "backfill_bronze")
 # além das tabelas com dado pessoal, as que decidem quem está vencido
 DECIDEM = ("cadastro.parametro", "ats.candidatura", "pessoas.colaborador")
 
@@ -53,7 +53,7 @@ DECIDEM = ("cadastro.parametro", "ats.candidatura", "pessoas.colaborador")
 def descarte_de_dado_pessoal(
     context: dg.AssetExecutionContext, lake: Lake, warehouse: Warehouse
 ) -> None:
-    referencia = construcao.referencia_atual(warehouse)
+    referencia = referencia_da_carga(warehouse)
     con = consulta.abrir(lake)
     try:
         vigente, resultados = descarte.aplicar(con, lake, referencia)
@@ -89,20 +89,3 @@ aplicar_descarte = dg.define_asset_job(
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": MAX_CONCORRENTES}),
 )
-
-
-@dg.run_status_sensor(
-    run_status=dg.DagsterRunStatus.SUCCESS,
-    name="descartar_depois_da_carga",
-    request_job=aplicar_descarte,
-    minimum_interval_seconds=30,
-    default_status=dg.DefaultSensorStatus.RUNNING,
-    monitor_all_code_locations=True,  # inclusive cargas lançadas pela CLI (-m)
-    description="Depois de toda carga que termina bem, aplica o descarte e refaz a silver afetada.",
-)
-def descartar_depois_da_carga(
-    context: dg.RunStatusSensorContext,
-) -> dg.RunRequest | dg.SkipReason:
-    if context.dagster_run.job_name not in CARGAS:
-        return dg.SkipReason(f"{context.dagster_run.job_name} não é carga")
-    return dg.RunRequest(run_key=f"descarte-{context.dagster_run.run_id}")

@@ -61,6 +61,9 @@ FONTES = {  # view -> caminho no lake, relativo ao bucket
     "feriados": "fontes/brasilapi/feriados/ano=*.parquet",
 }
 VARIAVEL_DAS_EXTENSOES = "DUCKDB_EXTENSION_DIRECTORY"  # onde a imagem pré-instala o httpfs
+VARIAVEL_DA_MEMORIA = "DUCKDB_MEMORY_LIMIT"  # ex.: 512MB; ausente = o DuckDB decide sozinho
+VARIAVEL_DO_TEMPORARIO = "DUCKDB_TEMP_DIRECTORY"
+PASTA_TEMPORARIA = "/tmp/duckdb"  # noqa: S108 # nosec B108 - dentro do container, só do processo
 
 
 @dataclass(frozen=True)
@@ -109,6 +112,24 @@ def _apontar_para_o_lake(con: duckdb.DuckDBPyConnection, lake: Lake) -> None:
     con.execute("SET s3_secret_access_key = ?", [lake.segredo])
     # reaproveitar a conexão TCP entre pedidos (ver "Três escolhas ditas", no topo)
     con.execute("SET httpfs_connection_caching = true")
+    _limitar_a_memoria(con)
+
+
+def _limitar_a_memoria(con: duckdb.DuckDBPyConnection) -> None:
+    """O teto de memória do DuckDB, quando o ambiente o declara (os containers do Dagster).
+
+    Sem teto, o DuckDB assume 80% da memória do container inteiro, e não do que sobra nele: no
+    daemon do Dagster, que já ocupa uns 600 MB parado, o passo da maior tabela foi morto pelo
+    kernel cinco vezes em 01/10/2026 (`oom_kill` no cgroup). Com o teto, o que não cabe vai
+    para a pasta temporária, em disco. Fora do container a variável não existe e nada muda.
+    """
+    limite = os.environ.get(VARIAVEL_DA_MEMORIA)
+    if not limite:
+        return
+    con.execute("SET memory_limit = ?", [limite])
+    con.execute(
+        "SET temp_directory = ?", [os.environ.get(VARIAVEL_DO_TEMPORARIO, PASTA_TEMPORARIA)]
+    )
 
 
 def abrir(lake: Lake) -> duckdb.DuckDBPyConnection:

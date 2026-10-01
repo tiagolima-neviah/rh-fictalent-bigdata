@@ -2,6 +2,51 @@
 
 Cada versão fecha uma fase inteira, com código, testes e documentação. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.6.0] · 2026-10-01 · Lake
+
+A bronze deixou de ser só um depósito: foi lida com SQL, **auditada às cegas**, e o que a auditoria achou virou um catálogo aprovado antes de qualquer transformação. A **silver** existe, com o mesmo grão da bronze, pseudonimizada, e só publica a tabela que passa em cinco provas. O dado pessoal vencido é descartado com registro. Ainda sem gold nem warehouse carregado: isso é a v0.7.0.
+
+### A bronze lida como um banco
+- DuckDB sobre o parquet do lake: uma conexão com **79 views com os nomes da réplica**, de modo que o SQL escrito para o MySQL roda quase sem mexer. Abrir as views leva 0,6 s.
+- A conservação entre a réplica e a bronze passou a ser medida: job `conferir_bronze` e o check C-06 da régua (agora 166 checks).
+
+### Auditoria de qualidade, às cegas
+- Dez notebooks executados e versionados, um por domínio e um de fechamento, tendo como únicas referências a DDL e o que o cliente declarou. Um teste reprova o notebook que consulte o gerador ou a régua: quem sabe o que foi plantado enxerga o que espera.
+- **61 achados**: 4 altos, 17 médios, 19 baixos e 21 registros do que não é defeito. As seis declarações do cliente confirmadas com número, e doze achados médios que ninguém tinha declarado.
+- **Dois defeitos do próprio pipeline**, achados pela auditoria e corrigidos: `TINYINT` copiado como booleano e `TIME` copiado como duração. Contar linhas não acusa tipo errado; a comparação de tipo com a DDL entrou em toda auditoria.
+
+### Catálogo de achados
+- 40 entradas como código, cada uma com a redação para quem decide e a redação para quem implementa, o tratamento (marcar, derivar, conformar, manter, pedir) e a regra. O `docs/13` é gerado: nenhum número é digitado.
+- Aprovado entrada a entrada antes de a silver existir. A silver só implementa o que está aprovado, e um teste cobra.
+
+### Silver
+- As 76 tabelas, linha a linha, mais as colunas das **34 regras** aprovadas: marcas `q_<codigo>` e colunas derivadas ao lado do dado original. A silver nunca funde, preenche, apaga nem corrige.
+- Cada tabela é gravada numa área de conferência, provada e só então publicada. **Cinco provas**: linhas por ano, valores e tipos originais na tabela inteira, colunas na ordem, marca só em linha avaliada, coluna de chave só com chave. A reprovada nunca substitui a publicada.
+- **Prestação de contas**: cada regra roda na data da auditoria e tem de dar o número que o catálogo aprovou. 34 de 34. Na primeira rodada ela reprovou duas regras por um defeito do código, que é para o que ela serve.
+- A silver inteira em 31 segundos pela linha de comando; 78 passos em cerca de 3 minutos no Dagster. Ela é refeita sozinha depois de toda carga incremental.
+
+### LGPD
+- **Pseudonimização**: uma decisão escrita, com motivo, para cada coluna etiquetada como dado pessoal. O documento vira HMAC-SHA256 com um segredo que vive só no `.env`; a data de nascimento vira ano; nome, telefone, e-mail e endereço não entram. O mesmo CPF dá a mesma chave no candidato e no colaborador.
+- **Descarte**: a linha excluída na origem e o candidato não contratado com a retenção vencida têm o dado pessoal apagado na bronze, com conferência antes de trocar o arquivo e registro em `lgpd.descarte`, sem dado pessoal. O prazo (730 dias) é decisão do cliente, declarada em `cadastro.parametro`. O primeiro descarte alcançou 19.119 candidatos.
+- **Cadeia de custódia**: o descarte muda a medida da auditoria por força de lei. Cada descarte registra o número de cada regra antes e depois, e a prestação de contas segue essa cadeia em vez de exigir o número antigo.
+
+### A queda de conexão com o lake
+- O lake recusava pedidos sob carga, sem erro no servidor. Reproduzido, com duas hipóteses descartadas por medida (teto de memória; evento periódico do armazenamento). Causa: uma conexão TCP nova por pedido esgotava as portas do sistema, 1.421 sockets em espera por abertura das views. Com o reaproveitamento de conexões do `httpfs` são 18. A história está no `docs/12`, seção 8.
+
+### A memória de quem executa
+- A silver disparada pelo sensor falhava onde a mesma silver, pela linha de comando, passava. Execução que entra pela fila roda no container do daemon, que tinha teto de 1 GB e já ocupa 600 MB parado: o kernel matava o passo da maior tabela (5 mortes no contador do container). O daemon passou a 3 GB e o DuckDB ganhou teto próprio por passo. Achado no fechamento da versão, ao provar o caminho que um usuário novo percorre.
+- O mesmo exercício achou e corrigiu três furos do caminho do zero: a silver logo depois do backfill quebrava por falta de marca d'água (agora diz o que rodar); o sensor reagia ao backfill, que são nove execuções; e a cadeia de custódia acusava quebra depois de recopiar uma tabela da réplica.
+
+### Documentação e operação
+- `docs/12` bronze, `docs/13` catálogo de achados (gerado), `docs/14` silver, com as tabelas saídas do código e um teste que reprova o documento que envelhecer; `docs/bibliografia`, o que ler fase a fase e card a card.
+- `docs/05` com a pseudonimização e a retenção como feitas; `docs/07` com o caminho do zero até a silver; `docs/08` com o segredo, a operação da silver e do descarte e seis sintomas novos.
+
+### Esteira
+- 533 testes (eram 454 na v0.5.0). `urllib3` atualizado por três vulnerabilidades acusadas pelo `pip-audit`.
+
+### Não inclui
+- Gold, modelo dimensional, warehouse carregado, API. Views da silver, série diária das marcas com prazo e silver incremental. A ordem: v0.7.0 gold e warehouse, v1.0.0 API, auditoria, backup e nuvem.
+
 ## [0.5.0] · 2026-09-23 · Ingestão
 
 O dado passou a entrar no pipeline pelas três portas que o caso tem: a réplica do sistema do cliente, as APIs públicas e a planilha da gerência. A bronze existe, é **espelho fiel** da réplica em parquet particionado por ano, e a carga diária traz só o que mudou. Ainda sem auditoria de qualidade nem silver: isso é a v0.6.0.
@@ -134,6 +179,7 @@ A réplica do sistema do cliente, de pé, cifrada, com controle de acesso e prov
 - Modelo relacional de 75 tabelas em 10 módulos aprovado; plano de sintetização aprovado.
 - Repositório público com Gitflow (`develop` como branch padrão).
 
+[0.6.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.6.0
 [0.5.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.5.0
 [0.4.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.4.0
 [0.3.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.3.0

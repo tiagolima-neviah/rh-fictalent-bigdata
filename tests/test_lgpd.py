@@ -12,6 +12,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
+import dagster as dg
 import duckdb
 import fsspec
 import pyarrow as pa
@@ -537,4 +538,35 @@ def test_o_job_do_descarte_refaz_a_silver_afetada_e_presta_contas() -> None:
     selecionadas = {k.to_user_string() for k in selecao.resolve(todos)}
     assert {"lgpd/descarte", "silver/ats/candidato", "silver/prestacao_de_contas"} <= selecionadas
     assert "silver/comercial/contrato" not in selecionadas
-    assert set(orquestracao_lgpd.CARGAS) == {"carga_incremental", "backfill_bronze"}
+
+
+def test_so_a_carga_incremental_dispara_a_silver() -> None:
+    """O backfill são nove execuções: disparar a cada uma rodaria nove descartes, vários ao
+    mesmo tempo, sobre os mesmos arquivos."""
+    assert orquestracao_silver.CARGA == "carga_incremental"
+    sensor = orquestracao_silver.silver_depois_da_carga
+    assert sensor.name == "silver_depois_da_carga"
+    assert sensor.default_status is dg.DefaultSensorStatus.RUNNING
+
+
+def test_sem_marca_dagua_a_silver_diz_o_que_rodar() -> None:
+    with pytest.raises(RuntimeError, match="carga_incremental"):
+        construcao.referencia_atual(cast("Warehouse", _WarehouseFalso([])))
+
+
+def test_a_recopia_da_replica_reinicia_a_cadeia_sem_quebrar() -> None:
+    """Recopiar a tabela traz o dado pessoal de volta: o descarte seguinte mede, antes de apagar,
+    o número da auditoria, e não o que o descarte anterior deixou. É continuação legítima."""
+    elos = [
+        contas.Elo("a", "ATS-01", 2735, 859, ordem=1),
+        contas.Elo("b", "ATS-01", 2735, 859, ordem=2),  # depois de `refazer`
+        contas.Elo("c", "ATS-01", 859, 859, ordem=3),  # descarte sem alvo novo
+    ]
+    assert contas._esperado(2735, elos[:2]) == (
+        859,
+        "descarte de b, depois de recópia da réplica",
+        "",
+    )
+    assert contas._esperado(2735, elos) == (859, "descarte de c", "")
+    quebrada = contas._esperado(2735, [elos[0], contas.Elo("x", "ATS-01", 900, 859, ordem=2)])
+    assert "900" in quebrada[2] and quebrada[0] == 859
