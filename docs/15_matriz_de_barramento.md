@@ -105,7 +105,7 @@ A coluna P é a prioridade (seção 7). O nome de cada fato leva ao detalhe dele
 - **Grão:** um posto num mês da vigência dele.
 - **Dimensões:** `dim_mes`, `dim_posto`, `dim_contrato`, `dim_cliente`, `dim_filial`, `dim_funcao`.
 - **Medidas:** posições contratadas; pessoas no fim do mês; pessoa-dias alocados; posição-dias descobertos; taxa de ocupação; entradas; saídas; preço mensal vigente; receita; custo de pessoal; margem; margem percentual.
-- **Vem de:** `comercial.posto`, `comercial.posto_preco`, `comercial.contrato`, `pessoas.alocacao`, `financeiro.fatura_item`, `financeiro.fatura`, `folha.rateio_custo`.
+- **Vem de:** `comercial.posto`, `comercial.posto_preco`, `comercial.contrato`, `pessoas.alocacao`, `financeiro.fatura_item`, `financeiro.fatura`, `folha.rateio_custo`, `ponto.apontamento`.
 - **Marcas de qualidade que carrega:** `q_fin_06`, `q_fol_01`.
 - **Nota:** é a espinha da margem (`docs/04`, seção 4): o único lugar onde receita e custo estão no mesmo grão.
 
