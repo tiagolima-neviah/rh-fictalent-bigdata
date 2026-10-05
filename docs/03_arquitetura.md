@@ -189,6 +189,7 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | [bronze](12_bronze.md) | o que o lake guarda, os tipos, como ler com SQL, como conferir, a auditoria às cegas e o descarte de dado pessoal |
 | [catálogo de achados](13_catalogo_de_achados.md) | a decisão sobre cada achado da auditoria e a regra aprovada para a silver |
 | [silver](14_silver.md) | as colunas das regras, a pseudonimização, as cinco provas de cada tabela e a prestação de contas |
+| [matriz de barramento](15_matriz_de_barramento.md) | os fatos, as dimensões e o grão da gold, dos indicadores e das afirmações dos donos até a tabela que responde |
 | auditoria | onde está cada trilha e como consultar |
 | backup e restauração | dos bancos e do lake, com teste de restauração |
 | solução de problemas | as falhas conhecidas, o sintoma e o remédio |
