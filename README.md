@@ -149,6 +149,7 @@ rh-fictalent-bigdata/
 - [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
 - [13 · Catálogo de achados](docs/13_catalogo_de_achados.md): a decisão sobre cada achado da auditoria, em duas redações (para quem decide e para quem implementa), com o tratamento aprovado para a silver e o que nunca se faz; gerado do código e dos registros, aprovado entrada a entrada antes de qualquer transformação.
 - [14 · Silver](docs/14_silver.md): a bronze linha a linha, pseudonimizada, com as colunas das 34 regras aprovadas; as cinco provas de cada tabela, a prestação de contas contra a auditoria e a cadeia de custódia dos descartes, com os tempos medidos.
+- [15 · Matriz de barramento](docs/15_matriz_de_barramento.md): o desenho do modelo dimensional antes de ele existir: os fatos e o grão de cada um, as dimensões que eles dividem, de qual fato sai cada indicador e como cada uma das sete afirmações dos donos é respondida; gerada do código.
 
 Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 10 do manual de operação.
 

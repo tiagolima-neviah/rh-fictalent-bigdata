@@ -3,7 +3,7 @@
 # Silver · a bronze conformada, pseudonimizada e com prestação de contas
 
 <!-- nav:start -->
-[Home](../README.md) | [← Catálogo de achados](13_catalogo_de_achados.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [← Catálogo de achados](13_catalogo_de_achados.md) | [Matriz de barramento →](15_matriz_de_barramento.md)
 <!-- nav:end -->
 
 > A silver é a camada que o resto do pipeline lê. Ela tem as mesmas 76 tabelas da [Bronze](12_bronze.md), linha a linha, com três mudanças: o dado pessoal sai ou vira chave, cada regra aprovada no [Catálogo de achados](13_catalogo_de_achados.md) acrescenta as suas colunas, e nada é publicado sem prova. Este documento explica o que ela faz, o que ela nunca faz, como cada tabela se prova sozinha e como a camada presta contas dos números que o catálogo aprovou. Todo número foi medido na base completa em 01/10/2026.
