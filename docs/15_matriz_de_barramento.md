@@ -8,7 +8,7 @@
 
 > **Arquivo gerado** por `python -m rh_fictalent.gold --matriz` a partir de `src/rh_fictalent/gold/barramento.py`. Não edite à mão: mude a declaração e gere de novo. A matriz é o desenho do modelo dimensional, escrito antes de a gold existir: diz que tabelas de fatos haverá, o que é uma linha de cada uma e por quais dimensões cada uma pode ser cortada. É o documento que se aprova antes de construir, porque mudar o grão de um fato depois de pronto é refazer o fato.
 
-Situação: **proposta em 05/10/2026, aguardando a aprovação do Tiago**. São **20 fatos** (14 de prioridade 1 e 6 de prioridade 2) e **14 dimensões**, cobrindo os 26 indicadores do [Entendimento do Negócio](01_entendimento_negocio.md) e as 7 afirmações dos donos.
+Situação: **aprovada pelo Tiago em 05/10/2026, como proposta**. São **20 fatos** (14 de prioridade 1 e 6 de prioridade 2) e **14 dimensões**, cobrindo os 26 indicadores do [Entendimento do Negócio](01_entendimento_negocio.md) e as 7 afirmações dos donos.
 
 ## 1. Como ler
 

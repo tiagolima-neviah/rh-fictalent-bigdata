@@ -22,7 +22,7 @@ from enum import StrEnum
 from pathlib import Path
 
 DESTINO = Path(__file__).resolve().parents[3] / "docs" / "15_matriz_de_barramento.md"
-SITUACAO = "proposta em 05/10/2026, aguardando a aprovação do Tiago"
+SITUACAO = "aprovada pelo Tiago em 05/10/2026, como proposta"
 
 # fontes que não são tabela da silver: entram no lake no card 7.2, com esquema
 EXTERNAS = {
