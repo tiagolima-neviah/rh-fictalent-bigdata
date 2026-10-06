@@ -19,9 +19,11 @@ from rh_fictalent.orquestracao.bronze import ORIGENS as REPLICA
 from rh_fictalent.orquestracao.bronze import backfill_bronze
 from rh_fictalent.orquestracao.conservacao import conferir_bronze
 from rh_fictalent.orquestracao.fontes import (
+    carregar_caged,
     carregar_feriados,
     carregar_municipios,
     feriados_brasilapi,
+    movimentacao_caged,
     municipios_ibge,
 )
 from rh_fictalent.orquestracao.gold import ASSETS as GOLD
@@ -53,6 +55,7 @@ defs = dg.Definitions(
         warehouse_pronto,
         municipios_ibge,
         feriados_brasilapi,
+        movimentacao_caged,
         *REPLICA,
         *BRONZE,
         consolidado_em_planilha,
@@ -65,6 +68,7 @@ defs = dg.Definitions(
         verificar_plataforma,
         carregar_municipios,
         carregar_feriados,
+        carregar_caged,
         backfill_bronze,
         carga_incremental,
         carregar_consolidado,

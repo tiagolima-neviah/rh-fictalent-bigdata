@@ -34,7 +34,7 @@ ANOS = tuple(str(ano) for ano in range(2018, 2027))
 MODULO_META = "meta"  # a trilha de exclusões: infraestrutura da carga, não negócio
 MODULO_ARQUIVO = "arquivo"  # o que entra por planilha, não pela réplica nem por API
 GRUPO_FONTES = "fontes"
-PROVEDORES = ("ibge", "brasilapi")
+PROVEDORES = ("ibge", "brasilapi", "caged")
 
 PARTICAO_DIARIA = dg.DailyPartitionsDefinition(start_date=PRIMEIRO_DIA, timezone="UTC")
 PARTICAO_ANUAL = dg.StaticPartitionsDefinition(list(ANOS))

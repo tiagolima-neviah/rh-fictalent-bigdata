@@ -43,7 +43,17 @@ UFS = {"35": "SP", "31": "MG"}
 SUBCLASSES_78 = {"7810800", "7820500", "7830200"}
 GRUPO_78 = "78"
 COLUNAS = ("competenciamov", "uf", "municipio", "secao", "subclasse", "saldomovimentacao")
-SAIDA_PADRAO = Path("dados/publicos/caged")
+SAIDA_PADRAO = Path(__file__).resolve().parents[3] / "dados" / "publicos" / "caged"
+ESQUEMA_MENSAL = {  # a tabela mensal como entra no lake (card 7.2): nome -> tipo pandas
+    "competencia": "datetime64[ns]",
+    "escopo": "string",
+    "nome_escopo": "string",
+    "nivel": "string",
+    "grupo": "string",
+    "admissoes": "int64",
+    "desligamentos": "int64",
+    "saldo": "int64",
+}
 CACHE_PADRAO = Path.home() / "refs_privadas" / "fictalent" / "caged"
 
 Chave = tuple[str, str, str]  # (competencia AAAA-MM, escopo, grupo)
@@ -208,6 +218,41 @@ def derivar(de: str, ate: str, cache: Path, saida: Path, manter_txt: bool = Fals
         encoding="utf-8",
     )
     return indice
+
+
+def movimentacao_mensal(pasta: Path = SAIDA_PADRAO) -> pd.DataFrame:
+    """A tabela mensal versionada, tipada e conferida, pronta para o lake.
+
+    A competência vira o primeiro dia do mês; o escopo fica como texto (código IBGE de 6
+    dígitos ou UF de 2) e ganha o nível; o saldo tem de ser admissões menos desligamentos em
+    toda linha, e a chave (competência, escopo, grupo) não se repete.
+    """
+    bruto = pd.read_csv(pasta / "movimentacao_mensal.csv", dtype={"escopo": str, "grupo": str})
+    tabela = pd.DataFrame(
+        {
+            "competencia": pd.to_datetime(bruto["competencia"] + "-01"),
+            "escopo": bruto["escopo"],
+            "nome_escopo": bruto["nome_escopo"],
+            "nivel": bruto["escopo"].map(lambda e: "UF" if len(e) == 2 else "município"),
+            "grupo": bruto["grupo"],
+            "admissoes": bruto["admissoes"],
+            "desligamentos": bruto["desligamentos"],
+            "saldo": bruto["saldo"],
+        }
+    ).astype(ESQUEMA_MENSAL)
+    if (tabela["saldo"] != tabela["admissoes"] - tabela["desligamentos"]).any():
+        raise ValueError("CAGED: saldo diferente de admissões menos desligamentos")
+    if tabela.duplicated(["competencia", "escopo", "grupo"]).any():
+        raise ValueError("CAGED: competência, escopo e grupo repetidos")
+    if tabela["nome_escopo"].isna().any():
+        raise ValueError("CAGED: escopo sem nome")
+    return tabela.sort_values(["escopo", "grupo", "competencia"]).reset_index(drop=True)
+
+
+def fonte(pasta: Path = SAIDA_PADRAO) -> dict[str, object]:
+    """O registro da fonte (`fonte.json`): de onde veio, como foi agregado, quando foi baixado."""
+    registro: dict[str, object] = json.loads((pasta / "fonte.json").read_text(encoding="utf-8"))
+    return registro
 
 
 def main() -> None:

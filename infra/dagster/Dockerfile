@@ -22,6 +22,8 @@ COPY src ./src
 # tabelas na DDL, e o asset da planilha abre os arquivos do consolidado
 COPY staging/ddl ./staging/ddl
 COPY dados/gerencial ./dados/gerencial
+COPY dados/publicos ./dados/publicos
+COPY dados/publicos ./dados/publicos
 # a silver presta contas contra os achados que a auditoria gravou (os números aprovados)
 COPY dados/auditoria ./dados/auditoria
 RUN uv sync --frozen --no-dev

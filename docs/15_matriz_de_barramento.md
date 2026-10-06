@@ -194,7 +194,7 @@ A coluna P é a prioridade (seção 7). O nome de cada fato leva ao detalhe dele
 - **Dimensões:** `dim_mes`, `dim_filial`.
 - **Medidas:** faturamento; custo de pessoal; impostos; despesas; resultado; margem líquida; pessoas alocadas; vagas abertas; clientes ativos; faturamento informado; custo informado; headcount informado; vagas abertas informadas; diferença de cada par.
 - **Vem de:** `financeiro.fatura`, `folha.rateio_custo`, `financeiro.imposto_apurado`, `financeiro.titulo_pagar`, `financeiro.consolidado_gerencial`, `pessoas.alocacao`, `ats.vaga`, `comercial.contrato`, `comercial.posto`, `cadastro.centro_custo`, `cadastro.endereco`, `cadastro.filial`.
-- **Nota:** a operação é a fonte da verdade e o consolidado da gerência fica ao lado, como série informada (FIN-01 e FIN-02). Regra de atribuição à filial (card 7.2, fatia 3, proposta): o tributo com município (ISS) é da filial daquele município, e a base dele é exatamente o faturamento da filial; o tributo federal e a despesa da retaguarda (fornecedores e a folha dela) vão a cada filial na proporção do faturamento dela no mês, com o resto do arredondamento na matriz.
+- **Nota:** a operação é a fonte da verdade e o consolidado da gerência fica ao lado, como série informada (FIN-01 e FIN-02). Regra de atribuição à filial (card 7.2, fatia 3; aprovada pelo Tiago em 06/10/2026): o tributo com município (ISS) é da filial daquele município, e a base dele é exatamente o faturamento da filial; o tributo federal e a despesa da retaguarda (fornecedores e a folha dela) vão a cada filial na proporção do faturamento dela no mês, com o resto do arredondamento na matriz.
 
 <a id="fato_folha"></a>
 
@@ -372,7 +372,7 @@ As afirmações da primeira reunião são o contrato da análise. Cada uma tem o
 
 Fontes que ainda não estão no lake e entram no card 7.2, com esquema:
 
-- `fontes.caged_movimentacao`: movimentação mensal do Novo CAGED (hoje em `dados/publicos/caged/movimentacao_mensal.csv`).
+- `fontes.caged_movimentacao`: movimentação mensal do Novo CAGED: a tabela derivada versionada em `dados/publicos/caged`, levada ao lake pelo asset `fontes/caged/movimentacao` (card 7.2).
 
 ---
 

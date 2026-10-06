@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, cast
 
 import duckdb
 import fsspec
+import pandas as pd
 import pytest
 
 from rh_fictalent.auditoria import esquema
@@ -41,7 +42,22 @@ TIPOS = {
     "DATE": "DATE", "DATETIME": "TIMESTAMP", "TIMESTAMP": "TIMESTAMP", "TIME": "TIME",
     "DECIMAL": "DECIMAL(18, 4)", "FLOAT": "DOUBLE", "DOUBLE": "DOUBLE",
 }  # fmt: skip
-FONTES = sorted(set().union(*(t.fontes for t in modelo.TABELAS)))
+LIDAS = sorted(set().union(*(t.fontes for t in modelo.TABELAS)))
+FONTES = [t for t in LIDAS if not t.startswith("fontes.")]  # as da silver
+PUBLICAS = [t for t in LIDAS if t.startswith("fontes.")]
+# o CAGED do cenário: Extrema (312510) e o estado de MG no grupo 78, e o comércio de Extrema
+CAGED = pd.DataFrame(
+    {
+        "competencia": pd.to_datetime(["2024-01-01", "2024-02-01", "2024-01-01", "2024-01-01"]),
+        "escopo": ["312510", "312510", "31", "312510"],
+        "nome_escopo": ["Extrema", "Extrema", "MG", "Extrema"],
+        "nivel": ["município", "município", "UF", "município"],
+        "grupo": ["78", "78", "78", "G"],
+        "admissoes": [10, 12, 500, 30],
+        "desligamentos": [8, 15, 450, 20],
+        "saldo": [2, -3, 50, 10],
+    }
+)
 
 
 def _etapas(candidatura: int, etapas: tuple[int, ...]) -> list[dict[str, object]]:
@@ -60,7 +76,7 @@ def _etapas(candidatura: int, etapas: tuple[int, ...]) -> list[dict[str, object]
 CENARIO: dict[str, list[dict[str, object]]] = {
     "cadastro.regiao": [{"id": 1, "nome": "Bragantina"}],
     "cadastro.municipio": [
-        {"id": 1, "nome": "Extrema", "uf": "MG", "regiao_id": 1},
+        {"id": 1, "nome": "Extrema", "uf": "MG", "regiao_id": 1, "codigo_ibge": "3125101"},
         {"id": 2, "nome": "Atibaia", "uf": "SP", "regiao_id": 1},
     ],
     "cadastro.endereco": [
@@ -806,6 +822,10 @@ def lake(tmp_path_factory: pytest.TempPathFactory) -> Lake:
         silver.construir(con, tabela, origem, REFERENCIA)
         assert silver.gravar(con, local, tabela, em_conferencia=False)
     con.close()
+    assert PUBLICAS == ["fontes.caged_movimentacao"]
+    pasta = Path(local.caminho("fontes", "caged"))
+    pasta.mkdir(parents=True)
+    CAGED.to_parquet(pasta / "movimentacao.parquet", index=False)
     return local
 
 
@@ -813,6 +833,9 @@ def _abrir(lake: Lake) -> duckdb.DuckDBPyConnection:
     con = duckdb.connect()
     caminhos = {t: lake.caminho("silver", *t.split("."), "ano=*.parquet") for t in FONTES}
     consulta.criar_views_da_silver(con, caminhos)
+    consulta.criar_views_das_fontes(
+        con, {"caged_movimentacao": lake.caminho("fontes", "caged", "movimentacao.parquet")}
+    )
     return con
 
 
@@ -1347,6 +1370,38 @@ def test_o_resultado_do_mes_atribui_imposto_e_despesa_a_filial(
     ) == (Decimal("25.00"), Decimal("-25.00"), None)
 
 
+def test_o_mercado_entra_como_regua_de_fora(gold: duckdb.DuckDBPyConnection) -> None:
+    escopos = {e["id"]: e for e in _linhas(gold, "SELECT * FROM gold.dim_escopo_mercado")}
+    assert sorted(cast("int", i) for i in escopos) == [
+        0,
+        3178,
+        31251007,
+        31251078,
+    ]  # MG·78, Extrema·G (7ª letra), Extrema·78
+    extrema = escopos[31251078]
+    assert (
+        extrema["territorio"],
+        extrema["nivel"],
+        extrema["grupo_codigo"],
+        extrema["municipio_id"],
+    ) == ("Extrema", "município", "78", 1)
+    assert extrema["segmento_da_fictalent"] and not escopos[31251007]["segmento_da_fictalent"]
+    assert (escopos[3178]["nivel"], escopos[3178]["municipio_id"], escopos[3178]["territorio"]) == (
+        "UF",
+        0,
+        "MG",
+    )
+    mercado = {
+        (m["mes_id"], m["escopo_mercado_id"]): m
+        for m in _linhas(gold, "SELECT * FROM gold.fato_mercado_mes")
+    }
+    assert (mercado[(202402, 31251078)]["admissoes"], mercado[(202402, 31251078)]["saldo"]) == (
+        12,
+        -3,
+    )
+    assert mercado[(202401, 3178)]["desligamentos"] == 450 and len(mercado) == 4
+
+
 # ------------------------------------------------------------------ a conferência
 
 
@@ -1456,6 +1511,10 @@ def test_um_asset_por_tabela_com_a_linhagem_do_modelo() -> None:
         "silver/folha/rateio_custo",
         "silver/ponto/apontamento",
     } <= dependencias
+    (mercado,) = [a for a in orquestracao.ASSETS if a.key.path == ["gold", "fato_mercado_mes"]]
+    assert {"fontes/caged/movimentacao", "gold/dim_escopo_mercado", "gold/dim_mes"} <= {
+        k.to_user_string() for k in mercado.dependency_keys
+    }
     conhecidas = {
         k.to_user_string() for k in definicoes.defs.resolve_asset_graph().get_all_asset_keys()
     }

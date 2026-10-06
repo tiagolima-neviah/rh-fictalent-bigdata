@@ -26,7 +26,7 @@ SITUACAO = "aprovada pelo Tiago em 05/10/2026, como proposta"
 
 # fontes que não são tabela da silver: entram no lake no card 7.2, com esquema
 EXTERNAS = {
-    "fontes.caged_movimentacao": "movimentação mensal do Novo CAGED (hoje em `dados/publicos/caged/movimentacao_mensal.csv`)",
+    "fontes.caged_movimentacao": "movimentação mensal do Novo CAGED: a tabela derivada versionada em `dados/publicos/caged`, levada ao lake pelo asset `fontes/caged/movimentacao` (card 7.2)",
 }
 
 
@@ -220,7 +220,7 @@ DIMENSOES: tuple[Dimensao, ...] = (
         "dim_escopo_mercado",
         "o recorte do mercado de trabalho público",
         "um território (UF ou município) e um grupo de atividade",
-        ("fontes.caged_movimentacao",),
+        ("fontes.caged_movimentacao", "cadastro.municipio"),
         ("território", "UF ou município", "grupo de atividade"),
         nota="vem do Novo CAGED, não do cliente",
     ),
@@ -598,7 +598,7 @@ FATOS: tuple[Fato, ...] = (
             "cadastro.endereco",
             "cadastro.filial",
         ),
-        nota="a operação é a fonte da verdade e o consolidado da gerência fica ao lado, como série informada (FIN-01 e FIN-02). Regra de atribuição à filial (card 7.2, fatia 3, proposta): o tributo com município (ISS) é da filial daquele município, e a base dele é exatamente o faturamento da filial; o tributo federal e a despesa da retaguarda (fornecedores e a folha dela) vão a cada filial na proporção do faturamento dela no mês, com o resto do arredondamento na matriz",
+        nota="a operação é a fonte da verdade e o consolidado da gerência fica ao lado, como série informada (FIN-01 e FIN-02). Regra de atribuição à filial (card 7.2, fatia 3; aprovada pelo Tiago em 06/10/2026): o tributo com município (ISS) é da filial daquele município, e a base dele é exatamente o faturamento da filial; o tributo federal e a despesa da retaguarda (fornecedores e a folha dela) vão a cada filial na proporção do faturamento dela no mês, com o resto do arredondamento na matriz",
     ),
     Fato(
         "fato_ocorrencia",

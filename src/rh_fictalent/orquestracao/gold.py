@@ -19,6 +19,7 @@ import dagster as dg
 
 from rh_fictalent.gold import construcao, modelo
 from rh_fictalent.lake import consulta
+from rh_fictalent.orquestracao.convencoes import chave_fonte
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
 from rh_fictalent.orquestracao.recursos import Lake
 from rh_fictalent.orquestracao.silver import MAX_CONCORRENTES, NOVA_TENTATIVA
@@ -31,9 +32,15 @@ def chave_gold(nome: str) -> dg.AssetKey:
 
 
 def dependencias(tabela: modelo.Tabela) -> list[dg.AssetKey]:
-    """As tabelas da silver que o SQL lê e as dimensões que a tabela referencia."""
-    silver = [dg.AssetKey(["silver", *fonte.split(".")]) for fonte in sorted(tabela.fontes)]
-    return [*silver, *(chave_gold(d) for d in sorted(set(tabela.referencias.values())))]
+    """As tabelas da silver e as fontes públicas que o SQL lê, e as dimensões referenciadas."""
+    lidas = []
+    for fonte in sorted(tabela.fontes):
+        modulo, nome = fonte.split(".")
+        if modulo == consulta.ESQUEMA_FONTES:
+            lidas.append(chave_fonte(*consulta.ASSETS_DAS_FONTES[nome]))
+        else:
+            lidas.append(dg.AssetKey(["silver", modulo, nome]))
+    return [*lidas, *(chave_gold(d) for d in sorted(set(tabela.referencias.values())))]
 
 
 def _asset_gold(tabela: modelo.Tabela) -> dg.AssetsDefinition:
