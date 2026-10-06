@@ -10,6 +10,8 @@ horizonte. A prova com o dado inteiro é `python -m rh_fictalent.gold --publicar
 
 from __future__ import annotations
 
+import os
+import socket
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -19,13 +21,16 @@ import duckdb
 import fsspec
 import pandas as pd
 import pytest
+from dotenv import dotenv_values
 
 from rh_fictalent.auditoria import cadernos, esquema
-from rh_fictalent.gold import analitico, barramento, construcao, modelo, regua
+from rh_fictalent.gold import analitico, barramento, construcao, modelo, regua, warehouse
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao import definicoes
 from rh_fictalent.orquestracao import gold as orquestracao
+from rh_fictalent.orquestracao import warehouse as orquestracao_dw
+from rh_fictalent.orquestracao.recursos import Warehouse
 from rh_fictalent.silver import construcao as silver
 from rh_fictalent.silver import pseudonimizacao
 from rh_fictalent.validacao import bandas
@@ -1690,3 +1695,122 @@ def test_o_asset_da_regua_fecha_o_job_da_gold() -> None:
     }
     job = definicoes.defs.resolve_job_def("construir_gold")
     assert "gold/regua" in {k.to_user_string() for k in job.asset_layer.executable_asset_keys}
+
+
+# ------------------------------------------------------------------ o warehouse Postgres
+
+
+def test_a_ddl_do_warehouse_sai_do_modelo(gold: duckdb.DuckDBPyConnection) -> None:
+    assert warehouse.alvo(modelo.DIM_CLIENTE).qualificado == "dim.cliente"
+    assert warehouse.alvo(modelo.FATO_POSTO_MES).qualificado == "fato.posto_mes"
+    assert warehouse.alvo(modelo.FATO_POSTO_MES).particao(2024) == "fato.posto_mes_2024"
+    assert warehouse.tipo_postgres("DECIMAL(14,2)") == "numeric(14, 2)"
+    assert (
+        warehouse.tipo_postgres("VARCHAR") == "text"
+        and warehouse.tipo_postgres("DOUBLE") == "double precision"
+    )
+    with pytest.raises(ValueError, match="sem tradução"):
+        warehouse.tipo_postgres("STRUCT(a INTEGER)")
+
+    dimensao = warehouse.ddl(gold, modelo.DIM_CLIENTE)
+    assert "CREATE SCHEMA IF NOT EXISTS dim;" in dimensao
+    assert (
+        "CREATE TABLE IF NOT EXISTS dim.cliente (" in dimensao and "  PRIMARY KEY (id)" in dimensao
+    )
+    assert "PARTITION BY" not in dimensao and "razao_social text" in dimensao
+    assert "COMMENT ON TABLE dim.cliente IS 'um cliente; quem contrata a Fictalent';" in dimensao
+
+    fato = warehouse.ddl(gold, modelo.FATO_POSTO_MES)
+    assert "CREATE TABLE IF NOT EXISTS fato.posto_mes (" in fato
+    assert "  PRIMARY KEY (posto_id, mes_id, ano)" in fato  # o ano entra: é a coluna de partição
+    assert fato.rstrip().endswith(
+        "PARTITION BY RANGE (ano);\nCOMMENT ON TABLE fato.posto_mes IS 'um posto num mês da vigência dele; o processo: ocupar o posto, faturar e custear';"
+    )
+    for coluna, dimensao_ in modelo.FATO_POSTO_MES.referencias.items():
+        assert (
+            f"  FOREIGN KEY ({coluna}) REFERENCES dim.{dimensao_.removeprefix('dim_')} (id)" in fato
+        )
+    assert "receita numeric(" in fato and "taxa_de_ocupacao double precision" in fato
+    assert warehouse.ddl_da_particao(warehouse.alvo(modelo.FATO_POSTO_MES), 2024) == (
+        "CREATE TABLE IF NOT EXISTS fato.posto_mes_2024 PARTITION OF fato.posto_mes FOR VALUES FROM (2024) TO (2025);"
+    )
+    assert warehouse.anos_no_parquet(gold, modelo.FATO_POSTO_MES) == [2024]
+
+
+def test_os_assets_do_warehouse_seguem_a_gold_e_as_dimensoes_vem_antes() -> None:
+    chaves = {a.key.to_user_string() for a in orquestracao_dw.ASSETS}
+    assert chaves == {
+        f"warehouse/{warehouse.alvo(t).esquema}/{warehouse.alvo(t).nome}" for t in modelo.TABELAS
+    }
+    (posto_mes,) = [
+        a for a in orquestracao_dw.ASSETS if a.key.path == ["warehouse", "fato", "posto_mes"]
+    ]
+    dependencias = {k.to_user_string() for k in posto_mes.dependency_keys}
+    assert "gold/fato_posto_mes" in dependencias
+    assert {"warehouse/dim/posto", "warehouse/dim/mes", "warehouse/dim/cliente"} <= dependencias
+    (cliente,) = [
+        a for a in orquestracao_dw.ASSETS if a.key.path == ["warehouse", "dim", "cliente"]
+    ]
+    assert {k.to_user_string() for k in cliente.dependency_keys} == {"gold/dim_cliente"}
+    job = definicoes.defs.resolve_job_def("carregar_warehouse")
+    assert len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS)
+
+
+ENV = dotenv_values(RAIZ / ".env") if (RAIZ / ".env").exists() else {}
+
+
+def _postgres_de_pe() -> bool:
+    try:
+        socket.create_connection(("127.0.0.1", int(ENV.get("DW_PORT") or 0)), timeout=1).close()
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+@pytest.mark.skipif(not ENV or not _postgres_de_pe(), reason="warehouse fora do ar ou .env ausente")
+def test_a_carga_no_postgres_e_idempotente_e_conferida(gold: duckdb.DuckDBPyConnection) -> None:
+    """Com a plataforma de pé: o cenário vai para schemas de teste do warehouse de verdade,
+    duas vezes (a segunda não duplica), é conferido, e a adulteração no Postgres reprova."""
+    dw = Warehouse(
+        host="127.0.0.1",
+        porta=int(ENV.get("DW_PORT") or 5441),
+        banco=ENV.get("DW_DB") or "dw_fictalent",
+        usuario=ENV.get("DW_ADMIN_USER") or "fictalent_admin",
+        senha=ENV.get("DW_ADMIN_PASSWORD") or os.environ.get("DW_ADMIN_PASSWORD", ""),
+    )
+    esquemas = ("teste_gold_dim", "teste_gold_fato")
+    try:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            con.commit()
+        for _ in range(2):  # idempotente: a dimensão por upsert, o fato por partição
+            for t in modelo.TABELAS:
+                resultado = warehouse.carregar(gold, dw, t, *esquemas)
+                assert resultado.aprovada, (t.nome, resultado.problemas)
+        (linhas,) = dw.consultar("SELECT count(*) FROM teste_gold_fato.posto_mes")[0]
+        assert (
+            linhas == 4 and dw.consultar("SELECT count(*) FROM teste_gold_dim.cliente")[0][0] == 2
+        )
+        assert dw.consultar("SELECT count(*) FROM teste_gold_fato.posto_mes_2024")[0][0] == 4
+        # a chave estrangeira do Postgres vale: posto que não existe na dimensão é recusado
+        with (
+            pytest.raises(Exception, match="foreign key|chave estrangeira"),
+            dw.conectar() as con,
+            con.cursor() as cur,
+        ):
+            cur.execute("UPDATE teste_gold_fato.posto_mes SET posto_id = 99 WHERE mes_id = 202401")
+            con.commit()
+        # o que foi mexido no Postgres não confere mais com o parquet
+        with dw.conectar() as con, con.cursor() as cur:
+            cur.execute(
+                "UPDATE teste_gold_fato.posto_mes SET receita = receita + 1 WHERE mes_id = 202401"
+            )
+            con.commit()
+        problemas = warehouse.conferir(gold, dw, modelo.FATO_POSTO_MES, *esquemas)
+        assert problemas == ["receita dos postos em 2024: parquet 100.0000, postgres 101.0000"]
+    finally:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            con.commit()
