@@ -20,7 +20,6 @@ import dagster as dg
 from rh_fictalent.gold import construcao, modelo
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.convencoes import chave_fonte
-from rh_fictalent.orquestracao.convencoes import chave_fonte
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
 from rh_fictalent.orquestracao.recursos import Lake
 from rh_fictalent.orquestracao.silver import MAX_CONCORRENTES, NOVA_TENTATIVA

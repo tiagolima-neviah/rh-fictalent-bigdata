@@ -63,11 +63,12 @@ def movimentacao_caged(context: dg.AssetExecutionContext, lake: Lake) -> None:
     registro = caged.fonte()
     caminho = lake.caminho("fontes", "caged", "movimentacao.parquet")
     lake.escrever_parquet(tabela, caminho)
+    primeira, ultima = tabela["competencia"].min(), tabela["competencia"].max()
     context.log.info("%s linhas do CAGED gravadas em %s", len(tabela), caminho)
     context.add_output_metadata(
         {
             "linhas": len(tabela),
-            "competencias": f"{tabela['competencia'].min():%Y-%m} a {tabela['competencia'].max():%Y-%m}",
+            "competencias": f"{primeira:%Y-%m} a {ultima:%Y-%m}",
             "escopos": int(tabela["escopo"].nunique()),
             "fonte": str(registro.get("fonte", "")),
             "baixado_em": str(registro.get("baixado_em", "")),
