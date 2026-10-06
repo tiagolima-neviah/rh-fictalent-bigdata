@@ -59,8 +59,14 @@ def _etapas(candidatura: int, etapas: tuple[int, ...]) -> list[dict[str, object]
 
 CENARIO: dict[str, list[dict[str, object]]] = {
     "cadastro.regiao": [{"id": 1, "nome": "Bragantina"}],
-    "cadastro.municipio": [{"id": 1, "nome": "Extrema", "uf": "MG", "regiao_id": 1}],
-    "cadastro.endereco": [{"id": 1, "municipio_id": 1, "tipo": "FILIAL"}],
+    "cadastro.municipio": [
+        {"id": 1, "nome": "Extrema", "uf": "MG", "regiao_id": 1},
+        {"id": 2, "nome": "Atibaia", "uf": "SP", "regiao_id": 1},
+    ],
+    "cadastro.endereco": [
+        {"id": 1, "municipio_id": 1, "tipo": "FILIAL"},
+        {"id": 2, "municipio_id": 2, "tipo": "FILIAL"},
+    ],
     "cadastro.filial": [
         {
             "id": 1,
@@ -69,7 +75,19 @@ CENARIO: dict[str, list[dict[str, object]]] = {
             "tipo": "MATRIZ",
             "endereco_id": 1,
             "ativo": True,
-        }
+        },
+        {
+            "id": 2,
+            "codigo": "F2",
+            "nome": "Filial Dois",
+            "tipo": "FILIAL",
+            "endereco_id": 2,
+            "ativo": True,
+        },
+    ],
+    "cadastro.centro_custo": [
+        {"id": 1, "codigo": "CC-F1", "nome": "Operação matriz", "tipo": "FILIAL", "filial_id": 1},
+        {"id": 4, "codigo": "CC-RET", "nome": "Retaguarda", "tipo": "RETAGUARDA", "filial_id": 1},
     ],
     "cadastro.funcao": [
         {"id": 1, "codigo": "OP", "nome": "Operador", "cbo": "784205", "familia": "OPERACAO"}
@@ -101,6 +119,18 @@ CENARIO: dict[str, list[dict[str, object]]] = {
             "status": "ATIVO",
             "dt_assinatura": date(2024, 1, 5),
             "vigencia_inicio": date(2024, 1, 10),
+            "vigencia_fim": date(2024, 12, 31),
+        },
+        # recrutamento na segunda filial: uma fatura, sem posto
+        {
+            "id": 2,
+            "numero": "CT-2",
+            "cliente_id": 1,
+            "filial_id": 2,
+            "tipo_servico": "RECRUTAMENTO",
+            "status": "ATIVO",
+            "dt_assinatura": date(2024, 1, 2),
+            "vigencia_inicio": date(2024, 1, 5),
             "vigencia_fim": date(2024, 12, 31),
         },
     ],
@@ -251,7 +281,7 @@ CENARIO: dict[str, list[dict[str, object]]] = {
             "dt_prevista_termino": date(2024, 4, 19),
             "salario_base": Decimal("1600.00"),
             "escala_id": 1,
-            "prazo_legal_dias": 90,
+            "prazo_legal_dias": 60,
             "status": "ATIVO",
         },
     ],
@@ -438,7 +468,107 @@ CENARIO: dict[str, list[dict[str, object]]] = {
             "colaborador_id": 2,
             "alocacao_id": 2,
             "data": date(2024, 3, 10),
-            "status": "PRESENTE",
+            "status": "NORMAL",
+            "horas_trabalhadas": 8,
+            "horas_extras": 0,
+            "horas_noturnas": 0,
+        },
+        {
+            "id": 2,
+            "colaborador_id": 1,
+            "alocacao_id": 1,
+            "data": date(2024, 1, 15),
+            "status": "NORMAL",
+            "horas_trabalhadas": 8,
+            "horas_extras": 1,
+            "horas_noturnas": 0,
+        },
+        {
+            "id": 3,
+            "colaborador_id": 1,
+            "alocacao_id": 1,
+            "data": date(2024, 1, 16),
+            "status": "FALTA",
+            "horas_trabalhadas": 0,
+            "horas_extras": 0,
+            "horas_noturnas": 0,
+        },
+        {
+            "id": 4,
+            "colaborador_id": 2,
+            "alocacao_id": 2,
+            "data": date(2024, 2, 1),
+            "status": "FERIADO",
+            "horas_trabalhadas": 0,
+            "horas_extras": 0,
+            "horas_noturnas": 0,
+        },
+    ],
+    "ponto.ocorrencia_ponto": [
+        {"id": 1, "apontamento_id": 2, "tipo": "ATRASO", "minutos": 15},
+        {"id": 2, "apontamento_id": 3, "tipo": "FALTA_INJUSTIFICADA", "minutos": 0},
+    ],
+    # conformidade: o ASO da pessoa 1 vence em janeiro; o da pessoa 2 vence 20 dias depois do fim de fevereiro
+    "sst.aso": [
+        {
+            "id": 1,
+            "colaborador_id": 1,
+            "tipo_exame_id": 1,
+            "dt_exame": date(2024, 1, 8),
+            "dt_validade": date(2024, 1, 20),
+            "resultado": "APTO",
+        },
+        {
+            "id": 2,
+            "colaborador_id": 2,
+            "tipo_exame_id": 1,
+            "dt_exame": date(2024, 1, 18),
+            "dt_validade": date(2024, 3, 20),
+            "resultado": "APTO",
+        },
+    ],
+    "sst.programa_sst": [
+        {
+            "id": 1,
+            "tipo": "PCMSO",
+            "cliente_id": 1,
+            "contrato_id": 1,
+            "dt_elaboracao": date(2023, 12, 1),
+            "dt_validade": date(2024, 2, 15),
+        },
+        {
+            "id": 2,
+            "tipo": "PGR",
+            "cliente_id": 1,
+            "contrato_id": 1,
+            "dt_elaboracao": date(2024, 1, 1),
+            "dt_validade": date(2025, 1, 1),
+        },
+    ],
+    # o curso 1 é obrigatório para a função 1; só a pessoa 2 tem certificado
+    "treinamento.curso_funcao": [
+        {"id": 1, "curso_id": 1, "funcao_id": 1, "fl_obrigatorio": True},
+        {"id": 2, "curso_id": 2, "funcao_id": 1, "fl_obrigatorio": False},
+    ],
+    "treinamento.turma": [
+        {
+            "id": 1,
+            "curso_id": 1,
+            "filial_id": 1,
+            "dt_inicio": date(2024, 1, 5),
+            "dt_fim": date(2024, 1, 6),
+        }
+    ],
+    "treinamento.turma_participante": [
+        {"id": 1, "turma_id": 1, "colaborador_id": 2, "fl_aprovado": True}
+    ],
+    "treinamento.certificado": [
+        {
+            "id": 1,
+            "turma_participante_id": 1,
+            "numero": "C-1",
+            "dt_emissao": date(2024, 1, 6),
+            "dt_validade": date(2025, 1, 5),
         }
     ],
     "financeiro.fatura": [
@@ -465,6 +595,124 @@ CENARIO: dict[str, list[dict[str, object]]] = {
             "valor_impostos": Decimal("5.00"),
             "valor_liquido": Decimal("45.00"),
             "status": "EMITIDA",
+        },
+        {
+            "id": 3,
+            "numero": "NF-3",
+            "cliente_id": 1,
+            "contrato_id": 2,
+            "competencia": date(2024, 1, 1),
+            "dt_emissao": date(2024, 1, 20),
+            "valor_bruto": Decimal("50.00"),
+            "valor_impostos": Decimal("5.00"),
+            "valor_liquido": Decimal("45.00"),
+            "status": "QUITADA",
+        },
+    ],
+    "financeiro.titulo_receber": [
+        {
+            "id": 1,
+            "fatura_id": 1,
+            "cliente_id": 1,
+            "numero_parcela": 1,
+            "dt_vencimento": date(2024, 3, 2),
+            "valor": Decimal("89.99"),
+            "status": "PAGO",
+            "dt_pagamento": date(2024, 3, 5),
+            "valor_pago": Decimal("89.99"),
+        },
+        # vencida antes do horizonte e ainda sem pagamento
+        {
+            "id": 2,
+            "fatura_id": 2,
+            "cliente_id": 1,
+            "numero_parcela": 1,
+            "dt_vencimento": date(2024, 3, 1),
+            "valor": Decimal("45.00"),
+            "status": "ABERTO",
+        },
+        {
+            "id": 3,
+            "fatura_id": 3,
+            "cliente_id": 1,
+            "numero_parcela": 1,
+            "dt_vencimento": date(2024, 2, 1),
+            "valor": Decimal("45.00"),
+            "status": "PAGO",
+            "dt_pagamento": date(2024, 1, 30),
+            "valor_pago": Decimal("45.00"),
+        },
+    ],
+    # o ISS tem município (um por filial); o tributo 2 é federal e se rateia pelo faturamento
+    "financeiro.imposto_apurado": [
+        {
+            "id": 1,
+            "competencia": date(2024, 1, 1),
+            "tributo_id": 1,
+            "municipio_id": 1,
+            "base_calculo": Decimal("100.00"),
+            "valor_devido": Decimal("5.00"),
+            "titulo_pagar_id": 1,
+        },
+        {
+            "id": 2,
+            "competencia": date(2024, 1, 1),
+            "tributo_id": 1,
+            "municipio_id": 2,
+            "base_calculo": Decimal("50.00"),
+            "valor_devido": Decimal("2.50"),
+            "titulo_pagar_id": 1,
+        },
+        {
+            "id": 3,
+            "competencia": date(2024, 1, 1),
+            "tributo_id": 2,
+            "base_calculo": Decimal("150.00"),
+            "valor_devido": Decimal("3.00"),
+            "titulo_pagar_id": 1,
+        },
+    ],
+    "financeiro.titulo_pagar": [
+        {
+            "id": 1,
+            "tipo": "IMPOSTOS",
+            "centro_custo_id": 4,
+            "competencia": date(2024, 1, 1),
+            "dt_vencimento": date(2024, 2, 20),
+            "valor": Decimal("10.50"),
+            "status": "PAGO",
+        },
+        {
+            "id": 2,
+            "tipo": "FORNECEDOR",
+            "centro_custo_id": 4,
+            "competencia": date(2024, 1, 1),
+            "dt_vencimento": date(2024, 2, 10),
+            "valor": Decimal("30.00"),
+            "status": "PAGO",
+        },
+        # a folha da filial não é despesa da retaguarda: já está no rateio de custo
+        {
+            "id": 3,
+            "tipo": "FOLHA",
+            "centro_custo_id": 1,
+            "competencia": date(2024, 1, 1),
+            "dt_vencimento": date(2024, 2, 5),
+            "valor": Decimal("40.00"),
+            "status": "PAGO",
+        },
+    ],
+    "financeiro.consolidado_gerencial": [
+        {
+            "id": 1,
+            "competencia": date(2024, 1, 1),
+            "filial_id": 1,
+            "headcount_informado": 3,
+            "vagas_abertas_informado": 1,
+            "faturamento_informado": Decimal("110.00"),
+            "custo_informado": Decimal("55.00"),
+            "dt_lancamento": date(2024, 2, 3),
+            "origem": "PLANILHA",
         },
     ],
     "financeiro.fatura_item": [
@@ -802,7 +1050,7 @@ def test_o_posto_por_mes_conta_dias_pessoas_e_margem(gold: duckdb.DuckDBPyConnec
 
 
 def test_o_contrato_acumula_a_vida_dele(gold: duckdb.DuckDBPyConnection) -> None:
-    (k,) = _linhas(gold, "SELECT * FROM gold.fato_contrato")
+    (k,) = _linhas(gold, "SELECT * FROM gold.fato_contrato WHERE contrato_id = 1")
     assert (
         k["data_inicio_id"],
         k["data_fim_id"],
@@ -813,6 +1061,12 @@ def test_o_contrato_acumula_a_vida_dele(gold: duckdb.DuckDBPyConnection) -> None
     assert (k["prorrogacoes"], k["reajustes"], k["postos"], k["posicoes"]) == (1, 1, 1, 2)
     assert (k["reclamacoes"], k["elogios"], k["avisos_de_rescisao"], k["faturas"]) == (1, 1, 0, 2)
     assert (k["receita_bruta"], k["receita_liquida"]) == (Decimal("150.00"), Decimal("134.99"))
+    (recrutamento,) = _linhas(gold, "SELECT * FROM gold.fato_contrato WHERE contrato_id = 2")
+    assert (recrutamento["postos"], recrutamento["faturas"], recrutamento["receita_bruta"]) == (
+        0,
+        1,
+        Decimal("50.00"),
+    )
 
 
 def test_a_vaga_conta_candidaturas_e_dias(gold: duckdb.DuckDBPyConnection) -> None:
@@ -933,6 +1187,166 @@ def test_a_alocacao_e_o_vinculo_contam_os_mesmos_dias(gold: duckdb.DuckDBPyConne
     assert v[2]["tipo_de_desligamento"] is None and v[2]["valor_rescisao"] is None
 
 
+def test_o_dia_de_ponto_carrega_as_ocorrencias(gold: duckdb.DuckDBPyConnection) -> None:
+    d = {x["apontamento_id"]: x for x in _linhas(gold, "SELECT * FROM gold.fato_ponto_dia")}
+    assert {
+        (x["posto_id"], x["contrato_id"], x["cliente_id"], x["filial_id"], x["funcao_id"])
+        for x in d.values()
+    } == {(1, 1, 1, 1, 1)}
+    assert d[2]["trabalhou"] and (
+        d[2]["horas_trabalhadas"],
+        d[2]["horas_extras"],
+        d[2]["minutos_de_atraso"],
+    ) == (8, 1, 15)
+    assert (
+        d[3]["falta"]
+        and d[3]["falta_injustificada"]
+        and d[3]["dia_previsto"]
+        and d[3]["minutos_de_atraso"] == 0
+    )
+    assert d[4]["feriado"] and not d[4]["dia_previsto"] and not d[4]["falta"]
+    assert d[1]["data_id"] == 20240310 and d[1]["colaborador_id"] == 2
+    assert d[1]["fim_de_semana"] and not d[2]["fim_de_semana"]  # 10/03/2024 é domingo
+
+
+def test_o_recebimento_le_a_situacao_das_datas_no_horizonte(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    r = {x["titulo_id"]: x for x in _linhas(gold, "SELECT * FROM gold.fato_recebimento")}
+    assert (r[1]["situacao"], r[1]["dias_de_atraso"], r[1]["pago"], r[1]["vencido_e_nao_pago"]) == (
+        "pago com atraso",
+        3,
+        True,
+        False,
+    )
+    assert (
+        r[2]["situacao"],
+        r[2]["dias_de_atraso"],
+        r[2]["vencido_e_nao_pago"],
+        r[2]["data_pagamento_id"],
+    ) == ("vencido", 9, True, 0)
+    assert (r[3]["situacao"], r[3]["dias_de_atraso"], r[3]["filial_id"], r[3]["contrato_id"]) == (
+        "pago em dia",
+        0,
+        2,
+        2,
+    )
+    assert (r[1]["mes_id"], r[1]["prazo_concedido"], r[1]["valor"]) == (
+        202401,
+        30,
+        Decimal("89.99"),
+    )
+
+
+def test_a_ocorrencia_e_uma_linha_por_evento(gold: duckdb.DuckDBPyConnection) -> None:
+    o = {x["ocorrencia_id"]: x for x in _linhas(gold, "SELECT * FROM gold.fato_ocorrencia")}
+    assert o[1]["reclamacao"] and (
+        o[1]["posto_id"],
+        o[1]["data_id"],
+        o[1]["motivo_id"],
+        o[1]["ocorrencia"],
+    ) == (1, 20240201, 0, 1)
+    assert (
+        o[2]["elogio"]
+        and o[2]["posto_id"] == 0
+        and (o[2]["cliente_id"], o[2]["filial_id"]) == (1, 1)
+    )
+
+
+def test_a_foto_de_conformidade_e_do_ultimo_dia_do_mes(gold: duckdb.DuckDBPyConnection) -> None:
+    f = {
+        x["mes_id"]: x
+        for x in _linhas(gold, "SELECT * FROM gold.fato_conformidade_mes ORDER BY mes_id")
+    }
+    assert list(f) == [202401, 202402, 202403]
+    jan, fev, mar = f[202401], f[202402], f[202403]
+    assert (jan["data_foto_id"], fev["data_foto_id"], mar["data_foto_id"]) == (
+        20240131,
+        20240229,
+        20240310,
+    )
+    assert (jan["pessoas_alocadas"], fev["pessoas_alocadas"], mar["pessoas_alocadas"]) == (2, 1, 1)
+    # a pessoa 1 está com o ASO vencido e sem o curso obrigatório em janeiro; a 2 tem ASO a vencer em março
+    assert (
+        jan["com_aso_vencido"],
+        jan["com_aso_a_vencer_em_30_dias"],
+        jan["com_curso_obrigatorio_faltando"],
+    ) == (1, 0, 1)
+    assert (
+        fev["com_aso_vencido"],
+        fev["com_aso_a_vencer_em_30_dias"],
+        fev["com_curso_obrigatorio_faltando"],
+    ) == (0, 1, 0)
+    assert (mar["com_aso_vencido"], mar["com_aso_a_vencer_em_30_dias"]) == (0, 1)
+    # o prazo legal do vínculo 2 (60 dias a partir de 20/01) vence em 20/03: a 30 dias em fevereiro e março
+    assert (
+        jan["temporarios_a_30_dias_do_prazo"],
+        fev["temporarios_a_30_dias_do_prazo"],
+        mar["temporarios_a_30_dias_do_prazo"],
+    ) == (0, 1, 1)
+    assert {x["temporarios_alem_do_prazo"] for x in f.values()} == {0}
+    # o PCMSO do contrato vence em 15/02
+    assert (
+        jan["programas_legais_vencidos"],
+        fev["programas_legais_vencidos"],
+        mar["programas_legais_vencidos"],
+    ) == (0, 1, 1)
+    assert mar["mes_parcial"] and not fev["mes_parcial"]
+
+
+def test_o_resultado_do_mes_atribui_imposto_e_despesa_a_filial(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    r = {
+        (x["filial_id"], x["mes_id"]): x
+        for x in _linhas(gold, "SELECT * FROM gold.fato_resultado_mes")
+    }
+    assert sorted(r) == [
+        (1, 202401),
+        (1, 202402),
+        (1, 202403),
+        (1, 202404),
+        (2, 202401),
+        (2, 202402),
+        (2, 202403),
+        (2, 202404),
+    ]
+    m1, f2 = r[(1, 202401)], r[(2, 202401)]
+    # o ISS é da filial do município; o federal (3,00) e a despesa (30,00) se rateiam 100:50, com o resto na matriz
+    assert (m1["faturamento"], m1["custo_pessoal"], m1["impostos_municipais"]) == (
+        Decimal("100.00"),
+        Decimal("60.00"),
+        Decimal("5.00"),
+    )
+    assert (m1["impostos_federais"], m1["despesas"]) == (Decimal("2.00"), Decimal("20.00"))
+    assert (
+        f2["faturamento"],
+        f2["custo_pessoal"],
+        f2["impostos_municipais"],
+        f2["impostos_federais"],
+        f2["despesas"],
+    ) == (Decimal("50.00"), 0, Decimal("2.50"), Decimal("1.00"), Decimal("10.00"))
+    assert (m1["resultado"], f2["resultado"]) == (Decimal("13.00"), Decimal("36.50"))
+    assert m1["margem_liquida"] == pytest.approx(0.13)
+    # a foto do fim de janeiro: duas pessoas, nenhuma vaga aberta, um cliente
+    assert (m1["pessoas_alocadas"], m1["vagas_abertas"], m1["clientes_ativos"]) == (2, 0, 1)
+    assert m1["informado"] and (
+        m1["faturamento_informado"],
+        m1["diferenca_faturamento"],
+        m1["diferenca_custo"],
+    ) == (Decimal("110.00"), Decimal("10.00"), Decimal("-5.00"))
+    assert (m1["diferenca_headcount"], m1["diferenca_vagas"]) == (1, 1)
+    assert not f2["informado"] and f2["faturamento_informado"] is None
+    # fevereiro: a fatura de recrutamento da matriz; abril: só o custo lançado depois do horizonte
+    assert (r[(1, 202402)]["faturamento"], r[(1, 202402)]["vagas_abertas"]) == (Decimal("50.00"), 1)
+    assert r[(1, 202403)]["mes_parcial"] and not r[(1, 202404)]["mes_parcial"]
+    assert (
+        r[(1, 202404)]["custo_pessoal"],
+        r[(1, 202404)]["resultado"],
+        r[(1, 202404)]["margem_liquida"],
+    ) == (Decimal("25.00"), Decimal("-25.00"), None)
+
+
 # ------------------------------------------------------------------ a conferência
 
 
@@ -957,8 +1371,8 @@ def test_a_conferencia_reprova_o_total_que_nao_se_conserva(gold: duckdb.DuckDBPy
         "UPDATE gold.fato_faturamento SET valor_impostos = valor_impostos + 0.01 WHERE fatura_item_id = 1"
     )
     resultado = construcao.conferir(gold, modelo.FATO_FATURAMENTO, "gold.fato_faturamento")
-    assert resultado.problemas == ["impostos não se conserva: gold 15.0200, silver 15.0100"]
-    assert resultado.conservado["faturas"] == "2"
+    assert resultado.problemas == ["impostos não se conserva: gold 20.0200, silver 20.0100"]
+    assert resultado.conservado["faturas"] == "3"
 
 
 def test_a_conferencia_reprova_identidade_na_dimensao_de_pessoa(

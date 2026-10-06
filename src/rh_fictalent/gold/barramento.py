@@ -591,12 +591,14 @@ FATOS: tuple[Fato, ...] = (
             "financeiro.titulo_pagar",
             "financeiro.consolidado_gerencial",
             "pessoas.alocacao",
-            "pessoas.contrato_trabalho",
             "ats.vaga",
             "comercial.contrato",
+            "comercial.posto",
             "cadastro.centro_custo",
+            "cadastro.endereco",
+            "cadastro.filial",
         ),
-        nota="a operação é a fonte da verdade e o consolidado da gerência fica ao lado, como série informada (FIN-01 e FIN-02); como imposto e despesa chegam à filial é regra a escrever e aprovar no card 7.2",
+        nota="a operação é a fonte da verdade e o consolidado da gerência fica ao lado, como série informada (FIN-01 e FIN-02). Regra de atribuição à filial (card 7.2, fatia 3, proposta): o tributo com município (ISS) é da filial daquele município, e a base dele é exatamente o faturamento da filial; o tributo federal e a despesa da retaguarda (fornecedores e a folha dela) vão a cada filial na proporção do faturamento dela no mês, com o resto do arredondamento na matriz",
     ),
     Fato(
         "fato_ocorrencia",
@@ -624,6 +626,7 @@ FATOS: tuple[Fato, ...] = (
         "um posto no último dia de cada mês",
         {
             "dim_mes": "",
+            "dim_data": "o dia da foto",
             "dim_posto": "",
             "dim_contrato": "",
             "dim_cliente": "",
@@ -642,7 +645,6 @@ FATOS: tuple[Fato, ...] = (
         (
             "pessoas.alocacao",
             "pessoas.contrato_trabalho",
-            "pessoas.contrato_trabalho_prorrogacao",
             "sst.aso",
             "sst.programa_sst",
             "treinamento.certificado",
