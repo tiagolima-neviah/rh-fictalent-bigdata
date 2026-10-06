@@ -49,7 +49,11 @@ from rh_fictalent.orquestracao.verificacao import (
     warehouse_pronto,
 )
 from rh_fictalent.orquestracao.warehouse import ASSETS as WAREHOUSE
-from rh_fictalent.orquestracao.warehouse import carregar_warehouse, dcl_do_warehouse
+from rh_fictalent.orquestracao.warehouse import (
+    carregar_warehouse,
+    dcl_do_warehouse,
+    rls_do_warehouse,
+)
 
 defs = dg.Definitions(
     assets=[
@@ -69,6 +73,7 @@ defs = dg.Definitions(
         regua_da_gold,
         *WAREHOUSE,
         dcl_do_warehouse,
+        rls_do_warehouse,
     ],
     jobs=[
         verificar_plataforma,
