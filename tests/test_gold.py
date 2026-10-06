@@ -20,8 +20,8 @@ import fsspec
 import pandas as pd
 import pytest
 
-from rh_fictalent.auditoria import esquema
-from rh_fictalent.gold import barramento, construcao, modelo
+from rh_fictalent.auditoria import cadernos, esquema
+from rh_fictalent.gold import analitico, barramento, construcao, modelo
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao import definicoes
@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 
     from rh_fictalent.orquestracao.recursos import Lake
 
+RAIZ = Path(__file__).resolve().parents[1]
 REFERENCIA = date(2024, 3, 11)
 SEGREDO = b"segredo-de-teste-com-mais-de-trinta-e-dois"  # nunca o do .env
 TIPOS = {
@@ -1527,3 +1528,88 @@ def test_o_job_da_gold_esta_nas_definicoes() -> None:
     assert {k.to_user_string() for k in job.asset_layer.executable_asset_keys} == {
         f"gold/{t.nome}" for t in modelo.TABELAS
     }
+
+
+# ------------------------------------------------------------------ o SQL analítico
+
+
+def test_toda_consulta_analitica_declara_as_janelas_que_usa_e_roda_sobre_a_gold(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    nomes = [c.nome for c in analitico.CONSULTAS]
+    assert len(nomes) == len(set(nomes))
+    for c in analitico.CONSULTAS:
+        assert c.pergunta.endswith("?") and c.origem and c.janelas, c.nome
+        assert "OVER" in c.sql, f"{c.nome}: SQL analítico sem função de janela"
+        for janela in c.janelas:
+            funcao = janela.split("(")[0].split(" ")[0]  # LAG, AVG, SUM, RANK, ROW_NUMBER...
+            assert funcao.isupper() and funcao in c.sql, (c.nome, funcao)
+        resultado = analitico.executar(gold, c.nome)
+        assert list(resultado.columns), c.nome
+    with pytest.raises(KeyError, match="consulta desconhecida"):
+        analitico.consulta("nao_existe")
+
+
+def test_a_serie_da_filial_anda_no_tempo(gold: duckdb.DuckDBPyConnection) -> None:
+    serie = analitico.executar(gold, "serie_da_filial")
+    matriz = serie[serie["filial"] == "Matriz"].set_index("mes_id")
+    assert list(matriz.index) == [202401, 202402, 202404]  # março é o mês parcial, fora da série
+    assert matriz.loc[202402, "variacao_mensal"] == Decimal("-50.00")  # 50 - 100
+    assert matriz.loc[202402, "acumulado_no_ano"] == Decimal("150.00")
+    assert matriz.loc[202404, "media_movel_3m"] == pytest.approx(50)  # (100 + 50 + 0) / 3
+    assert pd.isna(matriz.loc[202401, "variacao_mensal"])
+
+
+def test_o_pareto_fecha_em_um(gold: duckdb.DuckDBPyConnection) -> None:
+    pareto = analitico.executar(gold, "pareto_de_clientes")
+    assert len(pareto) == 1 and pareto.loc[0, "posicao"] == 1
+    assert pareto.loc[0, "participacao"] == pytest.approx(1) and pareto.loc[
+        0, "participacao_acumulada"
+    ] == pytest.approx(1)
+    assert pareto.loc[0, "margem_pct"] == pytest.approx(15 / 100)  # 100 de receita, 85 de custo
+
+
+def test_o_informado_contra_o_apurado_conta_a_sequencia(gold: duckdb.DuckDBPyConnection) -> None:
+    (linha,) = analitico.executar(gold, "informado_contra_apurado").to_dict("records")
+    assert (linha["mes_id"], linha["diverge"], linha["divergencia_pct"]) == (
+        202401,
+        True,
+        pytest.approx(0.10),
+    )
+    assert (
+        linha["meses_divergentes_ate_aqui"],
+        linha["meses_seguidos"],
+        linha["inicio_da_sequencia"],
+    ) == (1, 1, 202401)
+
+
+def test_a_coorte_conta_a_saida_precoce(gold: duckdb.DuckDBPyConnection) -> None:
+    (coorte,) = analitico.executar(gold, "coorte_de_90_dias").to_dict("records")
+    # os dois vínculos foram admitidos em janeiro; o primeiro saiu por pedido aos 36 dias
+    assert (coorte["admitidos"], coorte["sairam_em_90_dias"], coorte["taxa_90_dias"]) == (2, 1, 0.5)
+    assert (
+        coorte["taxa_90_dias_12m"] == 0.5 and not coorte["coorte_completa"]
+    )  # 90 dias ainda não passaram
+
+
+def test_as_ilhas_de_posto_descoberto(gold: duckdb.DuckDBPyConnection) -> None:
+    """Gaps-and-islands numa série plantada: descoberto nos meses 1-2 e 4-6; o mês 3 separa as duas."""
+    gold.execute(
+        """CREATE OR REPLACE TABLE gold.fato_posto_mes AS
+           SELECT 1 AS posto_id, 1 AS cliente_id, 202400 + m AS mes_id, 31 AS dias_vigentes, FALSE AS mes_parcial,
+                  CASE WHEN m = 3 THEN 0.95 ELSE 0.5 END AS taxa_de_ocupacao, 10 AS posicao_dias_descobertos
+           FROM range(1, 7) t(m)"""
+    )
+    ilhas = analitico.executar(gold, "postos_descobertos_em_sequencia").to_dict("records")
+    assert [(i["inicio"], i["fim"], i["meses_seguidos"], i["posicao"]) for i in ilhas] == [
+        (202404, 202406, 3, 1),
+        (202401, 202402, 2, 2),
+    ]
+
+
+def test_os_notebooks_da_gold_seguem_o_padrao_da_auditoria() -> None:
+    """O teste que a CI roda sem lake: executados, com Nota Técnica em toda seção e de fechamento."""
+    notebooks = cadernos.listar(RAIZ / "notebooks" / "gold")
+    assert [n.name for n in notebooks] == ["01_sql_analitico.ipynb"]
+    for caminho in notebooks:
+        assert cadernos.verificar(caminho) == [], caminho.name
