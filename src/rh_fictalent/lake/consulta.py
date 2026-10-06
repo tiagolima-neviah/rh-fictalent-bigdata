@@ -239,9 +239,8 @@ def abrir_gold(lake: Lake) -> duckdb.DuckDBPyConnection:
     for tabela in modelo.TABELAS:
         caminho = lake.caminho(CAMADA_GOLD, tabela.nome, "*.parquet")
         origem = f"read_parquet('{caminho}', union_by_name = true)"
-        con.execute(
-            f'CREATE OR REPLACE VIEW "{CAMADA_GOLD}"."{tabela.nome}" AS SELECT * FROM {origem}'
-        )  # noqa: S608 # nosec B608
+        alvo = f'"{CAMADA_GOLD}"."{tabela.nome}"'
+        con.execute(f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}")  # noqa: S608 # nosec B608
     return con
 
 

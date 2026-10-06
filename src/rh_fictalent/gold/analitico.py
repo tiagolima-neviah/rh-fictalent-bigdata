@@ -193,7 +193,7 @@ MERCADO_E_SERVICO = Consulta(
     FROM serie
     WINDOW no_tempo AS (ORDER BY mes_id)
     ORDER BY mes_id
-    """,
+    """,  # noqa: S608 # nosec B608
     (
         "AVG(saldo_mercado) ROWS BETWEEN 2 PRECEDING AND CURRENT ROW, sem partição: uma série só, a região inteira",
         "LAG(saldo_mercado, 3) e LAG(saldo_mercado, 6): o mercado de três e seis meses antes, na mesma linha do mês",
@@ -201,12 +201,7 @@ MERCADO_E_SERVICO = Consulta(
 )
 
 _DEFASAGENS = range(7)
-
-DEFASAGEM_DO_MERCADO = Consulta(
-    "defasagem_do_mercado",
-    "Com quantos meses de atraso o serviço acompanha o mercado (a correlação entre o saldo do CAGED de k meses antes e cada série da Fictalent, para k de 0 a 6)?",
-    "D4 (a defasagem medida em meses)",
-    f"""
+_CABECA_DA_DEFASAGEM = f"""
     WITH {_SERIE_DO_MERCADO}
     SELECT defasagem_meses,
            CORR(saldo_defasado, reclamacoes) AS corr_reclamacoes,
@@ -215,17 +210,24 @@ DEFASAGEM_DO_MERCADO = Consulta(
            CORR(saldo_defasado, vagas_abertas) AS corr_vagas_abertas,
            COUNT(saldo_defasado) AS meses_comparados
     FROM (
-    """
-    + "\n      UNION ALL\n".join(
-        f"      SELECT {k} AS defasagem_meses, LAG(saldo_mercado, {k}) OVER (ORDER BY mes_id) AS saldo_defasado, "
-        "reclamacoes, dias_ate_preencher_mediana, contratos_encerrados, vagas_abertas FROM serie"
-        for k in _DEFASAGENS
-    )
-    + """
+    """  # noqa: S608 # nosec B608
+# o deslocamento do LAG tem de ser constante: uma seleção por defasagem, unidas
+_UNIAO_DAS_DEFASAGENS = "\n      UNION ALL\n".join(
+    f"      SELECT {k} AS defasagem_meses, LAG(saldo_mercado, {k}) OVER (ORDER BY mes_id) AS saldo_defasado, "  # noqa: S608 # nosec B608
+    "reclamacoes, dias_ate_preencher_mediana, contratos_encerrados, vagas_abertas FROM serie"
+    for k in _DEFASAGENS
+)
+_RODAPE_DA_DEFASAGEM = """
     )
     GROUP BY defasagem_meses
     ORDER BY defasagem_meses
-    """,
+    """
+
+DEFASAGEM_DO_MERCADO = Consulta(
+    "defasagem_do_mercado",
+    "Com quantos meses de atraso o serviço acompanha o mercado (a correlação entre o saldo do CAGED de k meses antes e cada série da Fictalent, para k de 0 a 6)?",
+    "D4 (a defasagem medida em meses)",
+    "".join((_CABECA_DA_DEFASAGEM, _UNIAO_DAS_DEFASAGENS, _RODAPE_DA_DEFASAGEM)),
     (
         "LAG(saldo_mercado, k) OVER (ORDER BY mes_id), uma vez para cada k de 0 a 6: o deslocamento é constante por exigência do SQL, por isso são sete seleções unidas",
         "CORR(...) é agregação, não janela: ela recebe o par (mercado deslocado, série do mês) e resume os meses num número por defasagem",
