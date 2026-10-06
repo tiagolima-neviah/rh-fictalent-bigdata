@@ -740,6 +740,348 @@ FATO_VINCULO = Tabela(
     ),
 )
 
+# ------------------------------------------------------------------ o dia a dia e a gerência
+
+FATO_PONTO_DIA = Tabela(
+    "fato_ponto_dia",
+    f"""
+    WITH ocorrencias AS (
+      SELECT apontamento_id, sum(minutos) FILTER (WHERE tipo = 'ATRASO') AS minutos_de_atraso,
+             sum(minutos) FILTER (WHERE tipo = 'SAIDA_ANTECIPADA') AS minutos_de_saida_antecipada,
+             bool_or(tipo = 'FALTA_INJUSTIFICADA') AS falta_injustificada, bool_or(tipo = 'FALTA_JUSTIFICADA') AS falta_justificada
+      FROM silver.ponto.ocorrencia_ponto GROUP BY 1)
+    SELECT a.id AS apontamento_id, a.colaborador_id, a.alocacao_id, {_dia("a.data")} AS data_id,
+           al.posto_id, p.contrato_id, k.cliente_id, k.filial_id, p.funcao_id, a.status,
+           a.status <> 'FERIADO' AS dia_previsto, a.status = 'NORMAL' AS trabalhou, a.status = 'FALTA' AS falta,
+           coalesce(o.falta_injustificada, FALSE) AS falta_injustificada, coalesce(o.falta_justificada, FALSE) AS falta_justificada,
+           a.status = 'ATESTADO' AS atestado, a.status = 'FERIADO' AS feriado, isodow(a.data) >= 6 AS fim_de_semana,
+           a.horas_trabalhadas, a.horas_extras, a.horas_noturnas,
+           CAST(coalesce(o.minutos_de_atraso, 0) AS INTEGER) AS minutos_de_atraso,
+           CAST(coalesce(o.minutos_de_saida_antecipada, 0) AS INTEGER) AS minutos_de_saida_antecipada,
+           a.q_pon_01, a.q_pon_03, CAST(year(a.data) AS INTEGER) AS ano
+    FROM silver.ponto.apontamento a JOIN silver.pessoas.alocacao al ON al.id = a.alocacao_id
+    JOIN silver.comercial.posto p ON p.id = al.posto_id JOIN silver.comercial.contrato k ON k.id = p.contrato_id
+    LEFT JOIN ocorrencias o ON o.apontamento_id = a.id
+    """,  # noqa: S608 # nosec B608
+    chave=("apontamento_id",),
+    referencias={
+        "data_id": "dim_data",
+        "colaborador_id": "dim_colaborador",
+        "posto_id": "dim_posto",
+        "contrato_id": "dim_contrato",
+        "cliente_id": "dim_cliente",
+        "filial_id": "dim_filial",
+        "funcao_id": "dim_funcao",
+    },
+    particao="ano",
+    conservacoes=(
+        Conservacao("apontamentos", "count(*)", "SELECT count(*) FROM silver.ponto.apontamento"),
+        Conservacao(
+            "horas trabalhadas",
+            "sum(horas_trabalhadas)",
+            "SELECT sum(horas_trabalhadas) FROM silver.ponto.apontamento",
+        ),
+        Conservacao(
+            "horas extras",
+            "sum(horas_extras)",
+            "SELECT sum(horas_extras) FROM silver.ponto.apontamento",
+        ),
+        Conservacao(
+            "faltas",
+            "count(*) FILTER (WHERE falta)",
+            "SELECT count(*) FROM silver.ponto.apontamento WHERE status = 'FALTA'",
+        ),
+        Conservacao(
+            "minutos de atraso",
+            "sum(minutos_de_atraso)",
+            "SELECT sum(minutos) FROM silver.ponto.ocorrencia_ponto WHERE tipo = 'ATRASO'",
+        ),
+    ),
+)
+
+FATO_RECEBIMENTO = Tabela(
+    "fato_recebimento",
+    f"""
+    SELECT t.id AS titulo_id, t.fatura_id, f.numero AS fatura, CAST(t.numero_parcela AS INTEGER) AS parcela, t.status AS status_informado,
+           CASE WHEN t.status = 'CANCELADO' THEN 'cancelado'
+                WHEN t.dt_pagamento IS NOT NULL AND t.dt_pagamento <= t.dt_vencimento THEN 'pago em dia'
+                WHEN t.dt_pagamento IS NOT NULL THEN 'pago com atraso'
+                WHEN t.dt_vencimento < {HORIZONTE} THEN 'vencido' ELSE 'em dia' END AS situacao,
+           CAST(year(f.competencia) * 100 + month(f.competencia) AS INTEGER) AS mes_id,
+           {_dia("f.dt_emissao")} AS data_emissao_id, {_dia("t.dt_vencimento")} AS data_vencimento_id, {_dia("t.dt_pagamento")} AS data_pagamento_id,
+           t.cliente_id, f.contrato_id, k.filial_id, t.valor, t.valor_pago, t.dt_pagamento IS NOT NULL AS pago,
+           t.dt_pagamento IS NULL AND t.dt_vencimento < {HORIZONTE} AS vencido_e_nao_pago,
+           CAST(CASE WHEN t.dt_pagamento IS NOT NULL THEN greatest(date_diff('day', t.dt_vencimento, t.dt_pagamento), 0)
+                     WHEN t.dt_vencimento < {HORIZONTE} THEN date_diff('day', t.dt_vencimento, {HORIZONTE}) ELSE 0 END AS INTEGER) AS dias_de_atraso,
+           CAST(date_diff('day', f.dt_emissao, t.dt_vencimento) AS INTEGER) AS prazo_concedido,
+           t.diferenca_pagamento, t.q_fin_05, CAST(year(f.competencia) AS INTEGER) AS ano
+    FROM silver.financeiro.titulo_receber t JOIN silver.financeiro.fatura f ON f.id = t.fatura_id
+    JOIN silver.comercial.contrato k ON k.id = f.contrato_id
+    """,  # noqa: S608 # nosec B608
+    chave=("titulo_id",),
+    referencias={
+        "mes_id": "dim_mes",
+        "data_emissao_id": "dim_data",
+        "data_vencimento_id": "dim_data",
+        "data_pagamento_id": "dim_data",
+        "cliente_id": "dim_cliente",
+        "contrato_id": "dim_contrato",
+        "filial_id": "dim_filial",
+    },
+    particao="ano",
+    conservacoes=(
+        Conservacao("títulos", "count(*)", "SELECT count(*) FROM silver.financeiro.titulo_receber"),
+        Conservacao(
+            "valor", "sum(valor)", "SELECT sum(valor) FROM silver.financeiro.titulo_receber"
+        ),
+        Conservacao(
+            "valor pago",
+            "sum(valor_pago)",
+            "SELECT sum(valor_pago) FROM silver.financeiro.titulo_receber",
+        ),
+        Conservacao(
+            "vencidos e não pagos",
+            "count(*) FILTER (WHERE vencido_e_nao_pago)",
+            f"SELECT count(*) FROM silver.financeiro.titulo_receber WHERE dt_pagamento IS NULL AND dt_vencimento < {HORIZONTE}",  # noqa: S608 # nosec B608
+        ),
+    ),
+)
+
+FATO_OCORRENCIA = Tabela(
+    "fato_ocorrencia",
+    f"""
+    SELECT o.id AS ocorrencia_id, {_dia("o.dt_ocorrencia")} AS data_id, o.tipo, o.descricao, o.contrato_id, k.cliente_id, k.filial_id,
+           coalesce(o.posto_id, 0) AS posto_id, coalesce(o.motivo_id, 0) AS motivo_id, CAST(1 AS INTEGER) AS ocorrencia,
+           o.tipo = 'RECLAMACAO' AS reclamacao, o.tipo = 'ELOGIO' AS elogio, o.tipo = 'ADVERTENCIA' AS advertencia,
+           o.tipo = 'AVISO_RESCISAO' AS aviso_de_rescisao, o.q_com_03, CAST(year(o.dt_ocorrencia) AS INTEGER) AS ano
+    FROM silver.comercial.contrato_ocorrencia o JOIN silver.comercial.contrato k ON k.id = o.contrato_id
+    """,  # noqa: S608 # nosec B608
+    chave=("ocorrencia_id",),
+    referencias={
+        "data_id": "dim_data",
+        "cliente_id": "dim_cliente",
+        "contrato_id": "dim_contrato",
+        "posto_id": "dim_posto",
+        "filial_id": "dim_filial",
+        "motivo_id": "dim_motivo",
+    },
+    particao="ano",
+    conservacoes=(
+        Conservacao(
+            "ocorrências",
+            "sum(ocorrencia)",
+            "SELECT count(*) FROM silver.comercial.contrato_ocorrencia",
+        ),
+        Conservacao(
+            "reclamações",
+            "count(*) FILTER (WHERE reclamacao)",
+            "SELECT count(*) FROM silver.comercial.contrato_ocorrencia WHERE tipo = 'RECLAMACAO'",
+        ),
+    ),
+)
+
+# a foto de conformidade olha 30 dias à frente do fim do mês: ASO e prazo legal "a vencer"
+JANELA_DE_AVISO = 30
+
+FATO_CONFORMIDADE_MES = Tabela(
+    "fato_conformidade_mes",
+    f"""
+    WITH postos AS (
+      SELECT p.id AS posto_id, p.contrato_id, k.cliente_id, k.filial_id, p.funcao_id,
+             p.vigencia_inicio AS ini, least(coalesce(p.vigencia_fim, {HORIZONTE}), {HORIZONTE}) AS fim
+      FROM silver.comercial.posto p JOIN silver.comercial.contrato k ON k.id = p.contrato_id),
+    meses AS (  -- um mês por posto dentro da vigência; a foto é do último dia do mês ou do horizonte
+      SELECT p.*, CAST(unnest(generate_series(date_trunc('month', ini), date_trunc('month', fim), INTERVAL 1 MONTH)) AS DATE) AS mes
+      FROM postos p WHERE fim >= ini),
+    fotos AS (
+      SELECT m.*, least(last_day(m.mes), m.fim) AS foto FROM meses m),
+    pessoas AS (  -- quem está alocado no posto no dia da foto, com o vínculo que diz a função e o prazo
+      SELECT f.posto_id, f.mes, f.foto, f.contrato_id, a.colaborador_id, ct.funcao_id, ct.tipo, ct.dt_admissao, ct.prazo_legal_dias,
+             (SELECT max(s.dt_validade) FROM silver.sst.aso s
+               WHERE s.colaborador_id = a.colaborador_id AND s.dt_exame <= f.foto AND s.resultado <> 'INAPTO') AS aso_valido_ate,
+             EXISTS (SELECT 1 FROM silver.treinamento.curso_funcao cf
+                      WHERE cf.funcao_id = ct.funcao_id AND cf.fl_obrigatorio
+                        AND NOT EXISTS (SELECT 1 FROM silver.treinamento.certificado c
+                                          JOIN silver.treinamento.turma_participante tp ON tp.id = c.turma_participante_id
+                                          JOIN silver.treinamento.turma t ON t.id = tp.turma_id
+                                         WHERE tp.colaborador_id = a.colaborador_id AND t.curso_id = cf.curso_id
+                                           AND c.dt_emissao <= f.foto AND coalesce(c.dt_validade, DATE '9999-12-31') >= f.foto)) AS curso_faltando
+      FROM fotos f JOIN silver.pessoas.alocacao a ON a.posto_id = f.posto_id AND a.dt_inicio <= f.foto AND coalesce(a.dt_fim, DATE '9999-12-31') >= f.foto
+      LEFT JOIN silver.pessoas.contrato_trabalho ct ON ct.id = a.contrato_trabalho_id),
+    contagem AS (
+      SELECT posto_id, mes, count(*) AS pessoas_alocadas,
+             count(*) FILTER (WHERE aso_valido_ate IS NULL OR aso_valido_ate < foto) AS com_aso_vencido,
+             count(*) FILTER (WHERE aso_valido_ate BETWEEN foto AND foto + INTERVAL {JANELA_DE_AVISO} DAY) AS com_aso_a_vencer,
+             count(*) FILTER (WHERE curso_faltando) AS com_curso_obrigatorio_faltando,
+             count(*) FILTER (WHERE tipo = 'TEMPORARIO' AND date_diff('day', dt_admissao, foto) > prazo_legal_dias) AS temporarios_alem_do_prazo,
+             count(*) FILTER (WHERE tipo = 'TEMPORARIO' AND date_diff('day', foto, dt_admissao + INTERVAL (prazo_legal_dias) DAY) BETWEEN 0 AND {JANELA_DE_AVISO}) AS temporarios_a_vencer
+      FROM pessoas GROUP BY 1, 2),
+    programas AS (  -- por contrato: tipos de programa que o contrato tem e que não estão vigentes na foto
+      SELECT f.posto_id, f.mes, count(DISTINCT p.tipo) FILTER (WHERE NOT EXISTS (
+               SELECT 1 FROM silver.sst.programa_sst q WHERE q.contrato_id = p.contrato_id AND q.tipo = p.tipo
+                AND q.dt_elaboracao <= f.foto AND q.dt_validade >= f.foto)) AS programas_legais_vencidos
+      FROM fotos f JOIN silver.sst.programa_sst p ON p.contrato_id = f.contrato_id AND p.dt_elaboracao <= f.foto GROUP BY 1, 2)
+    SELECT CAST(year(f.mes) * 100 + month(f.mes) AS INTEGER) AS mes_id, f.posto_id, f.contrato_id, f.cliente_id, f.filial_id, f.funcao_id,
+           {_dia("f.foto")} AS data_foto_id, f.mes = date_trunc('month', {HORIZONTE}) AS mes_parcial,
+           CAST(coalesce(c.pessoas_alocadas, 0) AS INTEGER) AS pessoas_alocadas,
+           CAST(coalesce(c.com_aso_vencido, 0) AS INTEGER) AS com_aso_vencido,
+           CAST(coalesce(c.com_aso_a_vencer, 0) AS INTEGER) AS com_aso_a_vencer_em_30_dias,
+           CAST(coalesce(c.com_curso_obrigatorio_faltando, 0) AS INTEGER) AS com_curso_obrigatorio_faltando,
+           CAST(coalesce(c.temporarios_alem_do_prazo, 0) AS INTEGER) AS temporarios_alem_do_prazo,
+           CAST(coalesce(c.temporarios_a_vencer, 0) AS INTEGER) AS temporarios_a_30_dias_do_prazo,
+           CAST(coalesce(g.programas_legais_vencidos, 0) AS INTEGER) AS programas_legais_vencidos,
+           CAST(year(f.mes) AS INTEGER) AS ano
+    FROM fotos f LEFT JOIN contagem c USING (posto_id, mes) LEFT JOIN programas g USING (posto_id, mes)
+    """,  # noqa: S608 # nosec B608
+    chave=("posto_id", "mes_id"),
+    referencias={
+        "mes_id": "dim_mes",
+        "data_foto_id": "dim_data",
+        "posto_id": "dim_posto",
+        "contrato_id": "dim_contrato",
+        "cliente_id": "dim_cliente",
+        "filial_id": "dim_filial",
+        "funcao_id": "dim_funcao",
+    },
+    particao="ano",
+    conservacoes=(
+        Conservacao(
+            "postos-mês na vigência",
+            "count(*)",
+            f"SELECT sum(date_diff('month', date_trunc('month', vigencia_inicio), date_trunc('month', least(coalesce(vigencia_fim, {HORIZONTE}), {HORIZONTE}))) + 1) "  # noqa: S608 # nosec B608
+            f"FROM silver.comercial.posto WHERE vigencia_inicio <= {HORIZONTE}",
+        ),
+        Conservacao(
+            "pessoas alocadas no horizonte",
+            f"sum(pessoas_alocadas) FILTER (WHERE data_foto_id = {_dia(HORIZONTE)})",
+            f"SELECT count(*) FROM silver.pessoas.alocacao WHERE dt_inicio <= {HORIZONTE} AND coalesce(dt_fim, DATE '9999-12-31') >= {HORIZONTE}",  # noqa: S608 # nosec B608
+        ),
+    ),
+)
+
+# as despesas da retaguarda e os tributos federais não têm filial: vão para cada filial na
+# proporção do faturamento dela no mês; o resto do arredondamento fica na matriz (filial 1)
+MATRIZ = 1
+
+FATO_RESULTADO_MES = Tabela(
+    "fato_resultado_mes",
+    f"""
+    WITH faturamento AS (
+      SELECT f.competencia AS mes, k.filial_id, sum(f.valor_bruto) AS faturamento, sum(f.valor_liquido) AS faturamento_liquido, count(*) AS faturas
+      FROM silver.financeiro.fatura f JOIN silver.comercial.contrato k ON k.id = f.contrato_id GROUP BY 1, 2),
+    inicio AS (SELECT filial_id, min(mes) AS primeiro FROM faturamento GROUP BY 1),
+    ultimo AS (  -- o mês do horizonte ou o último com lançamento, o que vier depois: nenhum centavo sem linha
+      SELECT greatest(date_trunc('month', {HORIZONTE}), (SELECT max(competencia) FROM silver.financeiro.fatura),
+                      (SELECT max(competencia) FROM silver.folha.rateio_custo), (SELECT max(competencia) FROM silver.financeiro.imposto_apurado),
+                      (SELECT max(competencia) FROM silver.financeiro.titulo_pagar), (SELECT max(competencia) FROM silver.financeiro.consolidado_gerencial)) AS mes),
+    meses AS (  -- uma filial por mês, do primeiro faturamento dela ao último mês
+      SELECT i.filial_id, CAST(unnest(generate_series(i.primeiro, u.mes, INTERVAL 1 MONTH)) AS DATE) AS mes FROM inicio i, ultimo u),
+    custo AS (
+      SELECT r.competencia AS mes, k.filial_id, sum(r.custo_total) AS custo_pessoal
+      FROM silver.folha.rateio_custo r JOIN silver.comercial.contrato k ON k.id = r.contrato_id GROUP BY 1, 2),
+    quota AS (  -- a parte de cada filial no faturamento do mês; sem faturamento no mês, partes iguais
+      SELECT m.filial_id, m.mes,
+             coalesce(f.faturamento / nullif(sum(f.faturamento) OVER (PARTITION BY m.mes), 0), 1.0 / count(*) OVER (PARTITION BY m.mes)) AS quota,
+             row_number() OVER (PARTITION BY m.mes ORDER BY m.filial_id = {MATRIZ} DESC, m.filial_id) AS ordem
+      FROM meses m LEFT JOIN faturamento f USING (filial_id, mes)),
+    municipais AS (  -- o tributo com município (ISS) é da filial daquele município
+      SELECT i.competencia AS mes, fi.id AS filial_id, sum(i.valor_devido) AS impostos_municipais
+      FROM silver.financeiro.imposto_apurado i
+      JOIN silver.cadastro.endereco e ON e.municipio_id = i.municipio_id AND e.tipo = 'FILIAL'
+      JOIN silver.cadastro.filial fi ON fi.endereco_id = e.id GROUP BY 1, 2),
+    federais AS (SELECT competencia AS mes, sum(valor_devido) AS total FROM silver.financeiro.imposto_apurado WHERE municipio_id IS NULL GROUP BY 1),
+    retaguarda AS (  -- o que a retaguarda paga sem filial: fornecedores e a folha dela
+      SELECT t.competencia AS mes, sum(t.valor) AS total
+      FROM silver.financeiro.titulo_pagar t JOIN silver.cadastro.centro_custo cc ON cc.id = t.centro_custo_id
+      WHERE cc.tipo = 'RETAGUARDA' AND t.tipo IN ('FORNECEDOR', 'FOLHA') GROUP BY 1),
+    partes AS (
+      SELECT q.filial_id, q.mes, q.ordem,
+             CAST(round(coalesce(fe.total, 0) * q.quota, 2) AS DECIMAL(14, 2)) AS federais_parte, coalesce(fe.total, 0) AS federais_total,
+             CAST(round(coalesce(r.total, 0) * q.quota, 2) AS DECIMAL(14, 2)) AS despesas_parte, coalesce(r.total, 0) AS despesas_total
+      FROM quota q LEFT JOIN federais fe USING (mes) LEFT JOIN retaguarda r USING (mes)),
+    rateado AS (  -- a matriz fica com o total menos a soma das outras partes: a soma fecha ao centavo
+      SELECT filial_id, mes,
+             CASE WHEN ordem = 1 THEN federais_total - (sum(federais_parte) OVER (PARTITION BY mes) - federais_parte) ELSE federais_parte END AS impostos_federais,
+             CASE WHEN ordem = 1 THEN despesas_total - (sum(despesas_parte) OVER (PARTITION BY mes) - despesas_parte) ELSE despesas_parte END AS despesas
+      FROM partes),
+    foto AS (
+      SELECT m.filial_id, m.mes, least(last_day(m.mes), {HORIZONTE}) AS dia FROM meses m),
+    pessoas AS (
+      SELECT f.filial_id, f.mes, count(*) AS pessoas_alocadas
+      FROM foto f JOIN silver.comercial.contrato k ON k.filial_id = f.filial_id JOIN silver.comercial.posto p ON p.contrato_id = k.id
+      JOIN silver.pessoas.alocacao a ON a.posto_id = p.id AND a.dt_inicio <= f.dia AND coalesce(a.dt_fim, DATE '9999-12-31') >= f.dia
+      GROUP BY 1, 2),
+    vagas AS (
+      SELECT f.filial_id, f.mes, count(*) AS vagas_abertas
+      FROM foto f JOIN silver.ats.vaga v ON v.filial_id = f.filial_id AND v.dt_abertura <= f.dia AND coalesce(v.dt_fechamento, DATE '9999-12-31') > f.dia
+      GROUP BY 1, 2),
+    clientes AS (
+      SELECT f.filial_id, f.mes, count(DISTINCT k.cliente_id) AS clientes_ativos
+      FROM foto f JOIN silver.comercial.contrato k ON k.filial_id = f.filial_id AND k.vigencia_inicio <= f.dia
+       AND coalesce(k.dt_encerramento, k.vigencia_fim, DATE '9999-12-31') >= f.dia
+      GROUP BY 1, 2),
+    informado AS (
+      SELECT filial_id, competencia AS mes, faturamento_informado, custo_informado, headcount_informado, vagas_abertas_informado
+      FROM silver.financeiro.consolidado_gerencial)
+    SELECT CAST(year(m.mes) * 100 + month(m.mes) AS INTEGER) AS mes_id, m.filial_id, m.mes = date_trunc('month', {HORIZONTE}) AS mes_parcial,
+           coalesce(f.faturamento, 0) AS faturamento, coalesce(f.faturamento_liquido, 0) AS faturamento_liquido, CAST(coalesce(f.faturas, 0) AS INTEGER) AS faturas,
+           coalesce(c.custo_pessoal, 0) AS custo_pessoal, coalesce(mu.impostos_municipais, 0) AS impostos_municipais, r.impostos_federais,
+           coalesce(mu.impostos_municipais, 0) + r.impostos_federais AS impostos, r.despesas,
+           coalesce(f.faturamento, 0) - coalesce(c.custo_pessoal, 0) - coalesce(mu.impostos_municipais, 0) - r.impostos_federais - r.despesas AS resultado,
+           CASE WHEN coalesce(f.faturamento, 0) > 0
+                THEN CAST(coalesce(f.faturamento, 0) - coalesce(c.custo_pessoal, 0) - coalesce(mu.impostos_municipais, 0) - r.impostos_federais - r.despesas AS DOUBLE) / CAST(f.faturamento AS DOUBLE) END AS margem_liquida,
+           CAST(coalesce(p.pessoas_alocadas, 0) AS INTEGER) AS pessoas_alocadas, CAST(coalesce(v.vagas_abertas, 0) AS INTEGER) AS vagas_abertas,
+           CAST(coalesce(k.clientes_ativos, 0) AS INTEGER) AS clientes_ativos,
+           i.filial_id IS NOT NULL AS informado, i.faturamento_informado, i.custo_informado,
+           CAST(i.headcount_informado AS INTEGER) AS headcount_informado, CAST(i.vagas_abertas_informado AS INTEGER) AS vagas_abertas_informado,
+           i.faturamento_informado - coalesce(f.faturamento, 0) AS diferenca_faturamento,
+           i.custo_informado - coalesce(c.custo_pessoal, 0) AS diferenca_custo,
+           CAST(i.headcount_informado - coalesce(p.pessoas_alocadas, 0) AS INTEGER) AS diferenca_headcount,
+           CAST(i.vagas_abertas_informado - coalesce(v.vagas_abertas, 0) AS INTEGER) AS diferenca_vagas,
+           CAST(year(m.mes) AS INTEGER) AS ano
+    FROM meses m LEFT JOIN faturamento f USING (filial_id, mes) LEFT JOIN custo c USING (filial_id, mes)
+    LEFT JOIN municipais mu USING (filial_id, mes) JOIN rateado r USING (filial_id, mes)
+    LEFT JOIN pessoas p USING (filial_id, mes) LEFT JOIN vagas v USING (filial_id, mes) LEFT JOIN clientes k USING (filial_id, mes)
+    LEFT JOIN informado i USING (filial_id, mes)
+    """,  # noqa: S608 # nosec B608
+    chave=("filial_id", "mes_id"),
+    referencias={"mes_id": "dim_mes", "filial_id": "dim_filial"},
+    particao="ano",
+    conservacoes=(
+        Conservacao(
+            "faturamento",
+            "sum(faturamento)",
+            "SELECT sum(valor_bruto) FROM silver.financeiro.fatura",
+        ),
+        Conservacao(
+            "custo de pessoal",
+            "sum(custo_pessoal)",
+            "SELECT sum(custo_total) FROM silver.folha.rateio_custo",
+        ),
+        Conservacao(
+            "impostos",
+            "sum(impostos)",
+            "SELECT sum(valor_devido) FROM silver.financeiro.imposto_apurado",
+        ),
+        Conservacao(
+            "despesas da retaguarda",
+            "sum(despesas)",
+            "SELECT sum(t.valor) FROM silver.financeiro.titulo_pagar t JOIN silver.cadastro.centro_custo cc ON cc.id = t.centro_custo_id "
+            "WHERE cc.tipo = 'RETAGUARDA' AND t.tipo IN ('FORNECEDOR', 'FOLHA')",
+        ),
+        Conservacao(
+            "faturamento informado",
+            "sum(faturamento_informado)",
+            "SELECT sum(faturamento_informado) FROM silver.financeiro.consolidado_gerencial",
+        ),
+        Conservacao(
+            "meses informados",
+            "count(*) FILTER (WHERE informado)",
+            "SELECT count(*) FROM silver.financeiro.consolidado_gerencial",
+        ),
+    ),
+)
+
 TABELAS: tuple[Tabela, ...] = (
     DIM_DATA,
     DIM_MES,
@@ -759,6 +1101,11 @@ TABELAS: tuple[Tabela, ...] = (
     FATO_CANDIDATURA,
     FATO_ALOCACAO,
     FATO_VINCULO,
+    FATO_PONTO_DIA,
+    FATO_RECEBIMENTO,
+    FATO_OCORRENCIA,
+    FATO_CONFORMIDADE_MES,
+    FATO_RESULTADO_MES,
 )
 
 
