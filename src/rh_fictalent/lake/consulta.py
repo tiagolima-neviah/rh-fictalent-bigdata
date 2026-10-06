@@ -222,6 +222,19 @@ def abrir_silver(lake: Lake) -> duckdb.DuckDBPyConnection:
 CAMADA_GOLD = "gold"
 
 
+def criar_views_da_gold(con: duckdb.DuckDBPyConnection, lake: Lake) -> None:
+    """Uma view por tabela do modelo, em `gold.<tabela>`, sobre o que está publicado no lake."""
+    # importado aqui, e não no topo: a gold importa o lake, não o contrário
+    from rh_fictalent.gold import modelo
+
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{CAMADA_GOLD}"')
+    for tabela in modelo.TABELAS:
+        caminho = lake.caminho(CAMADA_GOLD, tabela.nome, "*.parquet")
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        alvo = f'"{CAMADA_GOLD}"."{tabela.nome}"'
+        con.execute(f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}")  # noqa: S608 # nosec B608
+
+
 def abrir_gold(lake: Lake) -> duckdb.DuckDBPyConnection:
     """Uma conexão DuckDB com a gold publicada, uma view por tabela do modelo: `gold.dim_cliente`,
     `gold.fato_posto_mes`. É o que o SQL analítico (`gold.analitico`) e o notebook da gold leem.
@@ -229,18 +242,9 @@ def abrir_gold(lake: Lake) -> duckdb.DuckDBPyConnection:
     Nem silver nem bronze aqui: a gold é a camada que se serve, e quem a lê não precisa das
     anteriores. Os nomes vêm do modelo (`gold.modelo.TABELAS`), não de quem consulta.
     """
-    from rh_fictalent.gold import (
-        modelo,
-    )  # aqui, e não no topo: a gold importa o lake, não o contrário
-
     con = duckdb.connect()
     _apontar_para_o_lake(con, lake)
-    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{CAMADA_GOLD}"')
-    for tabela in modelo.TABELAS:
-        caminho = lake.caminho(CAMADA_GOLD, tabela.nome, "*.parquet")
-        origem = f"read_parquet('{caminho}', union_by_name = true)"
-        alvo = f'"{CAMADA_GOLD}"."{tabela.nome}"'
-        con.execute(f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}")  # noqa: S608 # nosec B608
+    criar_views_da_gold(con, lake)
     return con
 
 

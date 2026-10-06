@@ -6,6 +6,7 @@
     python -m rh_fictalent.gold --analitico                   # lista as consultas analíticas
     python -m rh_fictalent.gold --analitico pareto_de_clientes  # roda uma sobre a gold publicada
     python -m rh_fictalent.gold --notebook                    # executa e verifica notebooks/gold
+    python -m rh_fictalent.gold --regua [--so-problemas]      # o laudo da gold
 
 No dia a dia quem publica é o job `construir_gold` do Dagster; este caminho existe para a
 prova e para o estudo.
@@ -20,7 +21,7 @@ import time
 from dotenv import load_dotenv
 
 from rh_fictalent.auditoria import cadernos
-from rh_fictalent.gold import analitico, barramento, construcao, modelo
+from rh_fictalent.gold import analitico, barramento, construcao, modelo, regua
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.recursos import lake_do_ambiente
 
@@ -99,6 +100,19 @@ def _notebook() -> int:
     return 1 if reprovados else 0
 
 
+def _regua(so_problemas: bool) -> int:
+    lake = lake_do_ambiente()
+    con = consulta.abrir_silver(lake)
+    try:
+        consulta.criar_views_da_gold(con, lake)
+        resultado = regua.laudo(con)
+    finally:
+        con.close()
+    print(resultado.laudo.texto(so_problemas=so_problemas, rodape=False))
+    print(f"\n{resultado.veredito}")
+    return 0 if resultado.aprovada else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(prog="python -m rh_fictalent.gold")
@@ -109,6 +123,10 @@ def main(argv: list[str] | None = None) -> int:
         "--analitico", nargs="*", metavar="consulta", help="o SQL analítico sobre a gold"
     )
     grupo.add_argument("--notebook", action="store_true", help="executa e verifica notebooks/gold")
+    grupo.add_argument("--regua", action="store_true", help="o laudo da régua da gold")
+    parser.add_argument(
+        "--so-problemas", action="store_true", help="na régua, só o que não aprovou"
+    )
     args = parser.parse_args(argv)
     if args.matriz:
         return _matriz()
@@ -116,6 +134,8 @@ def main(argv: list[str] | None = None) -> int:
         return _analitico(args.analitico)
     if args.notebook:
         return _notebook()
+    if args.regua:
+        return _regua(args.so_problemas)
     return _publicar(args.publicar)
 
 

@@ -27,7 +27,7 @@ from rh_fictalent.orquestracao.fontes import (
     municipios_ibge,
 )
 from rh_fictalent.orquestracao.gold import ASSETS as GOLD
-from rh_fictalent.orquestracao.gold import construir_gold
+from rh_fictalent.orquestracao.gold import construir_gold, regua_da_gold
 from rh_fictalent.orquestracao.incremental import agenda_incremental, carga_incremental
 from rh_fictalent.orquestracao.lgpd import aplicar_descarte, descarte_de_dado_pessoal
 from rh_fictalent.orquestracao.logger_json import logger_json
@@ -63,6 +63,7 @@ defs = dg.Definitions(
         *SILVER,
         prestacao_de_contas,
         *GOLD,
+        regua_da_gold,
     ],
     jobs=[
         verificar_plataforma,

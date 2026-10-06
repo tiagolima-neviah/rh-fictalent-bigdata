@@ -21,13 +21,15 @@ import pandas as pd
 import pytest
 
 from rh_fictalent.auditoria import cadernos, esquema
-from rh_fictalent.gold import analitico, barramento, construcao, modelo
+from rh_fictalent.gold import analitico, barramento, construcao, modelo, regua
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao import definicoes
 from rh_fictalent.orquestracao import gold as orquestracao
 from rh_fictalent.silver import construcao as silver
 from rh_fictalent.silver import pseudonimizacao
+from rh_fictalent.validacao import bandas
+from rh_fictalent.validacao.regua import FAMILIAS, Situacao, Veredito
 
 if TYPE_CHECKING:
     from fsspec.spec import AbstractFileSystem
@@ -1527,7 +1529,7 @@ def test_o_job_da_gold_esta_nas_definicoes() -> None:
     job = definicoes.defs.resolve_job_def("construir_gold")
     assert {k.to_user_string() for k in job.asset_layer.executable_asset_keys} == {
         f"gold/{t.nome}" for t in modelo.TABELAS
-    }
+    } | {"gold/regua"}
 
 
 # ------------------------------------------------------------------ o SQL analítico
@@ -1613,3 +1615,78 @@ def test_os_notebooks_da_gold_seguem_o_padrao_da_auditoria() -> None:
     assert [n.name for n in notebooks] == ["01_sql_analitico.ipynb"]
     for caminho in notebooks:
         assert cadernos.verificar(caminho) == [], caminho.name
+
+
+# ------------------------------------------------------------------ a régua da gold
+
+
+def test_a_regua_da_gold_declara_um_check_por_conservacao_chave_e_linha_zero() -> None:
+    checks = regua.checks()
+    codigos = [c.codigo for c in checks]
+    assert len(codigos) == len(set(codigos))
+    assert {c.familia for c in checks} <= set(FAMILIAS)
+    conservacao = [c for c in checks if c.familia == regua.CONSERVACAO]
+    assert len(conservacao) == sum(len(t.conservacoes) for t in modelo.TABELAS)
+    integridade = [c for c in checks if c.familia == regua.INTEGRIDADE]
+    esperados = sum(1 + len(t.referencias) + (0 if t.fato else 1) for t in modelo.TABELAS)
+    assert len(integridade) == esperados
+    # o recorte do contrato de aceite: só as medidas que a gold reproduz com a definição do contrato
+    do_contrato = [c for c in checks if c.familia not in regua.FAMILIAS_DA_GOLD]
+    assert {c.medida for c in do_contrato} == set(regua.DO_CONTRATO)
+    assert {c.codigo for c in do_contrato} <= {c.codigo for c in bandas.checks()}
+    assert "C-04" not in {c.codigo for c in do_contrato}  # a folha é prioridade 2
+
+
+def test_a_regua_da_gold_aprova_o_cenario_e_relata_o_contrato(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    resultado = regua.laudo(gold)
+    assert resultado.aprovada, [
+        r.check.codigo for r in resultado.laudo.com_situacao(Situacao.REPROVADO)
+    ]
+    medidas = regua.medir(gold)
+    assert set(medidas["conservacao_gold"].values()) == {0.0}
+    assert all(
+        v == 0.0 for k, v in medidas["integridade_gold"].items() if not k.endswith("linha_0")
+    )
+    assert all(v == 1.0 for k, v in medidas["integridade_gold"].items() if k.endswith("linha_0"))
+    # o contrato é por ano, de 2018 a 2026; o cenário só tem 2024: o resto fica pendente, não reprova a gold
+    assert resultado.laudo.veredito in (Veredito.INCOMPLETA, Veredito.REPROVADA)
+    assert medidas["clientes_ativos_fim_ano"] == {
+        "2024": 1.0
+    }  # um cliente com contrato em 31/12/2024... até o horizonte
+    assert medidas["vagas_abertas"] == {
+        "2023": 1.0,
+        "2024": 1.0,
+    }  # a vaga 1 abriu em dezembro de 2023
+    assert medidas["violacoes"] == {"C-01": 0.0, "C-02": 0.0, "C-03": 0.0, "C-05": 0.0}
+    assert "RÉGUA DA GOLD APROVADA" in resultado.veredito
+
+
+def test_a_regua_da_gold_reprova_a_chave_orfa_e_o_total_que_nao_se_conserva(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    gold.execute("UPDATE gold.fato_custo_pessoal SET colaborador_id = 99 WHERE id = 1")
+    gold.execute(
+        "UPDATE gold.fato_faturamento SET valor_bruto = valor_bruto + 1 WHERE fatura_item_id = 1"
+    )
+    resultado = regua.laudo(gold)
+    assert not resultado.aprovada
+    reprovados = {
+        r.check.codigo
+        for r in resultado.laudo.com_situacao(Situacao.REPROVADO)
+        if r.check.familia in regua.FAMILIAS_DA_GOLD
+    }
+    assert {
+        "G-K/fato_custo_pessoal/colaborador_id",
+        "G-C/fato_faturamento/valor bruto",
+    } <= reprovados
+    assert "RÉGUA DA GOLD REPROVADA" in resultado.veredito
+
+
+def test_o_asset_da_regua_fecha_o_job_da_gold() -> None:
+    assert {k.to_user_string() for k in orquestracao.regua_da_gold.dependency_keys} == {
+        f"gold/{t.nome}" for t in modelo.TABELAS
+    }
+    job = definicoes.defs.resolve_job_def("construir_gold")
+    assert "gold/regua" in {k.to_user_string() for k in job.asset_layer.executable_asset_keys}

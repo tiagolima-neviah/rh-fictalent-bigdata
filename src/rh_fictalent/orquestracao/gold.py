@@ -15,9 +15,10 @@ cruza anos (a vigência atravessa o ano). O arquivo no lake é um por ano.
 
 # sem `from __future__ import annotations`: o Dagster lê a anotação de `context` em tempo de
 # execução e precisa do tipo, não da string
+
 import dagster as dg
 
-from rh_fictalent.gold import construcao, modelo
+from rh_fictalent.gold import construcao, modelo, regua
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.convencoes import chave_fonte
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
@@ -83,13 +84,51 @@ def _asset_gold(tabela: modelo.Tabela) -> dg.AssetsDefinition:
 
 
 ASSETS = [_asset_gold(t) for t in modelo.TABELAS]
+REGUA = chave_gold("regua")
+LAUDO = "_regua.json"  # no lake, ao lado das tabelas da gold
+
+
+@dg.asset(
+    key=REGUA,
+    group_name=GRUPO,
+    deps=[a.key for a in ASSETS],
+    description=(
+        "A régua da gold, com o motor do contrato de aceite: conservação de cada total contra a "
+        "silver, integridade de chaves e as medidas do contrato que a gold reproduz, conferidas "
+        "contra as bandas. Reprova por conservação ou chave; a banda é relatada."
+    ),
+    compute_kind="duckdb",
+    retry_policy=NOVA_TENTATIVA,
+)
+def regua_da_gold(context: dg.AssetExecutionContext, lake: Lake) -> None:
+    con = consulta.abrir_silver(lake)
+    try:
+        consulta.criar_views_da_gold(con, lake)
+        resultado = regua.laudo(con)
+    finally:
+        con.close()
+    caminho = lake.caminho(construcao.CAMADA, LAUDO)
+    with lake.sistema().open(caminho, "w") as arquivo:
+        arquivo.write(resultado.laudo.para_json())
+    context.log.info(resultado.veredito)
+    context.add_output_metadata(
+        {
+            "veredito": dg.MetadataValue.md(resultado.veredito),
+            "resumo": dg.MetadataValue.json(resultado.laudo.resumo()),
+            "fora_da_banda": len(resultado.fora_da_banda),
+            "caminho": caminho,
+        }
+    )
+    if not resultado.aprovada:
+        raise dg.Failure(resultado.veredito, allow_retries=False)
+
 
 construir_gold = dg.define_asset_job(
     name="construir_gold",
     selection=dg.AssetSelection.groups(GRUPO),
     description=(
         "Monta o modelo dimensional a partir da silver: as dimensões e depois os fatos, cada "
-        "tabela conferida contra a silver antes de ser publicada."
+        "tabela conferida contra a silver antes de ser publicada; no fim, a régua da gold."
     ),
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": MAX_CONCORRENTES}),
