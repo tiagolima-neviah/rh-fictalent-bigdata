@@ -11,7 +11,7 @@ Postgres, senão o asset falha e o que estava carregado antes continua como esta
 # execução e precisa do tipo, não da string
 import dagster as dg
 
-from rh_fictalent.gold import modelo, warehouse
+from rh_fictalent.gold import dcl, modelo, warehouse
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.gold import chave_gold
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
@@ -75,13 +75,38 @@ def _construir(tabela: modelo.Tabela) -> dg.AssetsDefinition:
 
 
 ASSETS = [_construir(t) for t in modelo.TABELAS]
+DCL = dg.AssetKey([GRUPO, "dcl"])
+
+
+@dg.asset(
+    key=DCL,
+    group_name=GRUPO,
+    deps=[a.key for a in ASSETS],
+    description=(
+        "O DCL do warehouse: os perfis de negócio (sócio, gerência, coordenação, assistente, "
+        "financeiro) com leitura por tabela e, nas dimensões de pessoa, por coluna. Gerado "
+        "da declaração em gold.dcl e reaplicado depois de toda carga; idempotente."
+    ),
+    compute_kind="postgres",
+)
+def dcl_do_warehouse(context: dg.AssetExecutionContext, lake: Lake, warehouse: Warehouse) -> None:
+    con = consulta.abrir_gold(lake)
+    try:
+        comandos = dcl.aplicar(con, warehouse)
+    finally:
+        con.close()
+    context.log.info("DCL aplicado: %s comandos, %s perfis", comandos, len(dcl.PERFIS))
+    context.add_output_metadata(
+        {"comandos": comandos, "perfis": ", ".join(p.papel for p in dcl.PERFIS)}
+    )
+
 
 carregar_warehouse = dg.define_asset_job(
     name="carregar_warehouse",
     selection=dg.AssetSelection.groups(GRUPO),
     description=(
         "Leva a gold ao Postgres: as dimensões por upsert, os fatos por partição de ano, "
-        "cada tabela conferida contra o parquet."
+        "cada tabela conferida contra o parquet; no fim, o DCL dos perfis de leitura."
     ),
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": 2}),

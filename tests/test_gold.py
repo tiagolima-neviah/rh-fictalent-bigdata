@@ -24,7 +24,7 @@ import pytest
 from dotenv import dotenv_values
 
 from rh_fictalent.auditoria import cadernos, esquema
-from rh_fictalent.gold import analitico, barramento, construcao, modelo, regua, warehouse
+from rh_fictalent.gold import analitico, barramento, construcao, dcl, modelo, regua, warehouse
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao import definicoes
@@ -1753,7 +1753,7 @@ def test_os_assets_do_warehouse_seguem_a_gold_e_as_dimensoes_vem_antes() -> None
     ]
     assert {k.to_user_string() for k in cliente.dependency_keys} == {"gold/dim_cliente"}
     job = definicoes.defs.resolve_job_def("carregar_warehouse")
-    assert len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS)
+    assert len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS) + 1  # mais o DCL
 
 
 ENV = dotenv_values(RAIZ / ".env") if (RAIZ / ".env").exists() else {}
@@ -1809,6 +1809,154 @@ def test_a_carga_no_postgres_e_idempotente_e_conferida(gold: duckdb.DuckDBPyConn
             con.commit()
         problemas = warehouse.conferir(gold, dw, modelo.FATO_POSTO_MES, *esquemas)
         assert problemas == ["receita dos postos em 2024: parquet 100.0000, postgres 101.0000"]
+    finally:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            con.commit()
+
+
+# ------------------------------------------------------------------ o DCL do warehouse
+
+
+def test_os_perfis_cobrem_os_fatos_e_so_leem_atributo_de_pessoa_por_necessidade(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    nomes = [p.nome for p in dcl.PERFIS]
+    assert nomes == ["socio", "gerencia", "coordenacao", "assistente", "financeiro"]
+    fatos = {t.nome for t in modelo.TABELAS if t.fato}
+    assert set(dcl.perfil("socio").fatos) == fatos and set(dcl.perfil("gerencia").fatos) == fatos
+    for p in dcl.PERFIS:
+        assert set(p.fatos) <= fatos and set(p.atributos_de_pessoa) <= set(
+            dcl.ATRIBUTOS_DE_PESSOA
+        ), p.nome
+        assert {"dim_data", "dim_mes"} <= set(p.dimensoes())
+    # quem não precisa do atributo de pessoa não o tem: sócio, gerência e financeiro
+    for nome in ("socio", "gerencia", "financeiro"):
+        assert dcl.perfil(nome).atributos_de_pessoa == ()
+    assert (
+        "fato_faturamento" not in dcl.perfil("assistente").fatos
+        and "fato_candidatura" not in dcl.perfil("financeiro").fatos
+    )
+    # as colunas livres da dimensão de pessoa: o id e o operacional, nunca o atributo
+    livres = dcl.colunas_livres(gold, "dim_colaborador")
+    assert (
+        "id" in livres
+        and "ativo" in livres
+        and not set(livres) & set(dcl.ATRIBUTOS_DE_PESSOA["dim_colaborador"])
+    )
+
+
+def test_o_dcl_gerado_e_so_leitura_e_coluna_a_coluna_nas_pessoas(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    sql = dcl.gerar_sql(gold)
+    assert "GRANT SELECT" in sql and not any(
+        v in sql for v in ("INSERT", "UPDATE", "DELETE", "CREATE TABLE", "WITH GRANT OPTION")
+    )
+    assert (
+        "CREATE ROLE perfil_financeiro NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT" in sql
+    )
+    assert "GRANT SELECT ON fato.faturamento TO perfil_financeiro;" in sql
+    assert "GRANT SELECT ON fato.faturamento TO perfil_assistente;" not in sql
+    assert (
+        "GRANT SELECT ON dim.candidato TO perfil_assistente;" in sql
+    )  # a assistente lê o candidato inteiro
+    assert (
+        "GRANT SELECT (id, dt_cadastro, q_ats_01, cadastro_canonico, pessoal_descartado) ON dim.candidato TO perfil_socio;"
+        in sql
+    )
+    assert "GRANT SELECT ON dim.colaborador TO perfil_coordenacao;" in sql
+    assert (
+        "ON dim.colaborador TO perfil_financeiro;" in sql
+        and "GRANT SELECT ON dim.colaborador TO perfil_financeiro;" not in sql
+    )
+    assert sql.count("REVOKE ALL ON ALL TABLES") == len(dcl.PERFIS)
+
+
+def test_o_dcl_fecha_o_job_do_warehouse() -> None:
+    assert {k.to_user_string() for k in orquestracao_dw.dcl_do_warehouse.dependency_keys} == {
+        a.key.to_user_string() for a in orquestracao_dw.ASSETS
+    }
+
+
+@pytest.mark.skipif(not ENV or not _postgres_de_pe(), reason="warehouse fora do ar ou .env ausente")
+def test_no_banco_o_acesso_indevido_falha(gold: duckdb.DuckDBPyConnection) -> None:
+    """Com a plataforma de pé: o cenário em schemas de teste, o DCL aplicado neles, e cada perfil
+    testado por SET ROLE: lê o que pode, e o que não pode falha com erro de privilégio."""
+    import psycopg
+
+    dw = Warehouse(
+        host="127.0.0.1",
+        porta=int(ENV.get("DW_PORT") or 5441),
+        banco=ENV.get("DW_DB") or "dw_fictalent",
+        usuario=ENV.get("DW_ADMIN_USER") or "fictalent_admin",
+        senha=ENV.get("DW_ADMIN_PASSWORD") or os.environ.get("DW_ADMIN_PASSWORD", ""),
+    )
+    esquemas = ("teste_dcl_dim", "teste_dcl_fato")
+
+    def como(papel: str, sql: str) -> list[tuple[object, ...]]:
+        with dw.conectar() as con, con.cursor() as cur:
+            cur.execute(f"SET ROLE {papel}")  # noqa: S608
+            cur.execute(sql)
+            return list(cur.fetchall())
+
+    try:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            con.commit()
+        for t in modelo.TABELAS:
+            assert warehouse.carregar(gold, dw, t, *esquemas).aprovada, t.nome
+        dcl.aplicar(gold, dw, *esquemas)
+        dcl.aplicar(gold, dw, *esquemas)  # idempotente
+
+        assert como("perfil_financeiro", "SELECT sum(valor_bruto) FROM teste_dcl_fato.faturamento")[
+            0
+        ][0] == Decimal("200.00")
+        assert (
+            como(
+                "perfil_financeiro", "SELECT id, ativo FROM teste_dcl_dim.colaborador ORDER BY id"
+            )[0][0]
+            == 0
+        )
+        assert (
+            len(como("perfil_assistente", "SELECT sexo, escolaridade FROM teste_dcl_dim.candidato"))
+            == 5
+        )
+        assert (
+            como("perfil_coordenacao", "SELECT count(*) FROM teste_dcl_fato.ponto_dia")[0][0] == 4
+        )
+        assert como("perfil_socio", "SELECT count(*) FROM teste_dcl_fato.resultado_mes")[0][0] == 8
+        bloqueios = [
+            (
+                "perfil_financeiro",
+                "SELECT ano_nascimento FROM teste_dcl_dim.colaborador",
+            ),  # atributo de pessoa
+            (
+                "perfil_financeiro",
+                "SELECT * FROM teste_dcl_dim.colaborador",
+            ),  # o asterisco pede as colunas vedadas
+            (
+                "perfil_financeiro",
+                "SELECT count(*) FROM teste_dcl_fato.candidatura",
+            ),  # fato de outra área
+            ("perfil_assistente", "SELECT count(*) FROM teste_dcl_fato.faturamento"),
+            (
+                "perfil_socio",
+                "SELECT sexo FROM teste_dcl_dim.candidato",
+            ),  # o sócio decide no agregado
+            (
+                "perfil_coordenacao",
+                "SELECT escolaridade FROM teste_dcl_dim.candidato",
+            ),  # a coordenação lê o colaborador, não o candidato
+            ("perfil_socio", "INSERT INTO teste_dcl_dim.filial (id, nome) VALUES (9, 'x')"),
+            ("perfil_gerencia", "DELETE FROM teste_dcl_fato.ocorrencia"),
+            ("perfil_coordenacao", "CREATE TABLE teste_dcl_fato.x (a int)"),
+        ]
+        for papel, sql in bloqueios:
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                como(papel, sql)
     finally:
         with dw.conectar() as con, con.cursor() as cur:
             for esquema in esquemas:

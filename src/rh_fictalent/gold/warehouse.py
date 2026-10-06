@@ -167,7 +167,7 @@ def _copiar(
 ) -> int:
     """COPY FROM STDIN com as linhas lidas do DuckDB em lotes; devolve quantas entraram."""
     lidas = 0
-    leitor = con.execute(sql).fetch_record_batch(LOTE)
+    leitor = con.sql(sql).to_arrow_reader(LOTE)
     with cur.copy(f"COPY {destino} ({', '.join(nomes)}) FROM STDIN") as copia:  # noqa: S608 # nosec B608
         for lote in leitor:
             for linha in lote.to_pylist():
