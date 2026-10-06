@@ -11,7 +11,7 @@ Postgres, senão o asset falha e o que estava carregado antes continua como esta
 # execução e precisa do tipo, não da string
 import dagster as dg
 
-from rh_fictalent.gold import dcl, modelo, rls, warehouse
+from rh_fictalent.gold import dcl, indices, modelo, rls, warehouse
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.gold import chave_gold
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
@@ -101,6 +101,27 @@ def dcl_do_warehouse(context: dg.AssetExecutionContext, lake: Lake, warehouse: W
     )
 
 
+INDICES = dg.AssetKey([GRUPO, "indices"])
+
+
+@dg.asset(
+    key=INDICES,
+    group_name=GRUPO,
+    deps=[a.key for a in ASSETS],
+    description=(
+        "Os índices do warehouse, só os adotados por medida de plano de execução (gold.indices), "
+        "e o ANALYZE de todo fato, porque a carga envelhece as estatísticas; idempotente."
+    ),
+    compute_kind="postgres",
+)
+def indices_do_warehouse(context: dg.AssetExecutionContext, warehouse: Warehouse) -> None:
+    quantos = indices.criar(warehouse)
+    context.log.info("índices: %s adotados garantidos, estatísticas atualizadas", quantos)
+    context.add_output_metadata(
+        {"indices": quantos, "nomes": ", ".join(i.nome for i in indices.adotados())}
+    )
+
+
 RLS = dg.AssetKey([GRUPO, "rls"])
 
 
@@ -128,8 +149,8 @@ carregar_warehouse = dg.define_asset_job(
     selection=dg.AssetSelection.groups(GRUPO),
     description=(
         "Leva a gold ao Postgres: as dimensões por upsert, os fatos por partição de ano, "
-        "cada tabela conferida contra o parquet; no fim, o DCL dos perfis de leitura e o RLS "
-        "por filial."
+        "cada tabela conferida contra o parquet; no fim, os índices medidos, o DCL dos perfis "
+        "de leitura e o RLS por filial."
     ),
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": 2}),

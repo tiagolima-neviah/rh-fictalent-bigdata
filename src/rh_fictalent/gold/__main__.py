@@ -11,6 +11,7 @@
     python -m rh_fictalent.gold --ddl                         # a DDL do warehouse, gerada do modelo
     python -m rh_fictalent.gold --dcl [--aplicar]             # o DCL do warehouse (perfis)
     python -m rh_fictalent.gold --rls [--aplicar]             # o RLS por filial no warehouse
+    python -m rh_fictalent.gold --indices [--medir]           # os índices: DDL, ou medida
 
 No dia a dia quem publica é o job `construir_gold` do Dagster; este caminho existe para a
 prova e para o estudo.
@@ -21,6 +22,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from datetime import UTC, datetime
 
 from dotenv import load_dotenv
 
@@ -30,6 +32,7 @@ from rh_fictalent.gold import (
     barramento,
     construcao,
     dcl,
+    indices,
     modelo,
     regua,
     rls,
@@ -187,6 +190,22 @@ def _rls(aplicar: bool) -> int:
     return 0
 
 
+def _indices(medir: bool) -> int:
+    if not medir:
+        print(indices.ddl())
+        return 0
+    medido_em = datetime.now(UTC).isoformat(timespec="seconds")
+    medidas = indices.medir(warehouse_do_ambiente())
+    print(indices.texto(medidas))
+    lake = lake_do_ambiente()
+    caminho = lake.caminho(consulta.CAMADA_GOLD, indices.LAUDO)
+    with lake.sistema().open(caminho, "w") as arquivo:
+        arquivo.write(indices.laudo_json(medidas, medido_em))
+    adotados, medidos = len(indices.adotados()), len(indices.INDICES)
+    print(f"\nlaudo em {caminho}; {adotados} índices adotados de {medidos} medidos")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(prog="python -m rh_fictalent.gold")
@@ -204,6 +223,10 @@ def main(argv: list[str] | None = None) -> int:
     grupo.add_argument("--ddl", action="store_true", help="imprime a DDL do warehouse")
     grupo.add_argument("--dcl", action="store_true", help="o DCL do warehouse (perfis de leitura)")
     grupo.add_argument("--rls", action="store_true", help="o RLS do warehouse (linhas por filial)")
+    grupo.add_argument("--indices", action="store_true", help="os índices do warehouse")
+    parser.add_argument(
+        "--medir", action="store_true", help="nos índices, mede antes e depois em vez de imprimir"
+    )
     parser.add_argument(
         "--aplicar", action="store_true", help="no DCL e no RLS, aplica em vez de imprimir"
     )
@@ -227,6 +250,8 @@ def main(argv: list[str] | None = None) -> int:
         return _dcl(args.aplicar)
     if args.rls:
         return _rls(args.aplicar)
+    if args.indices:
+        return _indices(args.medir)
     return _publicar(args.publicar)
 
 
