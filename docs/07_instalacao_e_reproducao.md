@@ -108,17 +108,21 @@ Termina em **`RÉGUA APROVADA: 166 de 166`** e reescreve `dados/regua/medidas.js
 
 A base está na réplica. Três passos a levam ao lake, e o terceiro é automático.
 
-**1. As cargas iniciais.** As 76 tabelas entram pelo backfill, na interface do Dagster (<http://127.0.0.1:3010>): *Jobs* → `backfill_bronze` → *Materialize all* → backfill das nove partições, de 2018 a 2026. São cerca de 2 minutos ([Ingestão, seção 3](11_ingestao.md)). As nove planilhas do consolidado entram do mesmo jeito, pelo job `carregar_consolidado`. As duas fontes públicas entram pela linha de comando (os feriados, um ano por vez; repita para os anos de 2018 a 2026):
+**1. As cargas iniciais.** As 76 tabelas entram pelo backfill, na interface do Dagster (<http://127.0.0.1:3010>): *Jobs* → `backfill_bronze` → *Materialize all* → backfill das nove partições, de 2018 a 2026. São cerca de 2 minutos ([Ingestão, seção 3](11_ingestao.md)). As nove planilhas do consolidado entram do mesmo jeito, pelo job `carregar_consolidado`. As três fontes públicas entram pela linha de comando (os feriados, um ano por vez; repita para os anos de 2018 a 2026):
 
 ```bash
 docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_municipios
 ```
 
 ```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_caged
+```
+
+```bash
 docker compose exec dagster-web dagster asset materialize -m rh_fictalent.orquestracao.definicoes --select "fontes/brasilapi/feriados" --partition 2024
 ```
 
-As quatro cargas são necessárias: a leitura do lake cria uma view por conjunto, e conjunto sem arquivo nenhum faz a abertura falhar.
+As cinco cargas são necessárias: a leitura do lake cria uma view por conjunto, e conjunto sem arquivo nenhum faz a abertura falhar.
 
 **2. A primeira carga incremental.** Ela cria a marca d'água de cada tabela, de onde sai a data de referência das regras com prazo:
 

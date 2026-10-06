@@ -11,6 +11,7 @@ mesma operação com chaves diferentes.
 # execução e precisa do tipo, não da string
 import dagster as dg
 
+from rh_fictalent.fontes import caged
 from rh_fictalent.fontes.apis import feriados, municipios
 from rh_fictalent.orquestracao.convencoes import GRUPO_FONTES, PARTICAO_ANUAL, chave_fonte
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
@@ -48,10 +49,44 @@ def feriados_brasilapi(context: dg.AssetExecutionContext, apis: ApisPublicas, la
     context.add_output_metadata({"linhas": len(tabela), "ano": ano, "caminho": caminho})
 
 
+@dg.asset(
+    key=chave_fonte("caged", "movimentacao"),
+    group_name=GRUPO_FONTES,
+    description=(
+        "Movimentação mensal do Novo CAGED (admissões, desligamentos e saldo por competência, "
+        "território e grupo de atividade), da tabela derivada versionada em dados/publicos/caged, "
+        "em parquet no lake. É a régua de fora da afirmação D4."
+    ),
+)
+def movimentacao_caged(context: dg.AssetExecutionContext, lake: Lake) -> None:
+    tabela = caged.movimentacao_mensal()
+    registro = caged.fonte()
+    caminho = lake.caminho("fontes", "caged", "movimentacao.parquet")
+    lake.escrever_parquet(tabela, caminho)
+    context.log.info("%s linhas do CAGED gravadas em %s", len(tabela), caminho)
+    context.add_output_metadata(
+        {
+            "linhas": len(tabela),
+            "competencias": f"{tabela['competencia'].min():%Y-%m} a {tabela['competencia'].max():%Y-%m}",
+            "escopos": int(tabela["escopo"].nunique()),
+            "fonte": str(registro.get("fonte", "")),
+            "baixado_em": str(registro.get("baixado_em", "")),
+            "caminho": caminho,
+        }
+    )
+
+
 carregar_municipios = dg.define_asset_job(
     name="carregar_municipios",
     selection=dg.AssetSelection.assets(municipios_ibge),
     description="Traz os municípios de SP e MG do IBGE para o lake.",
+    config=CONFIG_LOGS_JSON,
+)
+
+carregar_caged = dg.define_asset_job(
+    name="carregar_caged",
+    selection=dg.AssetSelection.assets(movimentacao_caged),
+    description="Leva a movimentação mensal do Novo CAGED (tabela derivada, versionada) ao lake.",
     config=CONFIG_LOGS_JSON,
 )
 

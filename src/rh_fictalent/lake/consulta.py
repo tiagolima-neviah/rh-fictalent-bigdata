@@ -59,6 +59,12 @@ ESQUEMA_FONTES = "fontes"
 FONTES = {  # view -> caminho no lake, relativo ao bucket
     "municipios": "fontes/ibge/municipios.parquet",
     "feriados": "fontes/brasilapi/feriados/ano=*.parquet",
+    "caged_movimentacao": "fontes/caged/movimentacao.parquet",
+}
+ASSETS_DAS_FONTES = {  # view -> (provedor, conjunto) do asset que a grava, para a linhagem da gold
+    "municipios": ("ibge", "municipios"),
+    "feriados": ("brasilapi", "feriados"),
+    "caged_movimentacao": ("caged", "movimentacao"),
 }
 VARIAVEL_DAS_EXTENSOES = "DUCKDB_EXTENSION_DIRECTORY"  # onde a imagem pré-instala o httpfs
 VARIAVEL_DA_MEMORIA = "DUCKDB_MEMORY_LIMIT"  # ex.: 512MB; ausente = o DuckDB decide sozinho
@@ -187,11 +193,20 @@ def criar_views_da_silver(
         con.execute(f'CREATE OR REPLACE VIEW {catalogo}."{modulo}"."{nome}" AS {vivas}')
 
 
+def criar_views_das_fontes(con: duckdb.DuckDBPyConnection, caminhos: dict[str, str]) -> None:
+    """Uma view por fonte pública, em `fontes.<nome>`: dado de fora, sem linha excluída."""
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{ESQUEMA_FONTES}"')
+    for nome, caminho in caminhos.items():
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        con.execute(f'CREATE OR REPLACE VIEW "{ESQUEMA_FONTES}"."{nome}" AS SELECT * FROM {origem}')  # noqa: S608 # nosec B608
+
+
 def abrir_silver(lake: Lake) -> duckdb.DuckDBPyConnection:
     """Uma conexão DuckDB com a silver, e só ela: `silver.ats.candidato`, `silver.pessoas.alocacao`.
 
-    Não há view da bronze nesta conexão, de propósito: quem constrói a gold não alcança o dado
-    pessoal em claro nem por engano.
+    As fontes públicas entram junto, em `fontes.<nome>`: não têm dado pessoal e a gold precisa
+    delas (o CAGED é a régua de fora). Não há view da bronze nesta conexão, de propósito: quem
+    constrói a gold não alcança o dado pessoal em claro nem por engano.
     """
     con = duckdb.connect()
     _apontar_para_o_lake(con, lake)
@@ -200,6 +215,7 @@ def abrir_silver(lake: Lake) -> duckdb.DuckDBPyConnection:
         for tabela in tabelas_da_silver()
     }
     criar_views_da_silver(con, caminhos)
+    criar_views_das_fontes(con, {n: f"s3://{lake.bucket}/{c}" for n, c in FONTES.items()})
     return con
 
 

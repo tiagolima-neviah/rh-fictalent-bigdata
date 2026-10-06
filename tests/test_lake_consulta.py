@@ -58,9 +58,9 @@ def duck(lake: Lake) -> Iterator[duckdb.DuckDBPyConnection]:
 def test_o_catalogo_tem_tudo_o_que_a_bronze_tem(lake: Lake) -> None:
     views = consulta.catalogo(lake)
     nomes = {v.qualificado for v in views}
-    assert len(views) == 79  # 75 de negócio, a trilha, a planilha, duas fontes públicas
+    assert len(views) == 80  # 75 de negócio, a trilha, a planilha, três fontes públicas
     assert {"ats.candidato", "meta.exclusao_auditoria", "arquivo.consolidado_gerencial"} <= nomes
-    assert {"fontes.municipios", "fontes.feriados"} <= nomes
+    assert {"fontes.municipios", "fontes.feriados", "fontes.caged_movimentacao"} <= nomes
     for v in views:
         assert v.caminho.startswith(f"s3://{lake.bucket}/")
 

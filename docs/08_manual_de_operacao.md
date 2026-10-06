@@ -166,7 +166,7 @@ E da sua máquina, contra a plataforma de pé (é o que o teste de integração 
 
 Depois de mudar código em `src/`, reconstrua a imagem: `docker compose up -d --build dagster-web dagster-daemon`.
 
-**As fontes públicas** (grupo `fontes`, desde a v0.4.0) são os primeiros assets de dado: `fontes/ibge/municipios` (job `carregar_municipios`) e `fontes/brasilapi/feriados` (job `carregar_feriados`, particionado por ano). Materializar grava parquet no lake em `s3://fictalent-lake/fontes/...`; os metadados da execução mostram as linhas e o caminho. Na interface, o job dos feriados pede a partição (um ano) ou aceita um *backfill* de 2018 a 2026, que vira uma execução por ano. Pela linha de comando, o job sem partição roda com `job execute`; o particionado, com `asset materialize`, que é quem aceita `--partition`:
+**As fontes públicas** (grupo `fontes`, desde a v0.4.0) são os primeiros assets de dado: `fontes/ibge/municipios` (job `carregar_municipios`), `fontes/brasilapi/feriados` (job `carregar_feriados`, particionado por ano) e, desde a v0.7.0, `fontes/caged/movimentacao` (job `carregar_caged`), que não chama API nenhuma: lê a tabela derivada versionada em `dados/publicos/caged`, que a imagem carrega. Materializar grava parquet no lake em `s3://fictalent-lake/fontes/...`; os metadados da execução mostram as linhas e o caminho. Na interface, o job dos feriados pede a partição (um ano) ou aceita um *backfill* de 2018 a 2026, que vira uma execução por ano. Pela linha de comando, o job sem partição roda com `job execute`; o particionado, com `asset materialize`, que é quem aceita `--partition`:
 
 ```bash
 docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_municipios

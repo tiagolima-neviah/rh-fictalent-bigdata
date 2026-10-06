@@ -85,6 +85,8 @@ class Tabela:
     def fontes(self) -> set[str]:
         """As tabelas da silver que o SQL lê; quem usa o horizonte lê também as que o definem."""
         lidas = {f"{m}.{t}" for m, t in re.findall(r"\bsilver\.(\w+)\.(\w+)", self.sql)}
+        lidas |= {f"fontes.{n}" for n in re.findall(r"\bfontes\.(\w+)", self.sql)}  # as públicas
+        lidas |= {f"fontes.{n}" for n in re.findall(r"\bfontes\.(\w+)", self.sql)}  # as públicas
         implicitas = set(FONTES_DO_HORIZONTE) if HORIZONTE in self.sql else set()
         if FIM_DO_CALENDARIO in self.sql:
             implicitas |= set(FONTES_DO_HORIZONTE) | set(FONTES_DO_CALENDARIO)
@@ -1082,6 +1084,106 @@ FATO_RESULTADO_MES = Tabela(
     ),
 )
 
+# ------------------------------------------------------------------ o mercado, a régua de fora
+
+# o CAGED não tem id: a chave da dimensão é o código do território (IBGE de 6 dígitos ou UF de 2)
+# vezes 100, mais o grupo (78 para o segmento; a posição da letra da seção CNAE no alfabeto)
+_ESCOPO_ID = (
+    "CAST(c.escopo AS INTEGER) * 100 + CASE WHEN c.grupo = '78' THEN 78 ELSE ord(c.grupo) - 64 END"
+)
+_GRUPO_NOME = (
+    "CASE WHEN c.grupo = '78' THEN 'seleção, agenciamento e locação de mão de obra (78)' "
+    "ELSE 'seção CNAE ' || c.grupo END"
+)
+
+DIM_ESCOPO_MERCADO = Tabela(
+    "dim_escopo_mercado",
+    f"""
+    SELECT DISTINCT {_ESCOPO_ID} AS id, c.escopo AS territorio_codigo, c.nome_escopo AS territorio, c.nivel,
+           c.grupo AS grupo_codigo, {_GRUPO_NOME} AS grupo, c.grupo = '78' AS segmento_da_fictalent,
+           coalesce(m.id, 0) AS municipio_id
+    FROM fontes.caged_movimentacao c
+    LEFT JOIN silver.cadastro.municipio m ON c.nivel = 'município' AND left(m.codigo_ibge, 6) = c.escopo
+    UNION ALL BY NAME SELECT CAST(0 AS INTEGER) AS id, '{NAO_SE_APLICA}' AS territorio, CAST(0 AS BIGINT) AS municipio_id
+    """,  # noqa: S608 # nosec B608
+)
+
+FATO_MERCADO_MES = Tabela(
+    "fato_mercado_mes",
+    f"""
+    SELECT CAST(year(c.competencia) * 100 + month(c.competencia) AS INTEGER) AS mes_id, {_ESCOPO_ID} AS escopo_mercado_id,
+           CAST(c.admissoes AS INTEGER) AS admissoes, CAST(c.desligamentos AS INTEGER) AS desligamentos,
+           CAST(c.saldo AS INTEGER) AS saldo, CAST(year(c.competencia) AS INTEGER) AS ano
+    FROM fontes.caged_movimentacao c
+    """,  # noqa: S608 # nosec B608
+    chave=("mes_id", "escopo_mercado_id"),
+    referencias={"mes_id": "dim_mes", "escopo_mercado_id": "dim_escopo_mercado"},
+    particao="ano",
+    conservacoes=(
+        Conservacao(
+            "linhas do CAGED", "count(*)", "SELECT count(*) FROM fontes.caged_movimentacao"
+        ),
+        Conservacao(
+            "admissões", "sum(admissoes)", "SELECT sum(admissoes) FROM fontes.caged_movimentacao"
+        ),
+        Conservacao(
+            "desligamentos",
+            "sum(desligamentos)",
+            "SELECT sum(desligamentos) FROM fontes.caged_movimentacao",
+        ),
+    ),
+)
+
+# ------------------------------------------------------------------ o mercado, a régua de fora
+
+# o CAGED não tem id: a chave da dimensão é o código do território (IBGE de 6 dígitos ou UF de 2)
+# vezes 100, mais o grupo (78 para o segmento; a posição da letra da seção CNAE no alfabeto)
+_ESCOPO_ID = (
+    "CAST(c.escopo AS INTEGER) * 100 + CASE WHEN c.grupo = '78' THEN 78 ELSE ord(c.grupo) - 64 END"
+)
+_GRUPO_NOME = (
+    "CASE WHEN c.grupo = '78' THEN 'seleção, agenciamento e locação de mão de obra (78)' "
+    "ELSE 'seção CNAE ' || c.grupo END"
+)
+
+DIM_ESCOPO_MERCADO = Tabela(
+    "dim_escopo_mercado",
+    f"""
+    SELECT DISTINCT {_ESCOPO_ID} AS id, c.escopo AS territorio_codigo, c.nome_escopo AS territorio, c.nivel,
+           c.grupo AS grupo_codigo, {_GRUPO_NOME} AS grupo, c.grupo = '78' AS segmento_da_fictalent,
+           coalesce(m.id, 0) AS municipio_id
+    FROM fontes.caged_movimentacao c
+    LEFT JOIN silver.cadastro.municipio m ON c.nivel = 'município' AND left(m.codigo_ibge, 6) = c.escopo
+    UNION ALL BY NAME SELECT CAST(0 AS INTEGER) AS id, '{NAO_SE_APLICA}' AS territorio, CAST(0 AS BIGINT) AS municipio_id
+    """,  # noqa: S608 # nosec B608
+)
+
+FATO_MERCADO_MES = Tabela(
+    "fato_mercado_mes",
+    f"""
+    SELECT CAST(year(c.competencia) * 100 + month(c.competencia) AS INTEGER) AS mes_id, {_ESCOPO_ID} AS escopo_mercado_id,
+           CAST(c.admissoes AS INTEGER) AS admissoes, CAST(c.desligamentos AS INTEGER) AS desligamentos,
+           CAST(c.saldo AS INTEGER) AS saldo, CAST(year(c.competencia) AS INTEGER) AS ano
+    FROM fontes.caged_movimentacao c
+    """,  # noqa: S608 # nosec B608
+    chave=("mes_id", "escopo_mercado_id"),
+    referencias={"mes_id": "dim_mes", "escopo_mercado_id": "dim_escopo_mercado"},
+    particao="ano",
+    conservacoes=(
+        Conservacao(
+            "linhas do CAGED", "count(*)", "SELECT count(*) FROM fontes.caged_movimentacao"
+        ),
+        Conservacao(
+            "admissões", "sum(admissoes)", "SELECT sum(admissoes) FROM fontes.caged_movimentacao"
+        ),
+        Conservacao(
+            "desligamentos",
+            "sum(desligamentos)",
+            "SELECT sum(desligamentos) FROM fontes.caged_movimentacao",
+        ),
+    ),
+)
+
 TABELAS: tuple[Tabela, ...] = (
     DIM_DATA,
     DIM_MES,
@@ -1093,6 +1195,7 @@ TABELAS: tuple[Tabela, ...] = (
     DIM_POSTO,
     DIM_COLABORADOR,
     DIM_CANDIDATO,
+    DIM_ESCOPO_MERCADO,
     FATO_FATURAMENTO,
     FATO_CUSTO_PESSOAL,
     FATO_POSTO_MES,
@@ -1106,6 +1209,7 @@ TABELAS: tuple[Tabela, ...] = (
     FATO_OCORRENCIA,
     FATO_CONFORMIDADE_MES,
     FATO_RESULTADO_MES,
+    FATO_MERCADO_MES,
 )
 
 
