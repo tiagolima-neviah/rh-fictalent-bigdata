@@ -11,7 +11,7 @@ Postgres, senão o asset falha e o que estava carregado antes continua como esta
 # execução e precisa do tipo, não da string
 import dagster as dg
 
-from rh_fictalent.gold import dcl, modelo, warehouse
+from rh_fictalent.gold import dcl, modelo, rls, warehouse
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.gold import chave_gold
 from rh_fictalent.orquestracao.logger_json import CONFIG_LOGS_JSON
@@ -101,12 +101,35 @@ def dcl_do_warehouse(context: dg.AssetExecutionContext, lake: Lake, warehouse: W
     )
 
 
+RLS = dg.AssetKey([GRUPO, "rls"])
+
+
+@dg.asset(
+    key=RLS,
+    group_name=GRUPO,
+    deps=[DCL],
+    description=(
+        "O RLS do warehouse: cada filial enxerga só as próprias linhas. A política por tabela "
+        "(a empresa inteira para sócio, gerência e financeiro; só as filiais do papel para "
+        "coordenação e assistente) e a tabela acesso.filial_do_papel, que só o administrador "
+        "escreve. Gerado de gold.rls, depois do DCL; idempotente."
+    ),
+    compute_kind="postgres",
+)
+def rls_do_warehouse(context: dg.AssetExecutionContext, warehouse: Warehouse) -> None:
+    comandos = rls.aplicar(warehouse)
+    tabelas = [t.nome for t in rls.tabelas_com_filial()]
+    context.log.info("RLS aplicado: %s comandos, %s tabelas", comandos, len(tabelas))
+    context.add_output_metadata({"comandos": comandos, "tabelas": ", ".join(tabelas)})
+
+
 carregar_warehouse = dg.define_asset_job(
     name="carregar_warehouse",
     selection=dg.AssetSelection.groups(GRUPO),
     description=(
         "Leva a gold ao Postgres: as dimensões por upsert, os fatos por partição de ano, "
-        "cada tabela conferida contra o parquet; no fim, o DCL dos perfis de leitura."
+        "cada tabela conferida contra o parquet; no fim, o DCL dos perfis de leitura e o RLS "
+        "por filial."
     ),
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": 2}),

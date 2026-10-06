@@ -16,6 +16,9 @@ princípio da necessidade: a assistente do funil lê os atributos do candidato (
 dela); a coordenação, os do colaborador; o financeiro, nenhum (só o `id`, para somar o custo);
 o sócio e a gerência, nenhum (decidem no agregado, e o agregado não precisa da pessoa).
 Nenhum perfil escreve, cria ou concede nada; a carga é do administrador.
+
+Alcance: o sócio, a gerência e o financeiro são da empresa inteira; a coordenação e a assistente
+são de filial, e enxergam só as linhas das suas filiais pelo *row level security* (`gold.rls`).
 """
 
 from __future__ import annotations
@@ -44,12 +47,17 @@ ATRIBUTOS_DE_PESSOA: dict[str, tuple[str, ...]] = {
 }
 
 
+EMPRESA = "empresa"  # alcance: a empresa inteira
+FILIAL = "filial"  # alcance: só as filiais do papel (gold.rls)
+
+
 @dataclass(frozen=True)
 class Perfil:
     nome: str  # vira o papel perfil_<nome>
     quem: str
     fatos: tuple[str, ...]  # os fatos que o perfil lê; as dimensões vêm das referências deles
     atributos_de_pessoa: tuple[str, ...] = ()  # dimensões de pessoa lidas com os atributos
+    alcance: str = EMPRESA  # EMPRESA ou FILIAL
 
     @property
     def papel(self) -> str:
@@ -88,12 +96,14 @@ PERFIS: tuple[Perfil, ...] = (
             "fato_vaga",
         ),
         atributos_de_pessoa=("dim_colaborador",),
+        alcance=FILIAL,
     ),
     Perfil(
         "assistente",
         "a assistente do funil: vagas, candidaturas e o que virou vínculo",
         ("fato_vaga", "fato_candidatura", "fato_vinculo", "fato_alocacao", "fato_mercado_mes"),
         atributos_de_pessoa=("dim_candidato",),
+        alcance=FILIAL,
     ),
     Perfil(
         "financeiro",

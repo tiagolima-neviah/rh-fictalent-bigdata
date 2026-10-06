@@ -10,6 +10,7 @@
     python -m rh_fictalent.gold --warehouse [tabelas]         # a gold no Postgres, conferida
     python -m rh_fictalent.gold --ddl                         # a DDL do warehouse, gerada do modelo
     python -m rh_fictalent.gold --dcl [--aplicar]             # o DCL do warehouse (perfis)
+    python -m rh_fictalent.gold --rls [--aplicar]             # o RLS por filial no warehouse
 
 No dia a dia quem publica é o job `construir_gold` do Dagster; este caminho existe para a
 prova e para o estudo.
@@ -24,7 +25,16 @@ import time
 from dotenv import load_dotenv
 
 from rh_fictalent.auditoria import cadernos
-from rh_fictalent.gold import analitico, barramento, construcao, dcl, modelo, regua, warehouse
+from rh_fictalent.gold import (
+    analitico,
+    barramento,
+    construcao,
+    dcl,
+    modelo,
+    regua,
+    rls,
+    warehouse,
+)
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.recursos import lake_do_ambiente, warehouse_do_ambiente
 
@@ -168,6 +178,15 @@ def _dcl(aplicar: bool) -> int:
     return 0
 
 
+def _rls(aplicar: bool) -> int:
+    if aplicar:
+        comandos = rls.aplicar(warehouse_do_ambiente())
+        print(f"RLS aplicado: {comandos} comandos, {len(rls.tabelas_com_filial())} tabelas")
+    else:
+        print(rls.gerar_sql())
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(prog="python -m rh_fictalent.gold")
@@ -184,7 +203,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     grupo.add_argument("--ddl", action="store_true", help="imprime a DDL do warehouse")
     grupo.add_argument("--dcl", action="store_true", help="o DCL do warehouse (perfis de leitura)")
-    parser.add_argument("--aplicar", action="store_true", help="no DCL, aplica em vez de imprimir")
+    grupo.add_argument("--rls", action="store_true", help="o RLS do warehouse (linhas por filial)")
+    parser.add_argument(
+        "--aplicar", action="store_true", help="no DCL e no RLS, aplica em vez de imprimir"
+    )
     parser.add_argument(
         "--so-problemas", action="store_true", help="na régua, só o que não aprovou"
     )
@@ -203,6 +225,8 @@ def main(argv: list[str] | None = None) -> int:
         return _ddl()
     if args.dcl:
         return _dcl(args.aplicar)
+    if args.rls:
+        return _rls(args.aplicar)
     return _publicar(args.publicar)
 
 

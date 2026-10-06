@@ -24,7 +24,16 @@ import pytest
 from dotenv import dotenv_values
 
 from rh_fictalent.auditoria import cadernos, esquema
-from rh_fictalent.gold import analitico, barramento, construcao, dcl, modelo, regua, warehouse
+from rh_fictalent.gold import (
+    analitico,
+    barramento,
+    construcao,
+    dcl,
+    modelo,
+    regua,
+    rls,
+    warehouse,
+)
 from rh_fictalent.ingestao.backfill import CONTROLE
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao import definicoes
@@ -1753,7 +1762,7 @@ def test_os_assets_do_warehouse_seguem_a_gold_e_as_dimensoes_vem_antes() -> None
     ]
     assert {k.to_user_string() for k in cliente.dependency_keys} == {"gold/dim_cliente"}
     job = definicoes.defs.resolve_job_def("carregar_warehouse")
-    assert len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS) + 1  # mais o DCL
+    assert len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS) + 2  # DCL e RLS
 
 
 ENV = dotenv_values(RAIZ / ".env") if (RAIZ / ".env").exists() else {}
@@ -1962,3 +1971,143 @@ def test_no_banco_o_acesso_indevido_falha(gold: duckdb.DuckDBPyConnection) -> No
             for esquema in esquemas:
                 cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
             con.commit()
+
+
+# ------------------------------------------------------------------ o RLS do warehouse
+
+
+def test_a_politica_vale_em_toda_tabela_com_filial_e_so_os_perfis_de_filial_sao_filtrados() -> None:
+    assert {p.nome: p.alcance for p in dcl.PERFIS} == {
+        "socio": dcl.EMPRESA,
+        "gerencia": dcl.EMPRESA,
+        "coordenacao": dcl.FILIAL,
+        "assistente": dcl.FILIAL,
+        "financeiro": dcl.EMPRESA,
+    }
+    nomes = {t.nome for t in rls.tabelas_com_filial()}
+    assert nomes == {t.nome for t in modelo.TABELAS if t.fato} - {"fato_mercado_mes"} | {
+        "dim_contrato"
+    }  # o mercado é público e não tem filial; o contrato é a dimensão que tem
+    assert len(nomes) == 14
+
+
+def test_o_rls_gerado_fecha_por_padrao_e_so_o_administrador_mexe_no_acesso() -> None:
+    sql = rls.gerar_sql()
+    assert sql.count("ENABLE ROW LEVEL SECURITY") == len(rls.tabelas_com_filial())
+    assert (
+        "CREATE POLICY empresa_inteira ON fato.faturamento FOR SELECT "
+        "TO perfil_socio, perfil_gerencia, perfil_financeiro USING (true);" in sql
+    )
+    assert (
+        "CREATE POLICY por_filial ON fato.posto_mes FOR SELECT TO perfil_coordenacao, perfil_assistente "
+        "USING (filial_id = 0 OR filial_id IN (SELECT acesso.filiais_do_papel(current_user)));"
+        in sql
+    )
+    assert "ON dim.contrato" in sql and "ON fato.mercado_mes" not in sql
+    # a tabela de acesso: ninguém além do administrador a lê ou escreve; a função é SECURITY DEFINER
+    assert "GRANT SELECT ON acesso.filial_do_papel" not in sql and "GRANT ALL" not in sql
+    assert "REVOKE ALL ON acesso.filial_do_papel FROM PUBLIC;" in sql
+    assert "SECURITY DEFINER SET search_path = pg_catalog, pg_temp" in sql
+    assert "REFERENCES dim.filial (id)" in sql
+    outro = rls.gerar_sql("a", "b", "c")
+    assert "REFERENCES a.filial (id)" in outro and "ALTER TABLE b.posto_mes ENABLE" in outro
+    assert "c.filiais_do_papel(current_user)" in outro and "acesso." not in outro
+
+
+def test_o_rls_vem_depois_do_dcl_no_job_do_warehouse() -> None:
+    assert {k.to_user_string() for k in orquestracao_dw.rls_do_warehouse.dependency_keys} == {
+        "warehouse/dcl"
+    }
+
+
+@pytest.mark.skipif(not ENV or not _postgres_de_pe(), reason="warehouse fora do ar ou .env ausente")
+def test_no_banco_a_coordenacao_de_uma_filial_so_ve_a_filial(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    """Com a plataforma de pé: o cenário em schemas de teste, o DCL e o RLS aplicados neles, e um
+    papel de login ligado à filial 2 lê só a filial 2; quem é da empresa inteira lê tudo; o perfil
+    sem filial registrada não lê nada; e a tabela de acesso e a partição ficam fora do alcance."""
+    import psycopg
+
+    dw = Warehouse(
+        host="127.0.0.1",
+        porta=int(ENV.get("DW_PORT") or 5441),
+        banco=ENV.get("DW_DB") or "dw_fictalent",
+        usuario=ENV.get("DW_ADMIN_USER") or "fictalent_admin",
+        senha=ENV.get("DW_ADMIN_PASSWORD") or os.environ.get("DW_ADMIN_PASSWORD", ""),
+    )
+    esquemas = ("teste_rls_dim", "teste_rls_fato", "teste_rls_acesso")
+    papeis = ("teste_rls_coordenacao_2", "teste_rls_assistente_1_2")
+
+    def como(papel: str, sql: str) -> list[tuple[object, ...]]:
+        with dw.conectar() as con, con.cursor() as cur:
+            cur.execute(f"SET ROLE {papel}")  # noqa: S608
+            cur.execute(sql)
+            return list(cur.fetchall())
+
+    def no_parquet(tabela: str, filiais: tuple[int, ...]) -> int:
+        lista = ", ".join(map(str, filiais))
+        sql = f"SELECT count(*) FROM gold.{tabela} WHERE filial_id IN ({lista})"  # noqa: S608
+        (n,) = gold.execute(sql).fetchone() or (0,)
+        return int(n)
+
+    def limpar() -> None:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            for papel in papeis:
+                cur.execute(f"DROP ROLE IF EXISTS {papel}")  # noqa: S608
+            con.commit()
+
+    try:
+        limpar()
+        for t in modelo.TABELAS:
+            assert warehouse.carregar(gold, dw, t, *esquemas[:2]).aprovada, t.nome
+        dcl.aplicar(gold, dw, *esquemas[:2])
+        rls.aplicar(dw, *esquemas)
+        rls.aplicar(dw, *esquemas)  # idempotente
+        with dw.conectar() as con, con.cursor() as cur:  # o rito do administrador, sem senha aqui
+            cur.execute(f"CREATE ROLE {papeis[0]} NOLOGIN IN ROLE perfil_coordenacao")  # noqa: S608
+            cur.execute(f"CREATE ROLE {papeis[1]} NOLOGIN IN ROLE perfil_assistente")  # noqa: S608
+            cur.execute(
+                "INSERT INTO teste_rls_acesso.filial_do_papel VALUES (%s, 2), (%s, 1), (%s, 2)",
+                (papeis[0], papeis[1], papeis[1]),
+            )
+            con.commit()
+        total = no_parquet("fato_contrato", (1, 2))
+        da_filial_2 = no_parquet("fato_contrato", (2,))
+        assert 0 < da_filial_2 < total  # o cenário tem contrato nas duas filiais
+        # a coordenação da filial 2 lê só a filial 2, em todo fato e na dimensão de contrato
+        assert como(papeis[0], "SELECT count(*) FROM teste_rls_fato.contrato")[0][0] == da_filial_2
+        assert {
+            r[0] for r in como(papeis[0], "SELECT DISTINCT filial_id FROM teste_rls_fato.vaga")
+        } <= {2}
+        assert {
+            r[0] for r in como(papeis[0], "SELECT DISTINCT filial_id FROM teste_rls_dim.contrato")
+        } == {0, 2}  # a linha 0 (não se aplica) é de todos
+        assert como(papeis[0], "SELECT count(*) FROM teste_rls_fato.posto_mes")[0][0] == no_parquet(
+            "fato_posto_mes", (2,)
+        )
+        # a assistente com as duas filiais lê tudo o que a assistente pode
+        assert como(papeis[1], "SELECT count(*) FROM teste_rls_fato.vaga")[0][0] == no_parquet(
+            "fato_vaga", (1, 2)
+        )
+        # a empresa inteira: sócio e financeiro leem tudo
+        assert como("perfil_socio", "SELECT count(*) FROM teste_rls_fato.contrato")[0][0] == total
+        assert como("perfil_financeiro", "SELECT sum(valor_bruto) FROM teste_rls_fato.faturamento")[
+            0
+        ][0] == Decimal("200.00")
+        # o perfil de filial sem filial registrada não vê linha nenhuma: fecha por padrão
+        assert como("perfil_coordenacao", "SELECT count(*) FROM teste_rls_fato.contrato")[0][0] == 0
+        # o que não pode: ler ou mexer na tabela de acesso, e ler a partição por baixo da política
+        bloqueios = [
+            (papeis[0], "SELECT * FROM teste_rls_acesso.filial_do_papel"),
+            (papeis[0], "INSERT INTO teste_rls_acesso.filial_do_papel VALUES (current_user, 1)"),
+            ("perfil_socio", "SELECT count(*) FROM teste_rls_fato.posto_mes_2024"),
+            (papeis[0], "SELECT count(*) FROM teste_rls_fato.posto_mes_2024"),
+        ]
+        for papel, sql in bloqueios:
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                como(papel, sql)
+    finally:
+        limpar()
