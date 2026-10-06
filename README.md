@@ -114,6 +114,7 @@ rh-fictalent-bigdata/
 ├── dados/regua/             # o aceite da base sintética: as medidas e o laudo da régua (166 de 166)
 ├── dados/auditoria/         # os achados da auditoria de qualidade, um JSON por domínio: a entrada do catálogo
 ├── notebooks/auditoria/     # a auditoria às cegas da bronze: dez notebooks executados, com Nota Técnica por seção
+├── notebooks/gold/          # o SQL analítico sobre a gold: funções de janela, executado, com Nota Técnica por seção
 ├── src/rh_fictalent/
 │   ├── orquestracao/        # definições do Dagster (assets, jobs, schedules)
 │   ├── staging/             # geradores: gatilhos, papéis, cifra e dicionário (o que deriva das tabelas nasce aqui)
@@ -147,6 +148,7 @@ rh-fictalent-bigdata/
 - [11 · Ingestão](docs/11_ingestao.md): as três naturezas de fonte, a bronze, o backfill, a carga incremental por marca d'água, as exclusões, a planilha com esquema e os dias correntes, com os tempos medidos.
 - [12 · Bronze](docs/12_bronze.md): o que o lake guarda e o que a camada promete, os tipos do MySQL ao parquet e os dois defeitos que a auditoria achou, como ler a bronze com SQL, como conferir que ela ainda é o espelho da réplica, o dado pessoal e o descarte, e a investigação da queda de conexão com o lake.
 - [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
+- [SQL analítico sobre a gold](notebooks/gold/README.md): as perguntas do `docs/01` respondidas com funções de janela sobre a gold, executadas e versionadas, com Nota Técnica por seção.
 - [13 · Catálogo de achados](docs/13_catalogo_de_achados.md): a decisão sobre cada achado da auditoria, em duas redações (para quem decide e para quem implementa), com o tratamento aprovado para a silver e o que nunca se faz; gerado do código e dos registros, aprovado entrada a entrada antes de qualquer transformação.
 - [14 · Silver](docs/14_silver.md): a bronze linha a linha, pseudonimizada, com as colunas das 34 regras aprovadas; as cinco provas de cada tabela, a prestação de contas contra a auditoria e a cadeia de custódia dos descartes, com os tempos medidos.
 - [15 · Matriz de barramento](docs/15_matriz_de_barramento.md): o desenho do modelo dimensional antes de ele existir: os fatos e o grão de cada um, as dimensões que eles dividem, de qual fato sai cada indicador e como cada uma das sete afirmações dos donos é respondida; gerada do código.

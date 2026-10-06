@@ -219,6 +219,31 @@ def abrir_silver(lake: Lake) -> duckdb.DuckDBPyConnection:
     return con
 
 
+CAMADA_GOLD = "gold"
+
+
+def abrir_gold(lake: Lake) -> duckdb.DuckDBPyConnection:
+    """Uma conexão DuckDB com a gold publicada, uma view por tabela do modelo: `gold.dim_cliente`,
+    `gold.fato_posto_mes`. É o que o SQL analítico (`gold.analitico`) e o notebook da gold leem.
+
+    Nem silver nem bronze aqui: a gold é a camada que se serve, e quem a lê não precisa das
+    anteriores. Os nomes vêm do modelo (`gold.modelo.TABELAS`), não de quem consulta.
+    """
+    from rh_fictalent.gold import (
+        modelo,
+    )  # aqui, e não no topo: a gold importa o lake, não o contrário
+
+    con = duckdb.connect()
+    _apontar_para_o_lake(con, lake)
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{CAMADA_GOLD}"')
+    for tabela in modelo.TABELAS:
+        caminho = lake.caminho(CAMADA_GOLD, tabela.nome, "*.parquet")
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        alvo = f'"{CAMADA_GOLD}"."{tabela.nome}"'
+        con.execute(f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}")  # noqa: S608 # nosec B608
+    return con
+
+
 def sql(con: duckdb.DuckDBPyConnection, consulta: str, *parametros: Any) -> pd.DataFrame:
     """A consulta como DataFrame. Parâmetros posicionais viram `?` no SQL."""
     return con.execute(consulta, list(parametros) if parametros else None).df()
