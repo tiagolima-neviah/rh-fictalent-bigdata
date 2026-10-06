@@ -1067,7 +1067,7 @@ def gerar_markdown() -> str:
     w('<a id="topo"></a>\n')
     w("# Matriz de barramento · os fatos, as dimensões e o grão da gold\n")
     w("<!-- nav:start -->")
-    w("[Home](../README.md) | [← Silver](14_silver.md) | [Bibliografia →](bibliografia.md)")
+    w("[Home](../README.md) | [← Silver](14_silver.md) | [Gold →](16_gold.md)")
     w("<!-- nav:end -->\n")
     w(
         "> **Arquivo gerado** por `python -m rh_fictalent.gold --matriz` a partir de "

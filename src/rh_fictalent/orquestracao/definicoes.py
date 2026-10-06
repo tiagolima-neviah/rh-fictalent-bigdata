@@ -28,7 +28,11 @@ from rh_fictalent.orquestracao.fontes import (
     municipios_ibge,
 )
 from rh_fictalent.orquestracao.gold import ASSETS as GOLD
-from rh_fictalent.orquestracao.gold import construir_gold, regua_da_gold
+from rh_fictalent.orquestracao.gold import (
+    construir_gold,
+    gold_depois_da_silver,
+    regua_da_gold,
+)
 from rh_fictalent.orquestracao.incremental import agenda_incremental, carga_incremental
 from rh_fictalent.orquestracao.lgpd import aplicar_descarte, descarte_de_dado_pessoal
 from rh_fictalent.orquestracao.logger_json import logger_json
@@ -54,6 +58,7 @@ from rh_fictalent.orquestracao.warehouse import (
     dcl_do_warehouse,
     indices_do_warehouse,
     rls_do_warehouse,
+    warehouse_depois_da_gold,
 )
 
 defs = dg.Definitions(
@@ -93,9 +98,9 @@ defs = dg.Definitions(
         carregar_warehouse,
     ],
     schedules=[agenda_incremental, agenda_simulacao],
-    # fim de execução vira linhas em observabilidade.execucao(_passo); fim de carga incremental
-    # dispara o descarte de dado pessoal e a silver
-    sensors=[*SENSORES, silver_depois_da_carga],
+    # fim de execução vira linhas em observabilidade.execucao(_passo); a cadeia do dia: a carga
+    # incremental dispara o descarte e a silver, a silver dispara a gold, a gold dispara o warehouse
+    sensors=[*SENSORES, silver_depois_da_carga, gold_depois_da_silver, warehouse_depois_da_gold],
     resources=recursos_do_ambiente(),
     loggers={"json": logger_json},  # todo evento de toda execução sai como linha JSON
 )
