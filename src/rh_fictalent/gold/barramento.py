@@ -310,6 +310,7 @@ FATOS: tuple[Fato, ...] = (
             "ats.candidato",
             "ats.fonte_candidato",
             "pessoas.colaborador",
+            "pessoas.contrato_trabalho",
         ),
         marcas=("q_ats_01",),
         nota="as etapas viram colunas, não linhas: a conversão de cada etapa é uma divisão entre duas colunas",
