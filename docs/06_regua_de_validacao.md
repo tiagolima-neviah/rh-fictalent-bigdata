@@ -31,7 +31,7 @@ Quatro peças, todas em [`src/rh_fictalent/validacao`](../src/rh_fictalent/valid
 | **check** | código, família, descrição, a medida que consome e a banda. `E-02/2024`: headcount médio de 2024 entre 810 e 990 |
 | **laudo** | o resultado de todos os checks: aprovado, reprovado ou pendente (a medida não veio). O veredito é **aprovada**, **reprovada** ou **incompleta** |
 
-A régua não sabe gerar dado nem ler banco: recebe medidas e devolve um laudo. Por isso serve ao gerador hoje e pode conferir, mais adiante, as mesmas medidas tiradas do warehouse.
+A régua não sabe gerar dado nem ler banco: recebe medidas e devolve um laudo. Por isso serve ao gerador e, desde a v0.7.0, confere também a gold: `rh_fictalent.gold.regua` mede na gold publicada as medidas do contrato que ela consegue reproduzir com a definição daqui (clientes ativos, headcount médio e de pico, vagas abertas, margem líquida, os invariantes C-01 a C-03 e C-05, a sujeira CAD-01, PES-02, SST-01, FIN-01 e GER-01) e as confere contra as mesmas bandas, ao lado de duas famílias próprias, a conservação de cada total contra a silver e a integridade de chaves. É a prova de ponta a ponta de que o que entrou pela réplica ainda conta a mesma história depois de bronze, silver e gold. Só as famílias da gold reprovam o asset `gold/regua`; a medida do contrato que sai da banda é relatada, porque o contrato foi escrito para o gerador e a gold mede o negócio como o `docs/04` manda (onde as definições diferem, o `docs/16` registra). O laudo sai de `python -m rh_fictalent.gold --regua`.
 
 ```bash
 .venv/bin/python -m rh_fictalent.validacao --contrato                          # o que a régua espera receber
