@@ -215,6 +215,22 @@ Cada descarte fica registrado no warehouse, sem dado pessoal:
 docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)" fictalent_pg_dw psql -U fictalent_admin -d dw_fictalent -c "SELECT executado_em, tabela, eliminadas, vencidas, regra_retencao FROM lgpd.descarte ORDER BY id"
 ```
 
+**A gold e o warehouse** (v0.7.0). O job `construir_gold` monta as 11 dimensões e os 14 fatos da silver, cada tabela gravada em `gold/_em_conferencia/`, conferida em cinco provas e só então publicada; o último passo, `gold/regua`, grava o laudo em `gold/_regua.json` e falha se uma conservação ou uma chave reprovar (a medida do contrato de aceite fora da banda é relatada, não reprova). O job `carregar_warehouse` leva a gold ao Postgres (dimensões por upsert, fatos por partição de ano, cada tabela conferida contra o parquet) e fecha com `warehouse/indices`, `warehouse/dcl` e `warehouse/rls`. Os dois rodam sozinhos: o sensor `gold_depois_da_silver` dispara a gold depois de toda silver que termina bem, e o `warehouse_depois_da_gold` dispara o warehouse depois de toda gold aprovada, de modo que a cadeia do dia (carga das 5h, silver, gold, warehouse) fecha sem agenda nova; o `aplicar_descarte` e a execução que falha não disparam nada. Pela linha de comando, fora do Dagster:
+
+```bash
+.venv/bin/python -m rh_fictalent.gold --publicar
+```
+
+```bash
+.venv/bin/python -m rh_fictalent.gold --regua --so-problemas
+```
+
+```bash
+.venv/bin/python -m rh_fictalent.gold --warehouse
+```
+
+O primeiro publica a gold (8,8 s); o segundo imprime o laudo e o que saiu da banda; o terceiro carrega e confere o warehouse inteiro. `--ddl`, `--dcl` e `--rls` imprimem o SQL gerado; `--dcl --aplicar` e `--rls --aplicar` o aplicam; `--indices --medir` mede os índices antes e depois e grava o laudo em `gold/_indices.json`. Dar acesso a uma pessoa é rito do administrador, no `psql`: `CREATE ROLE ana LOGIN IN ROLE perfil_coordenacao`, a senha pelo `\password`, e a filial em `acesso.filial_do_papel` ([Warehouse, seção 5](17_warehouse_postgres.md)).
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:
@@ -317,6 +333,9 @@ Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manua
 | um passo falha com `ChildProcessCrashException`, sem mais nada no erro | o kernel matou o processo do passo por falta de memória no container do daemon, que é quem executa agenda, sensor e o que a interface lança | confirme com `dmesg \| grep -i 'out of memory'`; o teto do daemon está em `compose.yaml` (3 GB) e o do DuckDB por passo em `DUCKDB_MEMORY_LIMIT` |
 | a silver falha com `defina PSEUDONIMIZACAO_SEGREDO no .env` | o container subiu sem o segredo | complete o `.env` e recrie os containers do Dagster: `docker compose up -d dagster-web dagster-daemon` |
 | o log do `mysql-staging` mostra `XA crash recovery` na subida | a máquina foi desligada com os containers de pé | desta vez deu certo; da próxima, `docker compose stop` antes de desligar (seção 4) |
+| um leitor do warehouse vê zero linhas em todo fato | o papel dele é de filial (coordenação ou assistente) e não tem linha em `acesso.filial_do_papel`: o RLS fecha por padrão | o administrador insere o papel e a filial na tabela de acesso (`docs/17`, seção 5) |
+| `permission denied for table candidato` num `SELECT *` | o perfil não tem as colunas de atributo de pessoa; o asterisco pede todas | nomeie as colunas; se o perfil precisa do atributo, a declaração em `gold/dcl.py` é o lugar de mudar, com teste |
+| `warehouse/fato/...` falha com `não confere com o parquet` | a tabela do Postgres foi alterada por fora, ou a gold foi republicada no meio da carga | rode `carregar_warehouse` de novo: a carga por partição substitui o ano inteiro e a conferência volta a fechar |
 
 ---
 

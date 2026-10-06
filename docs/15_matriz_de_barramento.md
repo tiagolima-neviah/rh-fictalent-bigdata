@@ -3,7 +3,7 @@
 # Matriz de barramento · os fatos, as dimensões e o grão da gold
 
 <!-- nav:start -->
-[Home](../README.md) | [← Silver](14_silver.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [← Silver](14_silver.md) | [Gold →](16_gold.md)
 <!-- nav:end -->
 
 > **Arquivo gerado** por `python -m rh_fictalent.gold --matriz` a partir de `src/rh_fictalent/gold/barramento.py`. Não edite à mão: mude a declaração e gere de novo. A matriz é o desenho do modelo dimensional, escrito antes de a gold existir: diz que tabelas de fatos haverá, o que é uma linha de cada uma e por quais dimensões cada uma pode ser cortada. É o documento que se aprova antes de construir, porque mudar o grão de um fato depois de pronto é refazer o fato.

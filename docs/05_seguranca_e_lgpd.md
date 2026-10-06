@@ -68,12 +68,13 @@ Peça por peça:
 
 **Retenção.** O prazo do candidato não contratado é decisão do cliente, declarada na réplica: `RETENCAO_CANDIDATO_DIAS` em `cadastro.parametro`, 730 dias contados da última atividade (cadastro ou candidatura), decidido pelo Tiago, no papel de cliente, em 01/10/2026. O descarte roda depois de toda carga incremental, dentro do job `construir_silver`: apaga na bronze o dado pessoal dos vencidos (a linha fica, para o funil histórico), refaz a silver e registra cada descarte em `lgpd.descarte`, no warehouse, sem dado pessoal: quando, quantas linhas, por que motivo e o efeito em cada regra da silver. Sem o parâmetro vigente, nada é descartado por retenção, e o registro diz por quê. O primeiro descarte, em 01/10/2026, alcançou 19.119 candidatos.
 
+**No warehouse (v0.7.0).** Os leitores de BI vivem no warehouse, não na réplica, e lá o controle é por perfil de negócio: cinco papéis sem login (sócio, gerência, coordenação, assistente, financeiro), cada um lendo os fatos da sua área e, nas dimensões de pessoa, só as colunas de que precisa (a assistente lê os atributos do candidato; o sócio, só o `id`), com o SQL gerado da declaração em código. Por cima do DCL, o *row level security* do Postgres faz a coordenação e a assistente enxergarem só as linhas das suas filiais, no próprio banco, por uma tabela de acesso que só o administrador escreve, fechada por padrão (papel sem filial não vê nada). Nos dois, o teste roda no banco de verdade por `SET ROLE`, e passa quando o acesso indevido falha ([Warehouse Postgres, seções 4 e 5](17_warehouse_postgres.md)).
+
 ## 5. O que ainda não existe, e o que mudaria em produção
 
 | item | versão | observação |
 |---|---|---|
-| isolamento por filial no warehouse (RLS do Postgres) com teste | v0.7.0 | os leitores de BI vivem no warehouse, não na réplica |
-| papéis de leitura por área no warehouse, sem dado pessoal | v0.7.0 | |
+| pessoas cadastradas no warehouse | quando houver leitor | os perfis e o RLS existem; o papel de login de cada pessoa é criado pelo administrador, pelo rito do `docs/17` |
 | token por consumidor e `/saude` na API | v1.0.0 | |
 | backup e restauração da réplica **junto com o keyring** | v1.0.0 | sem o keyring o dado é irrecuperável |
 | auditoria de acesso à réplica (quem consultou o quê) | v1.0.0 | o MySQL Community não tem plugin de auditoria; a decisão (log geral, proxy ou trilha na aplicação) entra com ADR |

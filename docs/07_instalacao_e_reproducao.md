@@ -104,9 +104,9 @@ Depois, o aceite: a base inteira contra a régua inteira, com as linhas contadas
 
 Termina em **`RÉGUA APROVADA: 166 de 166`** e reescreve `dados/regua/medidas.json` e `laudo.txt` com o mesmo conteúdo que está versionado (se `git status` mostrar diferença, a sua base não é a do repositório). O que cada check confere está em [Régua de Validação](06_regua_de_validacao.md).
 
-## 7. Levar a base ao lake: bronze e silver
+## 7. Levar a base ao lake e ao warehouse: bronze, silver, gold
 
-A base está na réplica. Três passos a levam ao lake, e o terceiro é automático.
+A base está na réplica. Quatro passos a levam ao lake e ao warehouse, e do terceiro em diante é automático.
 
 **1. As cargas iniciais.** As 76 tabelas entram pelo backfill, na interface do Dagster (<http://127.0.0.1:3010>): *Jobs* → `backfill_bronze` → *Materialize all* → backfill das nove partições, de 2018 a 2026. São cerca de 2 minutos ([Ingestão, seção 3](11_ingestao.md)). As nove planilhas do consolidado entram do mesmo jeito, pelo job `carregar_consolidado`. As três fontes públicas entram pela linha de comando (os feriados, um ano por vez; repita para os anos de 2018 a 2026):
 
@@ -138,6 +138,18 @@ docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao
 
 Termina em **`34 regras conferidas; 0 reprovadas`**. O número bate porque o gerador é determinístico: a sua base é a mesma que foi auditada, e cada regra reproduz o que a auditoria mediu ([Silver, seção 6](14_silver.md)).
 
+**4. A gold e o warehouse, sozinhos.** Ao fim da silver, o sensor `gold_depois_da_silver` dispara o job `construir_gold` (as 11 dimensões, os 14 fatos e a régua da gold, 26 passos em cerca de 1 minuto) e, ao fim dele, o sensor `warehouse_depois_da_gold` dispara o `carregar_warehouse` (as 25 tabelas no Postgres, os índices, o DCL e o RLS, 28 passos em pouco mais de 2 minutos). Acompanhe em *Runs*; os dois também rodam pela linha de comando, nesta ordem:
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j construir_gold
+```
+
+```bash
+docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao.definicoes -j carregar_warehouse
+```
+
+Para conferir: `.venv/bin/python -m rh_fictalent.gold --regua` termina em **`RÉGUA DA GOLD APROVADA: 187 de 187`** ([Gold, seção 6](16_gold.md)), e no warehouse `SET ROLE perfil_financeiro` seguido de `SELECT count(*) FROM fato.faturamento` devolve 9.934 ([Warehouse, seção 8](17_warehouse_postgres.md)).
+
 **Opcional: o prazo de retenção.** A base gerada não traz prazo de retenção, porque ele é decisão do cliente. Para declará-lo, como o caso fez em 01/10/2026:
 
 ```bash
@@ -151,7 +163,7 @@ A carga incremental seguinte traz o parâmetro, e o descarte apaga da bronze o d
 | endereço | o quê | credencial |
 |---|---|---|
 | `127.0.0.1:3316` | réplica MySQL (10 databases) | `root` com `STAGING_ROOT_PASSWORD`; ou `pipeline`, `relatorios_cliente`, `replicador` com as senhas do `.env` |
-| `127.0.0.1:5441` | warehouse Postgres (`dw_fictalent`) | `fictalent_admin` com `DW_ADMIN_PASSWORD`; `grafana_leitor` só leitura |
+| `127.0.0.1:5441` | warehouse Postgres (`dw_fictalent`) | `fictalent_admin` com `DW_ADMIN_PASSWORD`; `grafana_leitor` só leitura; os leitores de negócio entram por um papel de login criado no perfil deles (`perfil_socio`, `perfil_gerencia`, `perfil_coordenacao`, `perfil_assistente`, `perfil_financeiro`), pelo rito do [Warehouse, seção 5](17_warehouse_postgres.md) |
 | `127.0.0.1:8333` | lake S3 (bucket `fictalent-lake`) | `S3_ACCESS_KEY` e `S3_SECRET_KEY` |
 | <http://127.0.0.1:3010> | Dagster | sem autenticação (só localhost) |
 | <http://127.0.0.1:3011> | Grafana | `admin` com `GRAFANA_ADMIN_PASSWORD` |

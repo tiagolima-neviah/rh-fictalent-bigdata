@@ -2206,3 +2206,42 @@ def test_no_banco_a_medida_roda_antes_e_depois_e_deixa_so_os_adotados(
             for esquema in esquemas:
                 cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
             con.commit()
+
+
+# ------------------------------------------------- a cadeia do dia e os documentos
+
+
+def test_a_gold_segue_a_silver_e_o_warehouse_segue_a_gold() -> None:
+    """A cadeia do dia: a carga dispara a silver, a silver dispara a gold, a gold dispara o
+    warehouse; o caminho curto (`aplicar_descarte`) e a execução que falha não disparam nada."""
+    from dagster import DefaultSensorStatus
+
+    assert orquestracao.SILVER == "construir_silver" and orquestracao_dw.GOLD == "construir_gold"
+    for nome in ("gold_depois_da_silver", "warehouse_depois_da_gold"):
+        sensor = definicoes.defs.get_sensor_def(nome)
+        assert sensor.default_status is DefaultSensorStatus.RUNNING
+    assert orquestracao.gold_depois_da_silver.job.name == "construir_gold"
+    assert orquestracao_dw.warehouse_depois_da_gold.job.name == "carregar_warehouse"
+
+
+def test_os_docs_16_e_17_citam_toda_tabela_consulta_perfil_e_indice() -> None:
+    """Os docs 16 e 17 são escritos à mão, mas o que listam sai do código: tabela, consulta,
+    perfil, índice adotado ou política nova sem menção no documento reprova aqui."""
+    docs = Path(__file__).resolve().parents[1] / "docs"
+    gold_doc = (docs / "16_gold.md").read_text(encoding="utf-8")
+    dw_doc = (docs / "17_warehouse_postgres.md").read_text(encoding="utf-8")
+    faltando = [t.nome for t in modelo.TABELAS if f"`{t.nome}`" not in gold_doc]
+    faltando += [c.nome for c in analitico.CONSULTAS if f"`{c.nome}`" not in gold_doc]
+    faltando += [p.papel for p in dcl.PERFIS if f"`{p.papel}`" not in dw_doc]
+    faltando += [
+        i.nome
+        for i in indices.adotados()
+        if f"`{i.tabela.split('_', 1)[1]} ({', '.join(i.colunas)})`" not in dw_doc
+    ]
+    faltando += [
+        n
+        for n in ("empresa_inteira", "por_filial", "acesso.filial_do_papel")
+        if f"`{n}`" not in dw_doc
+    ]
+    assert faltando == []
+    assert "187 de 187" in gold_doc and f"{len(dcl.PERFIS)} perfis" in dw_doc

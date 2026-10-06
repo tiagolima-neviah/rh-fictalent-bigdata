@@ -155,3 +155,31 @@ carregar_warehouse = dg.define_asset_job(
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": 2}),
 )
+
+
+GOLD = "construir_gold"
+
+
+@dg.run_status_sensor(
+    run_status=dg.DagsterRunStatus.SUCCESS,
+    name="warehouse_depois_da_gold",
+    request_job=carregar_warehouse,
+    minimum_interval_seconds=30,
+    default_status=dg.DefaultSensorStatus.RUNNING,
+    monitor_all_code_locations=True,  # inclusive a gold lançada pela CLI (-m)
+    description=(
+        "Depois de toda gold que termina bem (a régua inclusive), carrega o warehouse: as "
+        "tabelas, os índices, o DCL e o RLS."
+    ),
+)
+def warehouse_depois_da_gold(
+    context: dg.RunStatusSensorContext,
+) -> dg.RunRequest | dg.SkipReason:
+    """O warehouse é a gold servida: carrega-se depois de cada gold aprovada pela régua.
+
+    A gold que falha (conservação ou chave reprovada) não dispara nada: o warehouse ficaria
+    com o que estava, que é o comportamento certo.
+    """
+    if context.dagster_run.job_name != GOLD:
+        return dg.SkipReason(f"{context.dagster_run.job_name} não é a gold")
+    return dg.RunRequest(run_key=f"warehouse-{context.dagster_run.run_id}")

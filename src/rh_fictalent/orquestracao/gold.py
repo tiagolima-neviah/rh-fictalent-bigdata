@@ -133,3 +133,29 @@ construir_gold = dg.define_asset_job(
     config=CONFIG_LOGS_JSON,
     executor_def=dg.multiprocess_executor.configured({"max_concurrent": MAX_CONCORRENTES}),
 )
+
+
+SILVER = "construir_silver"
+
+
+@dg.run_status_sensor(
+    run_status=dg.DagsterRunStatus.SUCCESS,
+    name="gold_depois_da_silver",
+    request_job=construir_gold,
+    minimum_interval_seconds=30,
+    default_status=dg.DefaultSensorStatus.RUNNING,
+    monitor_all_code_locations=True,  # inclusive a silver lançada pela CLI (-m)
+    description=(
+        "Depois de toda silver que termina bem, refaz a gold inteira e passa a régua da gold."
+    ),
+)
+def gold_depois_da_silver(context: dg.RunStatusSensorContext) -> dg.RunRequest | dg.SkipReason:
+    """A silver muda, a gold é a silver no grão do negócio: refaz-se depois de cada silver.
+
+    Só o `construir_silver` dispara. O `aplicar_descarte` é o caminho curto feito à mão (o
+    descarte e as 12 tabelas com dado pessoal) e não publica a silver inteira; a silver que
+    falha não dispara nada, porque a gold leria uma camada pela metade.
+    """
+    if context.dagster_run.job_name != SILVER:
+        return dg.SkipReason(f"{context.dagster_run.job_name} não é a silver inteira")
+    return dg.RunRequest(run_key=f"gold-{context.dagster_run.run_id}")
