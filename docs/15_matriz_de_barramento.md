@@ -72,7 +72,7 @@ A coluna P é a prioridade (seção 7). O nome de cada fato leva ao detalhe dele
 - **Grão:** uma candidatura.
 - **Dimensões:** `dim_data` (inscrição, conclusão), `dim_candidato`, `dim_filial`, `dim_cliente`, `dim_funcao`, `dim_motivo` (reprovação ou desistência).
 - **Medidas:** chegou a cada etapa (uma coluna por etapa); entrevistas; faltou à entrevista; aprovada; admitida; aprovada que não começou (no-show do primeiro dia); dias no funil; custo médio da fonte.
-- **Vem de:** `ats.candidatura`, `ats.candidatura_etapa`, `ats.entrevista`, `ats.vaga`, `ats.requisicao`, `ats.etapa_funil`, `ats.candidato`, `ats.fonte_candidato`, `pessoas.colaborador`.
+- **Vem de:** `ats.candidatura`, `ats.candidatura_etapa`, `ats.entrevista`, `ats.vaga`, `ats.requisicao`, `ats.etapa_funil`, `ats.candidato`, `ats.fonte_candidato`, `pessoas.colaborador`, `pessoas.contrato_trabalho`.
 - **Marcas de qualidade que carrega:** `q_ats_01`.
 - **Nota:** as etapas viram colunas, não linhas: a conversão de cada etapa é uma divisão entre duas colunas.
 

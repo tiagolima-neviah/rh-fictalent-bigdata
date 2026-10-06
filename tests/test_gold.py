@@ -43,6 +43,20 @@ TIPOS = {
 }  # fmt: skip
 FONTES = sorted(set().union(*(t.fontes for t in modelo.TABELAS)))
 
+
+def _etapas(candidatura: int, etapas: tuple[int, ...]) -> list[dict[str, object]]:
+    """As etapas do funil que a candidatura venceu, uma linha por etapa."""
+    return [
+        {
+            "id": candidatura * 10 + e,
+            "candidatura_id": candidatura,
+            "etapa_id": e,
+            "resultado": "APROVADO",
+        }
+        for e in etapas
+    ]
+
+
 CENARIO: dict[str, list[dict[str, object]]] = {
     "cadastro.regiao": [{"id": 1, "nome": "Bragantina"}],
     "cadastro.municipio": [{"id": 1, "nome": "Extrema", "uf": "MG", "regiao_id": 1}],
@@ -157,6 +171,22 @@ CENARIO: dict[str, list[dict[str, object]]] = {
             "dt_cadastro": date(2023, 12, 3),
             CONTROLE: "2024-01-01 00:00:00",
         },
+        {
+            "id": 4,
+            "nome": "Pessoa Quatro",
+            "cpf": "44444444444",
+            "sexo": "M",
+            "fonte_id": 1,
+            "dt_cadastro": date(2023, 12, 4),
+        },
+        {
+            "id": 5,
+            "nome": "Pessoa Cinco",
+            "cpf": "55555555555",
+            "sexo": "F",
+            "fonte_id": 1,
+            "dt_cadastro": date(2023, 12, 5),
+        },
     ],
     "pessoas.colaborador": [
         {
@@ -180,11 +210,227 @@ CENARIO: dict[str, list[dict[str, object]]] = {
         {
             "id": 1,
             "colaborador_id": 1,
+            "contrato_trabalho_id": 1,
             "posto_id": 1,
             "dt_inicio": date(2024, 1, 10),
             "dt_fim": date(2024, 2, 15),
+            "motivo_fim_id": 1,
         },
-        {"id": 2, "colaborador_id": 2, "posto_id": 1, "dt_inicio": date(2024, 1, 20)},
+        # a segunda substitui a primeira e segue aberta
+        {
+            "id": 2,
+            "colaborador_id": 2,
+            "contrato_trabalho_id": 2,
+            "posto_id": 1,
+            "dt_inicio": date(2024, 1, 20),
+            "substituindo_alocacao_id": 1,
+        },
+    ],
+    "pessoas.contrato_trabalho": [
+        {
+            "id": 1,
+            "colaborador_id": 1,
+            "tipo": "TEMPORARIO",
+            "funcao_id": 1,
+            "filial_id": 1,
+            "dt_admissao": date(2024, 1, 10),
+            "dt_prevista_termino": date(2024, 4, 9),
+            "dt_rescisao": date(2024, 2, 15),
+            "salario_base": Decimal("1500.00"),
+            "escala_id": 1,
+            "prazo_legal_dias": 90,
+            "status": "ENCERRADO",
+        },
+        {
+            "id": 2,
+            "colaborador_id": 2,
+            "tipo": "TEMPORARIO",
+            "funcao_id": 1,
+            "filial_id": 1,
+            "dt_admissao": date(2024, 1, 20),
+            "dt_prevista_termino": date(2024, 4, 19),
+            "salario_base": Decimal("1600.00"),
+            "escala_id": 1,
+            "prazo_legal_dias": 90,
+            "status": "ATIVO",
+        },
+    ],
+    "pessoas.contrato_trabalho_prorrogacao": [
+        {
+            "id": 1,
+            "contrato_trabalho_id": 2,
+            "dt_assinatura": date(2024, 3, 1),
+            "dt_novo_termino": date(2024, 7, 18),
+            "dias_adicionais": 90,
+        },
+    ],
+    "pessoas.desligamento": [
+        {
+            "id": 1,
+            "contrato_trabalho_id": 1,
+            "dt_desligamento": date(2024, 2, 15),
+            "tipo": "VOLUNTARIO",
+            "motivo_id": 1,
+            "dias_aviso_previo": 0,
+            "valor_rescisao": Decimal("800.00"),
+        },
+    ],
+    "comercial.contrato_ocorrencia": [
+        {
+            "id": 1,
+            "contrato_id": 1,
+            "posto_id": 1,
+            "dt_ocorrencia": date(2024, 2, 1),
+            "tipo": "RECLAMACAO",
+            "descricao": "Posto ficou descoberto no turno",
+        },
+        {
+            "id": 2,
+            "contrato_id": 1,
+            "dt_ocorrencia": date(2024, 2, 20),
+            "tipo": "ELOGIO",
+            "descricao": "Cliente elogiou o atendimento da equipe",
+        },
+    ],
+    "ats.etapa_funil": [
+        {"id": 1, "codigo": "TRIAGEM", "nome": "Triagem de currículo", "ordem": 1},
+        {"id": 2, "codigo": "ENTREVISTA_INTERNA", "nome": "Entrevista interna", "ordem": 2},
+        {"id": 3, "codigo": "ENCAMINHAMENTO", "nome": "Encaminhamento ao cliente", "ordem": 3},
+        {"id": 4, "codigo": "ENTREVISTA_CLIENTE", "nome": "Entrevista no cliente", "ordem": 4},
+        {"id": 5, "codigo": "APROVACAO", "nome": "Aprovação e admissão", "ordem": 5},
+    ],
+    "ats.requisicao": [
+        {
+            "id": 1,
+            "numero": "RQ-1",
+            "cliente_id": 1,
+            "contrato_id": 1,
+            "posto_id": 1,
+            "quantidade": 2,
+            "dt_abertura": date(2023, 12, 15),
+            "dt_necessidade": date(2024, 1, 10),
+            "prioridade": "NORMAL",
+            "status": "ATENDIDA",
+        },
+        # recrutamento: sem posto
+        {
+            "id": 2,
+            "numero": "RQ-2",
+            "cliente_id": 1,
+            "contrato_id": 1,
+            "quantidade": 1,
+            "dt_abertura": date(2024, 2, 1),
+            "dt_necessidade": date(2024, 3, 1),
+            "prioridade": "ALTA",
+            "status": "EM_ATENDIMENTO",
+        },
+    ],
+    "ats.vaga": [
+        {
+            "id": 1,
+            "requisicao_id": 1,
+            "codigo": "VG-1",
+            "titulo": "Operador",
+            "funcao_id": 1,
+            "filial_id": 1,
+            "quantidade_posicoes": 2,
+            "dt_abertura": date(2023, 12, 18),
+            "dt_fechamento": date(2024, 1, 8),
+            "status": "PREENCHIDA",
+            "salario_previsto": Decimal("1500.00"),
+        },
+        {
+            "id": 2,
+            "requisicao_id": 2,
+            "codigo": "VG-2",
+            "titulo": "Operador",
+            "funcao_id": 1,
+            "filial_id": 1,
+            "quantidade_posicoes": 1,
+            "dt_abertura": date(2024, 2, 5),
+            "status": "ABERTA",
+        },
+    ],
+    "ats.candidatura": [
+        {
+            "id": 1,
+            "vaga_id": 1,
+            "candidato_id": 1,
+            "dt_inscricao": date(2023, 12, 20),
+            "status": "APROVADA",
+            "dt_conclusao": date(2024, 1, 5),
+        },
+        {
+            "id": 2,
+            "vaga_id": 1,
+            "candidato_id": 2,
+            "dt_inscricao": date(2023, 12, 22),
+            "status": "APROVADA",
+            "dt_conclusao": date(2024, 1, 8),
+        },
+        {
+            "id": 3,
+            "vaga_id": 1,
+            "candidato_id": 4,
+            "dt_inscricao": date(2023, 12, 21),
+            "status": "REPROVADA",
+            "dt_conclusao": date(2023, 12, 28),
+            "motivo_reprovacao_id": 1,
+        },
+        {
+            "id": 4,
+            "vaga_id": 2,
+            "candidato_id": 4,
+            "dt_inscricao": date(2024, 2, 6),
+            "status": "EM_ANDAMENTO",
+        },
+        # aprovada que nunca virou vínculo
+        {
+            "id": 5,
+            "vaga_id": 1,
+            "candidato_id": 5,
+            "dt_inscricao": date(2023, 12, 23),
+            "status": "APROVADA",
+            "dt_conclusao": date(2024, 1, 9),
+        },
+    ],
+    "ats.candidatura_etapa": [
+        *_etapas(1, (1, 2, 3, 5)),
+        *_etapas(2, (1, 2, 3, 4, 5)),
+        {"id": 31, "candidatura_id": 3, "etapa_id": 1, "resultado": "REPROVADO", "motivo_id": 1},
+        {"id": 41, "candidatura_id": 4, "etapa_id": 1, "resultado": "APROVADO"},
+        {"id": 42, "candidatura_id": 4, "etapa_id": 2, "resultado": "PENDENTE"},
+        *_etapas(5, (1, 2, 3, 5)),
+    ],
+    "ats.entrevista": [
+        {
+            "id": 1,
+            "candidatura_id": 1,
+            "tipo": "INTERNA",
+            "fl_compareceu": True,
+            "resultado": "APROVADO",
+        },
+        {
+            "id": 2,
+            "candidatura_id": 2,
+            "tipo": "INTERNA",
+            "fl_compareceu": True,
+            "resultado": "APROVADO",
+        },
+        {
+            "id": 3,
+            "candidatura_id": 2,
+            "tipo": "CLIENTE",
+            "fl_compareceu": True,
+            "resultado": "APROVADO",
+        },
+        {
+            "id": 4,
+            "candidatura_id": 5,
+            "tipo": "INTERNA",
+            "fl_compareceu": False,
+            "resultado": "NAO_COMPARECEU",
+        },
     ],
     "ponto.apontamento": [
         {
@@ -352,9 +598,12 @@ def test_o_modelo_implementa_a_matriz_aprovada() -> None:
                 assert marca in t.sql, (t.nome, marca)
         else:
             assert barramento.dimensao(t.nome).prioridade == 1 and t.chave == ("id",)
-        assert t.fontes == set(
+        na_matriz = set(
             barramento.fato(t.nome).fontes if t.fato else barramento.dimensao(t.nome).fontes
-        ), t.nome
+        )
+        assert na_matriz <= t.fontes, (t.nome, na_matriz - t.fontes)
+        implicitas = set(modelo.FONTES_DO_HORIZONTE) | set(modelo.FONTES_DO_CALENDARIO)
+        assert t.fontes - na_matriz <= implicitas, (t.nome, t.fontes - na_matriz - implicitas)
 
 
 def test_a_dimensao_vem_antes_de_quem_a_referencia() -> None:
@@ -369,13 +618,12 @@ def test_a_dimensao_vem_antes_de_quem_a_referencia() -> None:
 
 def test_a_gold_so_enxerga_as_linhas_vivas_da_silver(lake: Lake) -> None:
     con = _abrir(lake)
-    assert con.execute("SELECT list(id ORDER BY id) FROM silver.ats.candidato").fetchall()[0][
-        0
-    ] == [1, 2]
+    vivos = con.execute("SELECT list(id ORDER BY id) FROM silver.ats.candidato").fetchall()[0][0]
+    assert vivos == [1, 2, 4, 5]
     colunas = {c[0] for c in con.execute("DESCRIBE silver.ats.candidato").fetchall()}
     assert CONTROLE not in colunas and "cpf" not in colunas and "nome" not in colunas
     arquivo = lake.caminho("silver", "ats", "candidato", "ano=2024.parquet")
-    assert con.execute(f"SELECT count(*) FROM '{arquivo}'").fetchall()[0][0] == 3  # noqa: S608
+    assert con.execute(f"SELECT count(*) FROM '{arquivo}'").fetchall()[0][0] == 5  # noqa: S608
 
 
 # ------------------------------------------------------------------ as dimensões
@@ -411,7 +659,8 @@ def test_o_calendario_conhece_dia_util_e_feriado_nacional(gold: duckdb.DuckDBPyC
     n, primeiro, ultimo = gold.execute(
         "SELECT count(*), min(data), max(data) FROM gold.dim_data"
     ).fetchall()[0]
-    assert (n, primeiro, ultimo) == (3288, date(2018, 1, 1), date(2026, 12, 31))
+    # 2922 dias (até o ano seguinte ao horizonte) e a linha 0
+    assert (n, primeiro, ultimo) == (2923, date(2018, 1, 1), date(2025, 12, 31))
 
 
 def test_toda_dimensao_tem_a_linha_nao_se_aplica(gold: duckdb.DuckDBPyConnection) -> None:
@@ -434,11 +683,10 @@ def test_a_dimensao_de_pessoa_nao_identifica_ninguem(gold: duckdb.DuckDBPyConnec
         colaborador["fonte_de_recrutamento"],
         colaborador["municipio"],
     ) == ("F", "INDICACAO", "Extrema")
-    assert gold.execute("SELECT list(id ORDER BY id) FROM gold.dim_candidato").fetchall()[0][0] == [
-        0,
-        1,
-        2,
+    candidatos = gold.execute("SELECT list(id ORDER BY id) FROM gold.dim_candidato").fetchall()[0][
+        0
     ]
+    assert candidatos == [0, 1, 2, 4, 5]  # a 3 foi excluída no sistema do cliente
 
 
 def test_o_contrato_e_o_posto_carregam_a_hierarquia(gold: duckdb.DuckDBPyConnection) -> None:
@@ -551,6 +799,138 @@ def test_o_posto_por_mes_conta_dias_pessoas_e_margem(gold: duckdb.DuckDBPyConnec
     abril = meses[202404]  # só custo, depois do horizonte: a linha existe e diz que está fora
     assert abril["fora_da_vigencia"] and abril["custo_pessoal"] == Decimal("25.00")
     assert abril["taxa_de_ocupacao"] is None and abril["margem"] == Decimal("-25.00")
+
+
+def test_o_contrato_acumula_a_vida_dele(gold: duckdb.DuckDBPyConnection) -> None:
+    (k,) = _linhas(gold, "SELECT * FROM gold.fato_contrato")
+    assert (
+        k["data_inicio_id"],
+        k["data_fim_id"],
+        k["data_encerramento_id"],
+        k["motivo_encerramento_id"],
+    ) == (20240110, 20241231, 0, 0)
+    assert not k["encerrado"] and k["meses_de_vida"] == 2  # de 10/01 ao horizonte, 10/03
+    assert (k["prorrogacoes"], k["reajustes"], k["postos"], k["posicoes"]) == (1, 1, 1, 2)
+    assert (k["reclamacoes"], k["elogios"], k["avisos_de_rescisao"], k["faturas"]) == (1, 1, 0, 2)
+    assert (k["receita_bruta"], k["receita_liquida"]) == (Decimal("150.00"), Decimal("134.99"))
+
+
+def test_a_vaga_conta_candidaturas_e_dias(gold: duckdb.DuckDBPyConnection) -> None:
+    vagas = {v["vaga_id"]: v for v in _linhas(gold, "SELECT * FROM gold.fato_vaga")}
+    preenchida, aberta = vagas[1], vagas[2]
+    assert (preenchida["candidaturas"], preenchida["aprovados"], preenchida["posicoes"]) == (
+        4,
+        3,
+        2,
+    )
+    assert (
+        preenchida["preenchida"]
+        and not preenchida["aberta"]
+        and preenchida["dias_ate_preencher"] == 21
+    )
+    assert preenchida["dias_em_aberto"] is None and preenchida["dias_alem_da_necessidade"] == -2
+    assert (preenchida["contrato_id"], preenchida["posto_id"], preenchida["cliente_id"]) == (
+        1,
+        1,
+        1,
+    )
+    assert (
+        aberta["aberta"] and aberta["dias_em_aberto"] == 34 and aberta["dias_ate_preencher"] is None
+    )
+    assert (
+        aberta["posto_id"],
+        aberta["em_andamento"],
+        aberta["data_fechamento_id"],
+        aberta["dias_alem_da_necessidade"],
+    ) == (0, 1, 0, 9)
+
+
+def test_a_candidatura_tem_as_etapas_em_colunas_e_a_admissao_casada(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    c = {x["candidatura_id"]: x for x in _linhas(gold, "SELECT * FROM gold.fato_candidatura")}
+    assert c[1]["admitida"] and (
+        c[1]["contrato_trabalho_id"],
+        c[1]["data_admissao_id"],
+        c[1]["dias_ate_a_admissao"],
+    ) == (1, 20240110, 5)
+    assert c[2]["admitida"] and (c[2]["contrato_trabalho_id"], c[2]["dias_ate_a_admissao"]) == (
+        2,
+        12,
+    )
+    assert (
+        c[1]["dias_no_funil"],
+        c[1]["entrevistas"],
+        c[1]["chegou_a_entrevista_no_cliente"],
+        c[1]["chegou_a_aprovacao"],
+    ) == (16, 1, False, True)
+    assert (
+        c[2]["entrevistas"],
+        c[2]["entrevistas_no_cliente"],
+        c[2]["chegou_a_entrevista_no_cliente"],
+    ) == (2, 1, True)
+    assert c[3]["reprovada"] and c[3]["motivo_id"] == 1 and not c[3]["chegou_a_entrevista_interna"]
+    assert c[4]["em_andamento"] and (c[4]["data_conclusao_id"], c[4]["dias_no_funil"]) == (0, 33)
+    assert (
+        c[5]["aprovada"]
+        and not c[5]["admitida"]
+        and c[5]["aprovada_sem_admissao"]
+        and not c[5]["aguardando_admissao"]
+    )
+    assert (c[5]["faltas_a_entrevista"], c[5]["contrato_trabalho_id"], c[5]["fonte"]) == (
+        1,
+        0,
+        "INDICACAO",
+    )
+    assert {x["filial_id"] for x in c.values()} == {1} and {
+        x["cliente_id"] for x in c.values()
+    } == {1}
+
+
+def test_a_alocacao_e_o_vinculo_contam_os_mesmos_dias(gold: duckdb.DuckDBPyConnection) -> None:
+    a = {x["alocacao_id"]: x for x in _linhas(gold, "SELECT * FROM gold.fato_alocacao")}
+    assert a[1]["encerrada"] and (
+        a[1]["dias_alocada"],
+        a[1]["motivo_fim_id"],
+        a[1]["data_fim_id"],
+    ) == (37, 1, 20240215)
+    assert (
+        not a[1]["em_substituicao"]
+        and a[2]["em_substituicao"]
+        and a[2]["substituindo_alocacao_id"] == 1
+    )
+    assert not a[2]["encerrada"] and (
+        a[2]["dias_alocada"],
+        a[2]["data_fim_id"],
+        a[2]["motivo_fim_id"],
+    ) == (51, 0, 0)
+    assert {x["efetivada_pelo_cliente"] for x in a.values()} == {False}
+    assert {
+        (x["contrato_id"], x["cliente_id"], x["filial_id"], x["funcao_id"], x["tipo_de_vinculo"])
+        for x in a.values()
+    } == {(1, 1, 1, 1, "TEMPORARIO")}
+
+    v = {x["contrato_trabalho_id"]: x for x in _linhas(gold, "SELECT * FROM gold.fato_vinculo")}
+    assert (
+        v[1]["desligado"]
+        and v[1]["saiu_em_ate_90_dias"]
+        and (v[1]["dias_de_vinculo"], v[1]["tipo_de_desligamento"]) == (36, "VOLUNTARIO")
+    )
+    assert (v[1]["motivo_desligamento_id"], v[1]["valor_rescisao"], v[1]["prorrogacoes"]) == (
+        1,
+        Decimal("800.00"),
+        0,
+    )
+    assert (
+        not v[2]["desligado"] and not v[2]["saiu_em_ate_90_dias"] and v[2]["dias_de_vinculo"] == 50
+    )
+    assert (
+        v[2]["prorrogacoes"],
+        v[2]["dias_prorrogados"],
+        v[2]["data_termino_previsto_id"],
+        v[2]["data_rescisao_id"],
+    ) == (1, 90, 20240419, 0)
+    assert v[2]["tipo_de_desligamento"] is None and v[2]["valor_rescisao"] is None
 
 
 # ------------------------------------------------------------------ a conferência
