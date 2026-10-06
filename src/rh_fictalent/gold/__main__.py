@@ -9,6 +9,7 @@
     python -m rh_fictalent.gold --regua [--so-problemas]      # o laudo da gold
     python -m rh_fictalent.gold --warehouse [tabelas]         # a gold no Postgres, conferida
     python -m rh_fictalent.gold --ddl                         # a DDL do warehouse, gerada do modelo
+    python -m rh_fictalent.gold --dcl [--aplicar]             # o DCL do warehouse (perfis)
 
 No dia a dia quem publica é o job `construir_gold` do Dagster; este caminho existe para a
 prova e para o estudo.
@@ -23,7 +24,7 @@ import time
 from dotenv import load_dotenv
 
 from rh_fictalent.auditoria import cadernos
-from rh_fictalent.gold import analitico, barramento, construcao, modelo, regua, warehouse
+from rh_fictalent.gold import analitico, barramento, construcao, dcl, modelo, regua, warehouse
 from rh_fictalent.lake import consulta
 from rh_fictalent.orquestracao.recursos import lake_do_ambiente, warehouse_do_ambiente
 
@@ -154,6 +155,19 @@ def _ddl() -> int:
     return 0
 
 
+def _dcl(aplicar: bool) -> int:
+    con = consulta.abrir_gold(lake_do_ambiente())
+    try:
+        if aplicar:
+            comandos = dcl.aplicar(con, warehouse_do_ambiente())
+            print(f"DCL aplicado: {comandos} comandos, {len(dcl.PERFIS)} perfis")
+        else:
+            print(dcl.gerar_sql(con))
+    finally:
+        con.close()
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(prog="python -m rh_fictalent.gold")
@@ -169,6 +183,8 @@ def main(argv: list[str] | None = None) -> int:
         "--warehouse", nargs="*", metavar="tabela", help="carrega e confere no Postgres"
     )
     grupo.add_argument("--ddl", action="store_true", help="imprime a DDL do warehouse")
+    grupo.add_argument("--dcl", action="store_true", help="o DCL do warehouse (perfis de leitura)")
+    parser.add_argument("--aplicar", action="store_true", help="no DCL, aplica em vez de imprimir")
     parser.add_argument(
         "--so-problemas", action="store_true", help="na régua, só o que não aprovou"
     )
@@ -185,6 +201,8 @@ def main(argv: list[str] | None = None) -> int:
         return _warehouse(args.warehouse)
     if args.ddl:
         return _ddl()
+    if args.dcl:
+        return _dcl(args.aplicar)
     return _publicar(args.publicar)
 
 
