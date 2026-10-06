@@ -59,6 +59,12 @@ ESQUEMA_FONTES = "fontes"
 FONTES = {  # view -> caminho no lake, relativo ao bucket
     "municipios": "fontes/ibge/municipios.parquet",
     "feriados": "fontes/brasilapi/feriados/ano=*.parquet",
+    "caged_movimentacao": "fontes/caged/movimentacao.parquet",
+}
+ASSETS_DAS_FONTES = {  # view -> (provedor, conjunto) do asset que a grava, para a linhagem da gold
+    "municipios": ("ibge", "municipios"),
+    "feriados": ("brasilapi", "feriados"),
+    "caged_movimentacao": ("caged", "movimentacao"),
 }
 VARIAVEL_DAS_EXTENSOES = "DUCKDB_EXTENSION_DIRECTORY"  # onde a imagem pré-instala o httpfs
 VARIAVEL_DA_MEMORIA = "DUCKDB_MEMORY_LIMIT"  # ex.: 512MB; ausente = o DuckDB decide sozinho
@@ -148,6 +154,97 @@ def abrir(lake: Lake) -> duckdb.DuckDBPyConnection:
         con.execute(f'CREATE SCHEMA IF NOT EXISTS "{view.esquema}"')
         ddl = f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}"  # noqa: S608 # nosec B608
         con.execute(ddl)
+    return con
+
+
+CAMADA_SILVER = "silver"
+
+
+def tabelas_da_silver() -> list[str]:
+    """As tabelas que a silver publica: as de negócio da DDL e a planilha do consolidado."""
+    nomes = [f"{m}.{t}" for m, tabelas in tabelas_por_modulo().items() for t in tabelas]
+    return [*nomes, f"{MODULO_ARQUIVO}.{TABELA_ARQUIVO}"]
+
+
+def criar_views_da_silver(
+    con: duckdb.DuckDBPyConnection, caminhos: dict[str, str], catalogo: str = CAMADA_SILVER
+) -> None:
+    """Uma view por tabela da silver, em `silver.<modulo>.<tabela>`, **só com as linhas vivas**.
+
+    A gold lê por aqui. A linha excluída no sistema do cliente não existe para o negócio
+    (decisão 5 da matriz de barramento): filtrá-la na view, uma vez, é o que impede cada
+    consulta da gold de esquecer o filtro. A coluna de controle sai junto, porque depois do
+    filtro ela é sempre nula.
+    """
+    anexados = {
+        r[0] for r in con.execute("SELECT database_name FROM duckdb_databases()").fetchall()
+    }
+    if catalogo not in anexados:
+        con.execute(f"ATTACH ':memory:' AS {catalogo}")
+    for tabela, caminho in caminhos.items():
+        modulo, nome = tabela.split(".")
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        con.execute(f'CREATE SCHEMA IF NOT EXISTS {catalogo}."{modulo}"')
+        colunas = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM {origem}").fetchall()}  # noqa: S608 # nosec B608
+        if CONTROLE in colunas:
+            vivas = f'SELECT * EXCLUDE ("{CONTROLE}") FROM {origem} WHERE "{CONTROLE}" IS NULL'  # noqa: S608 # nosec B608
+        else:  # a planilha da gerência não vem da réplica: não tem linha excluída
+            vivas = f"SELECT * FROM {origem}"  # noqa: S608 # nosec B608
+        con.execute(f'CREATE OR REPLACE VIEW {catalogo}."{modulo}"."{nome}" AS {vivas}')
+
+
+def criar_views_das_fontes(con: duckdb.DuckDBPyConnection, caminhos: dict[str, str]) -> None:
+    """Uma view por fonte pública, em `fontes.<nome>`: dado de fora, sem linha excluída."""
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{ESQUEMA_FONTES}"')
+    for nome, caminho in caminhos.items():
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        con.execute(f'CREATE OR REPLACE VIEW "{ESQUEMA_FONTES}"."{nome}" AS SELECT * FROM {origem}')  # noqa: S608 # nosec B608
+
+
+def abrir_silver(lake: Lake) -> duckdb.DuckDBPyConnection:
+    """Uma conexão DuckDB com a silver, e só ela: `silver.ats.candidato`, `silver.pessoas.alocacao`.
+
+    As fontes públicas entram junto, em `fontes.<nome>`: não têm dado pessoal e a gold precisa
+    delas (o CAGED é a régua de fora). Não há view da bronze nesta conexão, de propósito: quem
+    constrói a gold não alcança o dado pessoal em claro nem por engano.
+    """
+    con = duckdb.connect()
+    _apontar_para_o_lake(con, lake)
+    caminhos = {
+        tabela: lake.caminho(CAMADA_SILVER, *tabela.split("."), "ano=*.parquet")
+        for tabela in tabelas_da_silver()
+    }
+    criar_views_da_silver(con, caminhos)
+    criar_views_das_fontes(con, {n: f"s3://{lake.bucket}/{c}" for n, c in FONTES.items()})
+    return con
+
+
+CAMADA_GOLD = "gold"
+
+
+def criar_views_da_gold(con: duckdb.DuckDBPyConnection, lake: Lake) -> None:
+    """Uma view por tabela do modelo, em `gold.<tabela>`, sobre o que está publicado no lake."""
+    # importado aqui, e não no topo: a gold importa o lake, não o contrário
+    from rh_fictalent.gold import modelo
+
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{CAMADA_GOLD}"')
+    for tabela in modelo.TABELAS:
+        caminho = lake.caminho(CAMADA_GOLD, tabela.nome, "*.parquet")
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        alvo = f'"{CAMADA_GOLD}"."{tabela.nome}"'
+        con.execute(f"CREATE OR REPLACE VIEW {alvo} AS SELECT * FROM {origem}")  # noqa: S608 # nosec B608
+
+
+def abrir_gold(lake: Lake) -> duckdb.DuckDBPyConnection:
+    """Uma conexão DuckDB com a gold publicada, uma view por tabela do modelo: `gold.dim_cliente`,
+    `gold.fato_posto_mes`. É o que o SQL analítico (`gold.analitico`) e o notebook da gold leem.
+
+    Nem silver nem bronze aqui: a gold é a camada que se serve, e quem a lê não precisa das
+    anteriores. Os nomes vêm do modelo (`gold.modelo.TABELAS`), não de quem consulta.
+    """
+    con = duckdb.connect()
+    _apontar_para_o_lake(con, lake)
+    criar_views_da_gold(con, lake)
     return con
 
 

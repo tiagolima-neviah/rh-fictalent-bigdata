@@ -34,7 +34,11 @@ FAMILIAS = {
     "sazonalidade": "4 · Sazonalidade",
     "coerencia": "5 · Coerência interna",
     "sujeira": "6 · A sujeira na medida certa",
+    # as duas famílias da régua da gold (card 7.4): o mesmo motor, outra camada
+    "gold_conservacao": "7 · Gold: conservação contra a silver",
+    "gold_integridade": "8 · Gold: integridade de chaves",
 }
+FAMILIAS_DO_ACEITE = tuple(f for f in FAMILIAS if not f.startswith("gold_"))
 
 # nome da medida -> chave -> valor; chaves são texto ("2024", "2024-11", "CAD-01") para o
 # contrato caber num JSON
@@ -144,8 +148,11 @@ class Laudo:
             linha[r.situacao.value] += 1
         return contagem
 
-    def texto(self, so_problemas: bool = False) -> str:
-        """O laudo para ler no terminal: família a família, um check por linha."""
+    def texto(self, so_problemas: bool = False, rodape: bool = True) -> str:
+        """O laudo para ler no terminal: família a família, um check por linha.
+
+        `rodape=False` deixa de fora o veredito geral e o conselho de regenerar, que são do
+        aceite do dado sintético: a régua da gold imprime o veredito dela."""
         marca = {Situacao.APROVADO: "✓", Situacao.REPROVADO: "✗", Situacao.PENDENTE: "…"}
         linhas: list[str] = []
         for familia, titulo in FAMILIAS.items():
@@ -165,6 +172,8 @@ class Laudo:
                     f"  {marca[r.situacao]} {r.check.codigo:<28} {valor:>14}  "
                     f"banda {r.check.banda!s:<22} {r.check.descricao}"
                 )
+        if not rodape:
+            return "\n".join(linhas).lstrip("\n")
         total = len(self.resultados)
         reprovados = len(self.com_situacao(Situacao.REPROVADO))
         pendentes = len(self.com_situacao(Situacao.PENDENTE))

@@ -124,7 +124,7 @@ Máquina de referência: a estação de 16 núcleos descrita em [Instalação e 
 
 - **Latência de segundos.** A carga é diária, e isso é a latência. Captura pelo binlog daria segundos, ao custo de configurar o servidor do cliente e operar mais um processo; o ADR-0011 registra que a escolha é reversível.
 - **Folha e faturamento nos dias correntes.** A simulação escreve o dia; o fechamento mensal (folha, fatura, provisão) fica para quando a gold existir para consumi-lo.
-- **Ingestão de arquivo além do consolidado.** O índice sazonal do CAGED é lido como tabela versionada pelo gerador e pela régua; entrar no lake como asset, com esquema, fica para quando a gold precisar dele.
+- **Ingestão de arquivo além do consolidado.** O índice sazonal do CAGED continua sendo lido como tabela versionada pelo gerador e pela régua. A movimentação mensal, que a gold precisa como régua de fora (afirmação D4), entrou no lake no card 7.2 pelo asset `fontes/caged/movimentacao` (job `carregar_caged`), com esquema conferido na leitura: competência como data, saldo igual a admissões menos desligamentos, chave sem repetição.
 
 ---
 

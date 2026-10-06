@@ -61,7 +61,7 @@ def test_checks_cobrem_as_seis_familias_com_codigos_unicos() -> None:
     todos = bandas.checks()
     codigos = [c.codigo for c in todos]
     assert len(codigos) == len(set(codigos))
-    assert {c.familia for c in todos} == set(FAMILIAS)
+    assert {c.familia for c in todos} == set(FAMILIAS) - {"gold_conservacao", "gold_integridade"}
     assert len(todos) > 150
 
 
