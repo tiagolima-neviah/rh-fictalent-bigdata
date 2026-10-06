@@ -151,6 +151,58 @@ def abrir(lake: Lake) -> duckdb.DuckDBPyConnection:
     return con
 
 
+CAMADA_SILVER = "silver"
+
+
+def tabelas_da_silver() -> list[str]:
+    """As tabelas que a silver publica: as de negócio da DDL e a planilha do consolidado."""
+    nomes = [f"{m}.{t}" for m, tabelas in tabelas_por_modulo().items() for t in tabelas]
+    return [*nomes, f"{MODULO_ARQUIVO}.{TABELA_ARQUIVO}"]
+
+
+def criar_views_da_silver(
+    con: duckdb.DuckDBPyConnection, caminhos: dict[str, str], catalogo: str = CAMADA_SILVER
+) -> None:
+    """Uma view por tabela da silver, em `silver.<modulo>.<tabela>`, **só com as linhas vivas**.
+
+    A gold lê por aqui. A linha excluída no sistema do cliente não existe para o negócio
+    (decisão 5 da matriz de barramento): filtrá-la na view, uma vez, é o que impede cada
+    consulta da gold de esquecer o filtro. A coluna de controle sai junto, porque depois do
+    filtro ela é sempre nula.
+    """
+    anexados = {
+        r[0] for r in con.execute("SELECT database_name FROM duckdb_databases()").fetchall()
+    }
+    if catalogo not in anexados:
+        con.execute(f"ATTACH ':memory:' AS {catalogo}")
+    for tabela, caminho in caminhos.items():
+        modulo, nome = tabela.split(".")
+        origem = f"read_parquet('{caminho}', union_by_name = true)"
+        con.execute(f'CREATE SCHEMA IF NOT EXISTS {catalogo}."{modulo}"')
+        colunas = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM {origem}").fetchall()}  # noqa: S608 # nosec B608
+        if CONTROLE in colunas:
+            vivas = f'SELECT * EXCLUDE ("{CONTROLE}") FROM {origem} WHERE "{CONTROLE}" IS NULL'  # noqa: S608 # nosec B608
+        else:  # a planilha da gerência não vem da réplica: não tem linha excluída
+            vivas = f"SELECT * FROM {origem}"  # noqa: S608 # nosec B608
+        con.execute(f'CREATE OR REPLACE VIEW {catalogo}."{modulo}"."{nome}" AS {vivas}')
+
+
+def abrir_silver(lake: Lake) -> duckdb.DuckDBPyConnection:
+    """Uma conexão DuckDB com a silver, e só ela: `silver.ats.candidato`, `silver.pessoas.alocacao`.
+
+    Não há view da bronze nesta conexão, de propósito: quem constrói a gold não alcança o dado
+    pessoal em claro nem por engano.
+    """
+    con = duckdb.connect()
+    _apontar_para_o_lake(con, lake)
+    caminhos = {
+        tabela: lake.caminho(CAMADA_SILVER, *tabela.split("."), "ano=*.parquet")
+        for tabela in tabelas_da_silver()
+    }
+    criar_views_da_silver(con, caminhos)
+    return con
+
+
 def sql(con: duckdb.DuckDBPyConnection, consulta: str, *parametros: Any) -> pd.DataFrame:
     """A consulta como DataFrame. Parâmetros posicionais viram `?` no SQL."""
     return con.execute(consulta, list(parametros) if parametros else None).df()

@@ -337,6 +337,9 @@ def gravar(
         do_ano = f"SELECT * EXCLUDE ({ANO}) FROM {nome} WHERE {ANO} = {int(ano)} ORDER BY {ordem}"  # noqa: S608 # nosec B608
         con.execute(f"COPY ({do_ano}) TO '{caminho}' (FORMAT parquet, COMPRESSION zstd)")
         caminhos.append(caminho)
+    # quem escreveu foi o DuckDB: o fsspec guarda a listagem da pasta e não sabe do arquivo novo
+    # (achado no card 7.2: com sobra de outra tabela na conferência, o `mv` não achava o arquivo)
+    sistema.invalidate_cache()
     return caminhos
 
 
