@@ -2,6 +2,38 @@
 
 Cada versão fecha uma fase inteira, com código, testes e documentação. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.7.0] · 2026-10-06 · Gold e warehouse
+
+A matriz de barramento virou tabela: a **gold** existe, construída da silver por SQL declarado em código e provada em cinco provas antes de publicar, e o **warehouse Postgres** a serve com quem lê o quê provado por teste, filial a filial. A cadeia do dia fecha sozinha: a carga das 5h, a silver, a gold e o warehouse, cada camada disparada pelo fim da anterior. Ainda sem API nem destino em nuvem: isso é a v1.0.0.
+
+### Matriz de barramento
+- 20 fatos (14 de prioridade 1) e 14 dimensões declarados como código, com o grão de cada fato, as dimensões que dividem, de qual fato sai cada um dos 26 indicadores e como cada uma das sete afirmações dos donos é respondida. O `docs/15` é gerado e foi **aprovado como proposta antes de construir**; a regra do resultado por filial (ISS pela filial do município, imposto federal e retaguarda rateados pelo faturamento) foi aprovada em 06/10 pelo Tiago, no papel de cliente.
+
+### Gold
+- 11 dimensões conformadas e 14 fatos por processo, em parquet particionado por ano: 25 tabelas, **1,68 milhão de linhas em 11,9 MB**. Cada tabela é montada da silver, gravada em conferência, lida de volta e só então publicada, depois de cinco provas: grão, referências (a linha 0 inclusive), conservação de cada total ao centavo, dimensão de pessoa sem identidade, partição. A gold inteira em 8,8 s pela linha de comando; 26 passos em 56 s no Dagster.
+- O **horizonte** (o último dia com movimento, 10/09/2026) e o **calendário** (até 31/12/2027) vêm do dado, nunca digitados; o mês do horizonte é marcado como parcial. A gold conta pessoas, não as identifica, e um teste reprova a dimensão que ganhar nome, documento ou chave.
+- O Novo CAGED entrou no lake como asset (`fontes/caged/movimentacao`), e `dim_escopo_mercado` e `fato_mercado_mes` existem para a pergunta "a queda é do mercado?".
+- **SQL analítico**: nove consultas com funções de janela, cada uma declarando a pergunta, a origem no `docs/01` e as janelas que usa (partição, ordem, quadro), com a semântica provada em teste; o notebook executado sobre a gold real, com Nota Técnica por seção.
+- **A régua da gold** com o motor do contrato de aceite: 187 de 187 checks de conservação e integridade; 50 de 59 medidas do contrato dentro da banda, e as nove de fora explicadas por definição no `docs/16` (a margem em regime de caixa do contrato contra a de competência da gold; o CAD-01 depois do descarte por retenção). Só as famílias da gold reprovam o job; a banda é relatada.
+
+### Warehouse Postgres
+- A DDL **gerada do modelo** e dos tipos do DuckDB: chave primária com o ano, chaves estrangeiras para as dimensões, partição declarativa por ano, o comentário da matriz em toda tabela. Carga por partição idempotente (o ano substitui a partição inteira; a dimensão por upsert) e **conferida contra o parquet**: 25 tabelas, 120 partições, 1,68 milhão de linhas, 28 passos em 140 s.
+- **DCL por perfil de negócio**: sócio, gerência, coordenação, assistente e financeiro, papéis sem login, cada um lendo os fatos da sua área e, nas dimensões de pessoa, só as colunas de que precisa. Nove acessos indevidos provados por `SET ROLE` no banco de verdade: o teste passa quando o acesso falha.
+- **RLS por filial**: política por tabela, a ligação papel → filiais numa tabela que só o administrador escreve, lida por função `SECURITY DEFINER`, fechada por padrão (papel sem filial não vê nada), e a partição não concedida a ninguém. A coordenação de uma filial lê só a filial dela, no próprio banco, sem a aplicação saber.
+- **Índices medidos**: oito candidatos com a consulta do painel que os pede, `EXPLAIN (ANALYZE)` sem e com o índice; quatro adotados (de 12 a 66 vezes mais rápido) e quatro descartados com a medida, inclusive o controle de uma coluna de três valores que o planejador ignora.
+
+### A cadeia do dia
+- Dois sensores novos: `gold_depois_da_silver` e `warehouse_depois_da_gold`. Provado ao vivo: a silver pela linha de comando (78 passos, 180 s), a gold disparada em seguida (26 passos, 57 s) e o warehouse depois dela (28 passos, 140 s). Da carga ao Postgres atualizado, cerca de 7 minutos, sem agenda nova.
+
+### Documentação e operação
+- `docs/15` matriz de barramento (gerado), `docs/16` gold e `docs/17` warehouse, com as tabelas saídas do código e um teste que reprova o documento que deixar de citar tabela, consulta, perfil, índice ou política; `docs/06` com a régua da gold; `docs/03`, `05`, `07` (o caminho do zero até o warehouse), `08` (operação da gold e do warehouse, três sintomas novos), `11` e a bibliografia com a fase 7 confirmada card a card.
+
+### Esteira
+- 604 testes (eram 533 na v0.6.0). `multidict` atualizado por uma vulnerabilidade acusada pelo `pip-audit`; actions atualizadas (`checkout` v7, `setup-uv` v10.2.0, `trivy-action` v0.36.0), fim do aviso do Node 20.
+
+### Não inclui
+- API, auditoria, backup e nuvem (v1.0.0). Os seis fatos de prioridade 2, a gold incremental, a migração de esquema do warehouse (coluna nova não entra sozinha), a carga pelo ADBC, pessoas cadastradas nos perfis, o notebook de conclusões sobre as sete afirmações e a decisão de qual margem é a do painel, que é do cliente.
+
 ## [0.6.0] · 2026-10-01 · Lake
 
 A bronze deixou de ser só um depósito: foi lida com SQL, **auditada às cegas**, e o que a auditoria achou virou um catálogo aprovado antes de qualquer transformação. A **silver** existe, com o mesmo grão da bronze, pseudonimizada, e só publica a tabela que passa em cinco provas. O dado pessoal vencido é descartado com registro. Ainda sem gold nem warehouse carregado: isso é a v0.7.0.

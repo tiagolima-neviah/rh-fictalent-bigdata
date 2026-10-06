@@ -70,8 +70,8 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 | v0.4.0 | Dado sintético: CAGED e APIs públicas, régua de 165 checks, gerador de 2018 a 2026 e a réplica com 8,4 milhões de linhas | concluído |
 | v0.5.0 | Ingestão: a bronze em parquet (8,4 milhões de linhas em 162 MB), backfill, carga diária por marca d'água, exclusões como marcação, planilhas com pandera e a réplica em movimento | concluído |
 | v0.6.0 | Lake: a bronze lida com SQL (DuckDB), auditoria de qualidade às cegas com 61 achados, catálogo aprovado antes de transformar, silver com cinco provas por tabela e prestação de contas, pseudonimização e descarte de dado pessoal por retenção | concluído |
-| v0.7.0 | Gold, funções de janela, warehouse Postgres com RLS por filial | próxima |
-| v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | previsto |
+| v0.7.0 | Gold provada antes de publicar, SQL analítico com funções de janela, warehouse Postgres com perfis de negócio, RLS por filial e índices medidos; a cadeia do dia por sensores | concluído |
+| v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | próxima |
 | (outro repositório) | Painel web, Power BI e Tableau Public | previsto |
 
 ## Requisitos
@@ -80,7 +80,7 @@ O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira oc
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.6.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026, **ingeri-la na bronze do lake** e chegar à **silver pseudonimizada, com prestação de contas**, com a carga diária rodando sozinha:
+O projeto está em construção. Na v0.7.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026, **ingeri-la na bronze do lake**, chegar à **silver pseudonimizada, com prestação de contas**, à **gold provada antes de publicar** e ao **warehouse Postgres com perfis de leitura e isolamento por filial**, com a cadeia diária inteira rodando sozinha:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
