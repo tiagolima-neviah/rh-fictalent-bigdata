@@ -29,6 +29,7 @@ from rh_fictalent.gold import (
     barramento,
     construcao,
     dcl,
+    indices,
     modelo,
     regua,
     rls,
@@ -1762,7 +1763,9 @@ def test_os_assets_do_warehouse_seguem_a_gold_e_as_dimensoes_vem_antes() -> None
     ]
     assert {k.to_user_string() for k in cliente.dependency_keys} == {"gold/dim_cliente"}
     job = definicoes.defs.resolve_job_def("carregar_warehouse")
-    assert len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS) + 2  # DCL e RLS
+    assert (
+        len(set(job.asset_layer.executable_asset_keys)) == len(modelo.TABELAS) + 3
+    )  # índices, DCL e RLS
 
 
 ENV = dotenv_values(RAIZ / ".env") if (RAIZ / ".env").exists() else {}
@@ -2111,3 +2114,95 @@ def test_no_banco_a_coordenacao_de_uma_filial_so_ve_a_filial(
                 como(papel, sql)
     finally:
         limpar()
+
+
+# ------------------------------------------------------------- os índices do warehouse
+
+
+def test_todo_indice_tem_a_consulta_que_o_pede_e_colunas_que_o_fato_tem() -> None:
+    consultas = {c.nome for c in indices.CONSULTAS}
+    for i in indices.INDICES:
+        tabela = modelo.tabela(i.tabela)
+        assert tabela.fato and i.para in consultas, i.nome
+        assert set(i.colunas) <= set(tabela.referencias) | set(tabela.chave), i.nome
+        assert indices.consulta(i.para).tabela == i.tabela
+        assert i.adotado or i.motivo, i.nome  # descartado só com a medida que o descartou
+    assert indices.indice("ix_ponto_dia_posto_id_data_id").colunas == ("posto_id", "data_id")
+    assert len({i.nome for i in indices.INDICES}) == len(indices.INDICES)
+    assert {c.tabela for c in indices.CONSULTAS} <= {t.nome for t in modelo.TABELAS if t.fato}
+
+
+def test_a_ddl_dos_indices_cria_so_os_adotados_e_e_idempotente() -> None:
+    sql = indices.ddl()
+    assert (
+        "CREATE INDEX IF NOT EXISTS ix_ponto_dia_posto_id_data_id ON fato.ponto_dia (posto_id, data_id);"
+        in sql
+    )
+    assert (
+        "ix_ponto_dia_filial_id" not in sql and "ix_posto_mes" not in sql
+    )  # medidos e descartados
+    assert [i.nome for i in indices.adotados()] == [
+        "ix_ponto_dia_posto_id_data_id",
+        "ix_ponto_dia_colaborador_id",
+        "ix_candidatura_candidato_id",
+        "ix_custo_pessoal_colaborador_id",
+    ]  # os quatro em que a medida fez diferença (12 a 66 vezes)
+    assert sql.count("CREATE INDEX") == len(indices.adotados())
+    assert "ix_ponto_dia_filial_id" in indices.ddl(list(indices.INDICES))
+    assert "DROP INDEX IF EXISTS teste.ix_ponto_dia_filial_id;" in indices.ddl_de_remocao(
+        esquema_fato="teste"
+    )
+    assert indices.analise().count("ANALYZE fato.") == len([t for t in modelo.TABELAS if t.fato])
+
+
+def test_os_indices_vem_depois_das_tabelas_no_job_do_warehouse() -> None:
+    assert {k.to_user_string() for k in orquestracao_dw.indices_do_warehouse.dependency_keys} == {
+        a.key.to_user_string() for a in orquestracao_dw.ASSETS
+    }
+
+
+@pytest.mark.skipif(not ENV or not _postgres_de_pe(), reason="warehouse fora do ar ou .env ausente")
+def test_no_banco_a_medida_roda_antes_e_depois_e_deixa_so_os_adotados(
+    gold: duckdb.DuckDBPyConnection,
+) -> None:
+    """Com a plataforma de pé: o cenário em schemas de teste, a medida remove, mede, cria, mede
+    e deixa só os adotados; o laudo tem toda consulta com tempo e plano dos dois lados. Com o
+    cenário pequeno o planejador varre a tabela, e o teste prova a mecânica, não o ganho."""
+    dw = Warehouse(
+        host="127.0.0.1",
+        porta=int(ENV.get("DW_PORT") or 5441),
+        banco=ENV.get("DW_DB") or "dw_fictalent",
+        usuario=ENV.get("DW_ADMIN_USER") or "fictalent_admin",
+        senha=ENV.get("DW_ADMIN_PASSWORD") or os.environ.get("DW_ADMIN_PASSWORD", ""),
+    )
+    esquemas = ("teste_ix_dim", "teste_ix_fato")
+    try:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            con.commit()
+        for t in modelo.TABELAS:
+            assert warehouse.carregar(gold, dw, t, *esquemas).aprovada, t.nome
+        medidas = indices.medir(dw, esquemas[1])
+        assert [m.consulta for m in medidas] == [c.nome for c in indices.CONSULTAS]
+        for m in medidas:
+            assert m.antes_ms > 0 and m.depois_ms > 0 and m.plano_antes and m.plano_depois
+            assert m.parametros, m.consulta  # o valor mais frequente existe no cenário
+        assert "ponto_do_posto_no_mes" in indices.texto(medidas)
+        assert '"medido_em": "hoje"' in indices.laudo_json(medidas, "hoje")
+        # o que fica no banco: os adotados em cada partição, o descartado em nenhuma
+        nomes = {
+            n
+            for (n,) in dw.consultar(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = %s", esquemas[1]
+            )
+        }
+        assert {i.nome for i in indices.adotados()} <= nomes
+        assert "ix_ponto_dia_filial_id" not in nomes
+        assert "ponto_dia_2024_posto_id_data_id_idx" in nomes  # a partição herda o índice da mãe
+        assert indices.criar(dw, esquemas[1]) == len(indices.adotados())  # idempotente
+    finally:
+        with dw.conectar() as con, con.cursor() as cur:
+            for esquema in esquemas:
+                cur.execute(f"DROP SCHEMA IF EXISTS {esquema} CASCADE")  # noqa: S608
+            con.commit()

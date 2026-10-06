@@ -52,6 +52,7 @@ from rh_fictalent.orquestracao.warehouse import ASSETS as WAREHOUSE
 from rh_fictalent.orquestracao.warehouse import (
     carregar_warehouse,
     dcl_do_warehouse,
+    indices_do_warehouse,
     rls_do_warehouse,
 )
 
@@ -74,6 +75,7 @@ defs = dg.Definitions(
         *WAREHOUSE,
         dcl_do_warehouse,
         rls_do_warehouse,
+        indices_do_warehouse,
     ],
     jobs=[
         verificar_plataforma,
