@@ -779,10 +779,10 @@ def preparar(con: duckdb.DuckDBPyConnection) -> str:
     # o calendário vai até o fim do ano seguinte ao horizonte, ou até a última data prevista
     # (vigência de contrato, término de vínculo), o que for mais longe: data futura legítima nunca
     # pode ficar órfã de dim_data
-    ultimo_ano = (
-        f"greatest(year({HORIZONTE}) + 1, "
+    previstos = (
         "(SELECT year(max(vigencia_fim)) FROM silver.comercial.contrato), "
-        "(SELECT year(max(dt_prevista_termino)) FROM silver.pessoas.contrato_trabalho))"
+        "(SELECT year(max(dt_prevista_termino)) FROM silver.pessoas.contrato_trabalho)"
     )
+    ultimo_ano = f"greatest(year({HORIZONTE}) + 1, {previstos})"  # noqa: S608 # nosec B608
     con.execute(f"SET VARIABLE fim_do_calendario = (SELECT make_date({ultimo_ano}, 12, 31))")  # noqa: S608 # nosec B608
     return str(horizonte)
