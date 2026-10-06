@@ -250,16 +250,10 @@ def conferir(
             no_parquet = {int(a): _numero(v) for a, v in con.execute(no_parquet_sql).fetchall()}  # noqa: S608 # nosec B608
             no_postgres = {int(a): _numero(v) for a, v in warehouse.consultar(no_postgres_sql)}  # noqa: S608 # nosec B608
         else:
-            no_parquet = {
-                0: _numero(
-                    con.execute(f"SELECT {expressao} FROM gold.{tabela.nome}").fetchall()[0][0]
-                )
-            }  # noqa: S608 # nosec B608
-            no_postgres = {
-                0: _numero(
-                    warehouse.consultar(f"SELECT {expressao} FROM {destino.qualificado}")[0][0]
-                )
-            }  # noqa: S608 # nosec B608
+            total_parquet = f"SELECT {expressao} FROM gold.{tabela.nome}"  # noqa: S608 # nosec B608
+            total_postgres = f"SELECT {expressao} FROM {destino.qualificado}"  # noqa: S608 # nosec B608
+            no_parquet = {0: _numero(con.execute(total_parquet).fetchall()[0][0])}
+            no_postgres = {0: _numero(warehouse.consultar(total_postgres)[0][0])}
         conferido[o_que] = str(sum(no_parquet.values()))
         for ano in sorted(set(no_parquet) | set(no_postgres)):
             a, b = no_parquet.get(ano, Decimal(0)), no_postgres.get(ano, Decimal(0))
