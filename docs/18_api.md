@@ -26,9 +26,9 @@ A alternativa de a API ler o parquet da gold pelo DuckDB, que o [ADR-0009](adr/0
 |---|---|---|---|
 | `GET /saude` | o serviço está vivo e alcança o warehouse? | nenhum, sem token | todos |
 | `GET /v1/filiais` | as filiais | | todos os perfis |
-| `GET /v1/filiais/{id}/resultado` | o resultado de uma filial, mês a mês | `de`, `ate` (AAAAMM) | sócio, gerência, financeiro |
+| `GET /v1/filiais/{filial_id}/resultado` | o resultado de uma filial, mês a mês | `de`, `ate` (AAAAMM) | sócio, gerência, financeiro |
 | `GET /v1/clientes` | o Pareto dos clientes de um ano: receita, margem, posição, participação acumulada | `ano` | sócio, gerência, financeiro, coordenação |
-| `GET /v1/postos/{id}/ponto` | o ponto de um posto num mês, por situação do dia | `mes` (AAAAMM) | sócio, gerência, coordenação (as suas filiais) |
+| `GET /v1/postos/{posto_id}/ponto` | o ponto de um posto num mês, por situação do dia | `mes` (AAAAMM) | sócio, gerência, coordenação (as suas filiais) |
 | `GET /v1/funil` | o funil de um ano, trimestre a trimestre | `ano` | sócio, gerência, assistente (as suas filiais) |
 | `GET /v1/mercado/escopos` | os recortes do Novo CAGED | | sócio, gerência, assistente |
 | `GET /v1/mercado` | o mercado formal de um escopo, mês a mês | `escopo` | sócio, gerência, assistente |

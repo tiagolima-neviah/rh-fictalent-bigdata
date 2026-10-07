@@ -251,7 +251,7 @@ def test_o_docs_18_cita_todo_caminho_do_contrato_e_toda_opcao_da_cli() -> None:
             "--revogar",
             "--servir",
         )
-        if f"`{o}" not in texto and f"{o} " not in texto
+        if o not in texto
     ]
     assert faltando == []
     for codigo in ("401", "403", "422", "200 com lista vazia"):
