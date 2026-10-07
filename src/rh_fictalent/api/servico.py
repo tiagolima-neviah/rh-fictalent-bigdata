@@ -10,6 +10,7 @@ API traduz em 403; a linha que o RLS esconde simplesmente não vem.
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any, Protocol
 
@@ -30,6 +31,7 @@ class LeitorDoWarehouse(Protocol):
         self, papel: str, consulta: sql.Composed, parametros: dict[str, Any]
     ) -> list[dict[str, Any]]: ...
     def saudavel(self) -> bool: ...
+    def registrar_pedido(self, papel: str | None, caminho: str, codigo: int) -> None: ...
 
 
 class Leitor:
@@ -93,3 +95,17 @@ class Leitor:
                 return cur.fetchone() is not None
         except psycopg.Error:
             return False
+
+    def registrar_pedido(self, papel: str | None, caminho: str, codigo: int) -> None:
+        """A trilha: quem pediu o quê, com que resposta. Falha na trilha não derruba o pedido."""
+        funcao = sql.Identifier(self.esquema_acesso, acesso.REGISTRO)
+        try:
+            with self.conectar() as con, con.cursor() as cur:
+                cur.execute(
+                    sql.SQL("SELECT {}(%s, %s, %s)").format(funcao), (papel, caminho, codigo)
+                )
+                con.commit()
+        except (
+            psycopg.Error
+        ) as erro:  # pragma: no cover - só com o banco fora do ar no meio do pedido
+            logging.getLogger(__name__).warning("trilha da API sem registro: %s", erro)

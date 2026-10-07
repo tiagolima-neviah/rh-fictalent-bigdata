@@ -335,3 +335,43 @@ def test_o_servico_do_compose_responde_e_recusa_sem_token() -> None:
     assert httpx.get(f"{base}/v1/filiais", timeout=10).status_code == 401
     caminhos = httpx.get(f"{base}/v1/openapi.json", timeout=10).json()["paths"]
     assert "/v1/funil" in caminhos and "/saude" in caminhos
+
+
+# ------------------------------------------------------------- a trilha dos pedidos
+
+
+def test_todo_pedido_vai_para_a_trilha_com_o_papel_e_o_codigo(
+    cliente: TestClient, tokens: dict[str, str]
+) -> None:
+    """A API registra cada pedido a /v1 em acesso.pedido (o papel, o caminho, o código), por
+    uma função que só insere: é o que a trilha de auditoria lê (`rh_fictalent.trilha`)."""
+    dw = _admin()
+    antes = dw.consultar("SELECT count(*) FROM acesso.pedido")[0][0]
+    assert cliente.get("/v1/filiais", headers=_como(tokens, "teste_api_socio")).status_code == 200
+    assert (
+        cliente.get(
+            "/v1/filiais/1/resultado", headers=_como(tokens, "teste_api_coord_extrema")
+        ).status_code
+        == 403
+    )
+    assert cliente.get("/v1/filiais").status_code == 401
+    novos = dw.consultar(
+        "SELECT papel, caminho, codigo FROM acesso.pedido ORDER BY id DESC LIMIT 3"
+    )
+    assert dw.consultar("SELECT count(*) FROM acesso.pedido")[0][0] == antes + 3
+    assert novos[::-1] == [
+        ("teste_api_socio", "/v1/filiais", 200),
+        ("teste_api_coord_extrema", "/v1/filiais/1/resultado", 403),
+        (None, "/v1/filiais", 401),
+    ]
+    # a trilha responde pela pergunta pronta, sem token nenhum
+    from rh_fictalent.trilha import consultas as trilha
+
+    pedidos = trilha.no_warehouse(dw, "pedidos_da_api_por_dia")
+    do_socio = pedidos[
+        (pedidos["papel"] == "teste_api_socio") & (pedidos["caminho"] == "/v1/filiais")
+    ]
+    assert int(do_socio["ok"].sum()) >= 1
+    recusados = pedidos[pedidos["papel"] == "teste_api_coord_extrema"]
+    assert int(recusados["recusados_pelo_banco"].sum()) >= 1
+    assert "hash" not in trilha.no_warehouse(dw, "tokens_da_api").columns
