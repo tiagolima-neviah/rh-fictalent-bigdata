@@ -150,6 +150,14 @@ docker compose exec dagster-web dagster job execute -m rh_fictalent.orquestracao
 
 Para conferir: `.venv/bin/python -m rh_fictalent.gold --regua` termina em **`RÉGUA DA GOLD APROVADA: 187 de 187`** ([Gold, seção 6](16_gold.md)), e no warehouse `SET ROLE perfil_financeiro` seguido de `SELECT count(*) FROM fato.faturamento` devolve 9.934 ([Warehouse, seção 8](17_warehouse_postgres.md)).
 
+**5. A API, para quem vai ler.** Com o warehouse carregado, prepare o usuário da API, cadastre um consumidor no seu perfil e um token (gere com `openssl rand -hex 32`; o cadastro o pede escondido):
+
+```bash
+.venv/bin/python -m rh_fictalent.api --preparar && .venv/bin/python -m rh_fictalent.api --consumidor eu_socio --perfil socio && .venv/bin/python -m rh_fictalent.api --token eu_socio
+```
+
+Abra `http://127.0.0.1:8010/v1/docs`, autorize com o token e peça `/v1/filiais`; ou, no terminal, `curl` como o [API, seção 4](18_api.md) mostra.
+
 **Opcional: o prazo de retenção.** A base gerada não traz prazo de retenção, porque ele é decisão do cliente. Para declará-lo, como o caso fez em 01/10/2026:
 
 ```bash

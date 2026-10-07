@@ -231,6 +231,8 @@ docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)"
 
 O primeiro publica a gold (8,8 s); o segundo imprime o laudo e o que saiu da banda; o terceiro carrega e confere o warehouse inteiro. `--ddl`, `--dcl` e `--rls` imprimem o SQL gerado; `--dcl --aplicar` e `--rls --aplicar` o aplicam; `--indices --medir` mede os índices antes e depois e grava o laudo em `gold/_indices.json`. Dar acesso a uma pessoa é rito do administrador, no `psql`: `CREATE ROLE ana LOGIN IN ROLE perfil_coordenacao`, a senha pelo `\password`, e a filial em `acesso.filial_do_papel` ([Warehouse, seção 5](17_warehouse_postgres.md)).
 
+**A API dos indicadores** (v1.0.0). O serviço `api` sobe com a plataforma e lê o warehouse como o usuário `api`, que só pode assumir o papel de cada consumidor; o preparo (`python -m rh_fictalent.api --preparar`), o consumidor (`--consumidor <papel> --perfil <perfil> [--filial n]`), o token (`--token <papel>`, pedido escondido) e a revogação (`--revogar <papel>`) são do administrador, e o rito inteiro, com o `curl` para testar, está no [API](18_api.md). Mudou código em `src/rh_fictalent/api`, `docker compose up -d --build api`; os logs, `docker compose logs api`.
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:

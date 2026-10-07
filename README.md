@@ -154,6 +154,7 @@ rh-fictalent-bigdata/
 - [15 · Matriz de barramento](docs/15_matriz_de_barramento.md): o desenho do modelo dimensional antes de ele existir: os fatos e o grão de cada um, as dimensões que eles dividem, de qual fato sai cada indicador e como cada uma das sete afirmações dos donos é respondida; gerada do código.
 - [16 · Gold](docs/16_gold.md): o modelo dimensional construído da silver, as cinco provas de cada tabela, o horizonte e o calendário, as decisões que a matriz não tinha, a régua da gold e onde ela diverge do contrato de aceite, o SQL analítico com funções de janela, com os tempos medidos.
 - [17 · Warehouse Postgres](docs/17_warehouse_postgres.md): a DDL gerada do modelo, a carga por partição conferida contra o parquet, quem lê o quê (os perfis de negócio, sem atributo de pessoa fora da necessidade), cada filial enxergando só as próprias linhas, os índices medidos por plano de execução e a cadeia do dia fechada por sensores.
+- [18 · API dos indicadores](docs/18_api.md): a gold servida do warehouse com o banco decidindo quem vê o quê, o contrato `/v1`, o rito de cadastrar consumidor e token, como testar com `curl`, os erros, a operação e os testes de acesso negado.
 
 Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 10 do manual de operação.
 

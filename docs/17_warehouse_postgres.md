@@ -3,7 +3,7 @@
 # Warehouse Postgres · a gold servida num banco, com quem lê o quê provado por teste
 
 <!-- nav:start -->
-[Home](../README.md) | [← Gold](16_gold.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [← Gold](16_gold.md) | [API →](18_api.md)
 <!-- nav:end -->
 
 > O parquet no lake é a [Gold](16_gold.md); o Postgres é onde ela é consultada, pela API, pelo Power BI e por quem abrir um cliente de banco. Este documento explica como a DDL sai do modelo em vez de ser escrita à mão, como a carga é feita por partição e conferida contra o parquet, quem lê o quê (os perfis de negócio, sem atributo de pessoa fora da necessidade), como cada filial enxerga só as próprias linhas no próprio banco, quais índices existem e por que só esses, e como o warehouse se liga ao resto no Dagster. Todo número foi medido na base completa em 06/10/2026.
