@@ -44,6 +44,7 @@ def test_servicos_esperados_existem() -> None:
         "dagster-web",
         "dagster-daemon",
         "grafana",
+        "api",
     }
     assert set(_servicos()) == esperados
 

@@ -38,7 +38,7 @@ O compose se recusa a subir sem todas as senhas. Gere todas de uma vez:
 
 ```bash
 cp .env.example .env
-for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env && sed -i "s/^PSEUDONIMIZACAO_SEGREDO=.*/PSEUDONIMIZACAO_SEGREDO=$(openssl rand -hex 32)/" .env
+for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD API_DB_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env && sed -i "s/^PSEUDONIMIZACAO_SEGREDO=.*/PSEUDONIMIZACAO_SEGREDO=$(openssl rand -hex 32)/" .env
 ```
 
 O `.env` nunca é versionado (`.gitignore`). Só letras e números nas senhas, para nenhuma string de conexão quebrar. As portas e os endereços locais (`127.0.0.1`) podem ficar como estão. O último valor é o segredo da pseudonimização da silver: a chave de cada pessoa é derivada dele, e trocá-lo depois troca todas as chaves ([Silver, seção 3](14_silver.md)).

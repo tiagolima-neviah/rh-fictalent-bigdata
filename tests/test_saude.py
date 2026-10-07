@@ -29,6 +29,8 @@ def test_script_cobre_as_verificacoes_de_ponta_a_ponta() -> None:
         "sensores ligados (3 de métricas, 1 da silver, 1 da gold, 1 do warehouse)",
         "painel de execuções provisionado",
         "regras de alerta provisionadas",
+        "responde em /saude e alcança o warehouse",
+        "sem token, /v1 responde 401",
         "SO_CONTAINERS",
     ):
         assert trecho in texto, trecho
