@@ -8,7 +8,8 @@
 #          usuário pipeline com as 76 tabelas, tem os 75 gatilhos, os tablespaces cifrados e o
 #          keyring ativo; o lake tem o bucket; o warehouse aceita o grafana_leitor e conta as
 #          métricas (e há quanto tempo foi o último sucesso); o Dagster carregou a code
-#          location e tem os sensores ligados; o Grafana está vivo, com as fontes e o painel.
+#          location e tem os sensores ligados; o Grafana está vivo, com as fontes e o painel; a API
+#          responde em /saude alcançando o warehouse e recusa quem não tem token.
 #
 # Uso:  bash scripts/saude.sh                 (fase 1 e fase 2; sai com 0 só se tudo passou)
 #       SO_CONTAINERS=1 bash scripts/saude.sh (só a fase 1, como a CI usa)
@@ -17,7 +18,7 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-LONGA_DURACAO=(mysql-staging pg-dw pg-dagster s3 dagster-web dagster-daemon grafana)
+LONGA_DURACAO=(mysql-staging pg-dw pg-dagster s3 dagster-web dagster-daemon grafana api)
 JOBS=(s3-init keyring-init)
 TEMPO_MAXIMO="${TEMPO_MAXIMO:-300}"
 MODULOS="'cadastro','comercial','ats','pessoas','ponto','folha','financeiro','treinamento','sst','seguranca','meta'"
@@ -83,6 +84,7 @@ esperar_containers || exit 1
 set -a; . ./.env; set +a
 DAGSTER="http://127.0.0.1:${DAGSTER_PORT:-3010}"
 GRAFANA="http://127.0.0.1:${GRAFANA_PORT:-3011}"
+API="http://127.0.0.1:${API_PORT:-8010}"
 passou=0; falhou=0; avisos=0
 
 ok()    { printf '  ✓ %s\n' "$1"; passou=$((passou + 1)); }
@@ -141,6 +143,15 @@ done
 grafana_api "/api/search?type=dash-db&query=Fictalent" | grep -q '"fictalent-execucoes"' && ok "painel de execuções provisionado" || falha "painel de execuções ausente"
 n=$(grafana_api "/api/v1/provisioning/alert-rules" | grep -o '"uid": *"fictalent-' | wc -l)
 [ "${n:-0}" = "2" ] && ok "2 regras de alerta provisionadas" || falha "regras de alerta: $n (esperadas 2)"
+
+echo "API"
+curl -s "$API/saude" | grep -q '"situacao":"ok"' && ok "responde em /saude e alcança o warehouse" || falha "API: /saude não está ok em $API"
+codigo=$(curl -s -o /dev/null -w '%{http_code}' "$API/v1/filiais")
+[ "$codigo" = "401" ] && ok "sem token, /v1 responde 401" || falha "sem token, /v1 respondeu $codigo (esperado 401)"
+n=$(psql_admin "SELECT count(*) FROM acesso.token")
+if [ -z "$n" ]; then aviso "tabela de tokens ausente: rode python -m rh_fictalent.api --preparar"
+elif [ "$n" = "0" ]; then aviso "nenhum token cadastrado ainda (python -m rh_fictalent.api --token <papel>)"
+else ok "$n tokens cadastrados"; fi
 
 echo
 if [ "$falhou" -eq 0 ]; then
