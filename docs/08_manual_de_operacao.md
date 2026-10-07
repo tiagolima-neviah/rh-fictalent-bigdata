@@ -233,6 +233,8 @@ O primeiro publica a gold (8,8 s); o segundo imprime o laudo e o que saiu da ban
 
 **A API dos indicadores** (v1.0.0). O serviço `api` sobe com a plataforma e lê o warehouse como o usuário `api`, que só pode assumir o papel de cada consumidor; o preparo (`python -m rh_fictalent.api --preparar`), o consumidor (`--consumidor <papel> --perfil <perfil> [--filial n]`), o token (`--token <papel>`, pedido escondido) e a revogação (`--revogar <papel>`) são do administrador, e o rito inteiro, com o `curl` para testar, está no [API](18_api.md). Mudou código em `src/rh_fictalent/api`, `docker compose up -d --build api`; os logs, `docker compose logs api`.
 
+**O destino em nuvem** (v1.0.0). O mesmo warehouse pode ser carregado num Postgres gratuito no Neon com `--destino nuvem` nos comandos da gold (`--warehouse`, depois `--dcl --aplicar`, `--rls --aplicar` e `--indices --aplicar`), lendo as variáveis `NUVEM_*` do `.env`; é um ato do operador, não um job. O que o Neon tem de diferente (o dono não é superusuário, o TLS termina no proxy) e os tempos medidos estão no [Warehouse, seção 10](17_warehouse_postgres.md).
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:
