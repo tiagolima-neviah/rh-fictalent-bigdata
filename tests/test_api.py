@@ -231,3 +231,28 @@ def test_o_sql_do_consumidor_poe_o_papel_no_perfil_e_a_api_como_membro() -> None
         acesso.sql_do_consumidor("Ana; DROP", "socio")
     with pytest.raises(StopIteration):
         acesso.sql_do_consumidor("ana", "diretoria")
+
+
+def test_o_docs_18_cita_todo_caminho_do_contrato_e_toda_opcao_da_cli() -> None:
+    """O `docs/18` é escrito à mão, mas o contrato e a CLI saem do código: caminho ou opção
+    nova sem menção no documento reprova aqui."""
+    from pathlib import Path
+
+    texto = (Path(__file__).resolve().parents[1] / "docs" / "18_api.md").read_text(encoding="utf-8")
+    esquema = TestClient(modulo_app.criar_app(LeitorFalso())).get("/v1/openapi.json").json()
+    faltando = [c for c in esquema["paths"] if f"`GET {c}`" not in texto]
+    faltando += [
+        o
+        for o in (
+            "--preparar",
+            "--consumidor",
+            "--sql-consumidor",
+            "--token",
+            "--revogar",
+            "--servir",
+        )
+        if o not in texto
+    ]
+    assert faltando == []
+    for codigo in ("401", "403", "422", "200 com lista vazia"):
+        assert f"| {codigo} |" in texto, codigo
