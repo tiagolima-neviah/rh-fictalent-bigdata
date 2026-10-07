@@ -245,6 +245,26 @@ Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de 
 
 **A esteira prova a venv, não a imagem.** Se a mudança tocou dependência (`pyproject.toml`) ou arquivo que o Dagster lê ao carregar (a DDL, os dados que um asset abre), reconstrua a imagem antes de rodar a esteira: `docker compose up -d --build dagster-web dagster-daemon && bash scripts/saude.sh`. O `test_saude` fala com o container que está de pé; se ele ainda for o da versão anterior, o teste passa e a imagem nova quebra. Foi assim na v0.5.0: a fábrica de assets lia a DDL no import, a imagem não a carregava, e a code location subiu com zero assets.
 
+**O rito do card, pelo terminal.** Com a esteira verde, o card vai para a `develop` por PR, e o PR inteiro cabe no terminal com a CLI do GitHub (`gh`, instalação em [Instalação, seção 1](07_instalacao_e_reproducao.md); a autenticação, `gh auth login`, é de quem tem a conta). O `gh` encontra o repositório pelo remoto, inclusive quando o remoto usa um apelido de host do `~/.ssh/config`. Quatro comandos, e o quinto é só conferência:
+
+```bash
+git push -u origin "$(git branch --show-current)" && gh pr create --base develop --fill
+```
+
+```bash
+gh pr checks --watch
+```
+
+```bash
+gh pr merge --merge --delete-branch
+```
+
+```bash
+git pull --ff-only && git log -1 --oneline
+```
+
+O `--fill` tira o título e o corpo do PR da mensagem do commit (com mais de um commit, do primeiro; `--title` troca o título). O `--watch` espera os três trilhos da CI e sai com erro se algum falhar, que é o momento de parar. O `--merge` faz o mesmo merge que o botão da interface (um commit de merge, como a `develop` sempre recebeu), e o `--delete-branch` apaga a branch no remoto e na máquina e volta para a `develop`. O `git pull --ff-only` traz o commit de merge, e o hash que ele imprime é o que vai para o registro do card. O que não precisa: `git branch` para ver em que branch está (o `checkout` e o `merge` já dizem), `git status` depois de um pull em fast-forward (não há como a árvore estar suja) e o print da CI (o merge só existe porque a CI passou: a `develop` é protegida).
+
 ## 8. O rito de uma versão
 
 Cada fase fechada vira versão publicável ([ADR-0008](adr/0008-gitflow-por-versao-publicavel.md)). O rito tem

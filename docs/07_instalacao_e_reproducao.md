@@ -17,10 +17,11 @@
 | uv | 0.11 ou mais novo | dependências, venv e lock | `uv --version` |
 | git | qualquer recente | clonar e contribuir | `git --version` |
 | openssl | qualquer | gerar as senhas do `.env` | `openssl version` |
+| gh (opcional) | 2.40 ou mais novo | o rito do PR pelo terminal ([Manual, seção 7](08_manual_de_operacao.md)) | `gh --version` |
 
 Máquina: **8 GB de RAM** no mínimo (16 recomendado), 4 núcleos, 20 GB livres em disco. Em repouso a plataforma usa cerca de 1,4 GB; gerar a base sintética pede mais 2,5 GB livres por alguns minutos. No Windows, use o WSL2 com Docker Desktop ou o Docker dentro da distribuição; tudo abaixo é Linux.
 
-Instalar o uv, se faltar: <https://docs.astral.sh/uv/getting-started/installation/>.
+Instalar o uv, se faltar: <https://docs.astral.sh/uv/getting-started/installation/>. O `gh`, no Ubuntu e no Debian, vem do repositório oficial do GitHub (<https://github.com/cli/cli/blob/trunk/docs/install_linux.md>); depois, `gh auth login` uma vez, escolhendo SSH como protocolo do git para continuar usando a sua chave.
 
 ## 2. Clonar e preparar o ambiente Python
 
