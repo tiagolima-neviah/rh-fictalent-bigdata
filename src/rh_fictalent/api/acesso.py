@@ -29,6 +29,8 @@ if TYPE_CHECKING:
 ESQUEMA = rls.ESQUEMA_ACESSO
 TABELA = "token"
 FUNCAO = "papel_do_token"
+PEDIDOS = "pedido"
+REGISTRO = "registrar_pedido"
 USUARIO = "api"
 PAPEL_VALIDO = re.compile(r"^[a-z][a-z0-9_]{1,62}$")
 
@@ -48,6 +50,7 @@ def _papel(papel: str) -> str:
 def sql_de_preparo(usuario: str = USUARIO, esquema: str = ESQUEMA) -> str:
     """A tabela de tokens, a função que a lê e o que o usuário `api` pode; sem a senha."""
     tabela, funcao = f"{esquema}.{TABELA}", f"{esquema}.{FUNCAO}"
+    pedidos, registro = f"{esquema}.{PEDIDOS}", f"{esquema}.{REGISTRO}"
     return (
         "\n".join(
             [
@@ -63,6 +66,15 @@ def sql_de_preparo(usuario: str = USUARIO, esquema: str = ESQUEMA) -> str:
                 f"REVOKE ALL ON FUNCTION {funcao}(text) FROM PUBLIC;",
                 f"GRANT USAGE ON SCHEMA {esquema} TO {usuario};",
                 f"GRANT EXECUTE ON FUNCTION {funcao}(text) TO {usuario};",
+                # a trilha dos pedidos: quem pediu o quê, com que resposta; a API só insere, por função
+                f"CREATE TABLE IF NOT EXISTS {pedidos} (id bigserial PRIMARY KEY, instante timestamptz NOT NULL DEFAULT now(), papel text, caminho text NOT NULL, codigo integer NOT NULL);",
+                f"COMMENT ON TABLE {pedidos} IS 'Cada pedido à API: o papel do consumidor (nulo sem token válido), o caminho e o código da resposta; a trilha de auditoria da API.';",
+                f"CREATE INDEX IF NOT EXISTS ix_{PEDIDOS}_instante ON {pedidos} (instante);",
+                f"REVOKE ALL ON {pedidos} FROM PUBLIC;",
+                f"CREATE OR REPLACE FUNCTION {registro}(p text, c text, k integer) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path = pg_catalog, pg_temp",
+                f"  AS $$ INSERT INTO {pedidos} (papel, caminho, codigo) VALUES ($1, $2, $3) $$;",  # noqa: S608 # nosec B608
+                f"REVOKE ALL ON FUNCTION {registro}(text, text, integer) FROM PUBLIC;",
+                f"GRANT EXECUTE ON FUNCTION {registro}(text, text, integer) TO {usuario};",
             ]
         )
         + "\n"

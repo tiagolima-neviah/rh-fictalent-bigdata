@@ -53,6 +53,7 @@ def criar_app(
         return app.state.leitor  # type: ignore[no-any-return]
 
     def consumidor(
+        request: Request,
         credenciais: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
     ) -> str:
         if credenciais is None or not credenciais.credentials:
@@ -62,6 +63,7 @@ def criar_app(
         papel = leitor_atual().papel_do_token(credenciais.credentials)
         if papel is None:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token desconhecido ou vencido")
+        request.state.papel = papel
         return papel
 
     Papel = Annotated[str, Depends(consumidor)]
@@ -167,6 +169,16 @@ def criar_app(
         papel: Papel, escopo: Annotated[int, Query(description="o id em /v1/mercado/escopos", ge=1)]
     ) -> Any:
         return como(papel, consultas.mercado_do_escopo(e), escopo=escopo)
+
+    @app.middleware("http")
+    async def _trilha(request: Request, call_next: Any) -> Any:
+        """Todo pedido a /v1 vai para a trilha: o papel (nulo sem token válido), o caminho e o código."""
+        resposta = await call_next(request)
+        caminho = request.url.path
+        if caminho.startswith(f"/{VERSAO}/") and not caminho.endswith(("/docs", "/openapi.json")):
+            papel = getattr(request.state, "papel", None)
+            leitor_atual().registrar_pedido(papel, caminho, resposta.status_code)
+        return resposta
 
     @app.exception_handler(HTTPException)
     async def _erro(_: Request, exc: HTTPException) -> JSONResponse:

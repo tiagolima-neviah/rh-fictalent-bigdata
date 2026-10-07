@@ -92,6 +92,7 @@ class LeitorFalso:
     def __init__(self, vivo: bool = True) -> None:
         self.vivo = vivo
         self.chamadas: list[tuple[str, str, dict[str, Any]]] = []  # papel, SQL, parâmetros
+        self.trilha: list[tuple[str | None, str, int]] = []  # papel, caminho, código
 
     def papel_do_token(self, token: str) -> str | None:
         return TOKENS.get(token)
@@ -110,6 +111,9 @@ class LeitorFalso:
 
     def saudavel(self) -> bool:
         return self.vivo
+
+    def registrar_pedido(self, papel: str | None, caminho: str, codigo: int) -> None:
+        self.trilha.append((papel, caminho, codigo))
 
 
 @pytest.fixture
@@ -133,6 +137,10 @@ def test_sem_token_ou_com_token_desconhecido_e_401(
     resposta = cliente.get("/v1/filiais", headers=_como("x" * 40))
     assert resposta.status_code == 401 and "desconhecido" in resposta.json()["detalhe"]
     assert leitor.chamadas == []  # sem token válido, o banco nem é consultado
+    assert leitor.trilha == [
+        (None, "/v1/filiais", 401),
+        (None, "/v1/filiais", 401),
+    ]  # mas a trilha registra
 
 
 def test_a_consulta_roda_como_o_papel_do_token(cliente: TestClient, leitor: LeitorFalso) -> None:
@@ -142,6 +150,7 @@ def test_a_consulta_roda_como_o_papel_do_token(cliente: TestClient, leitor: Leit
     assert resposta.json() == [
         {"status": "NORMAL", "dias": 20, "pessoas": 1, "horas_trabalhadas": 160.0}
     ]
+    assert leitor.trilha[-1] == ("ana", "/v1/postos/42/ponto", 200)
     papel, consulta, parametros = leitor.chamadas[-1]
     assert papel == "ana" and parametros == {"posto": 42, "mes": 202409}
     assert consulta == consultas.ponto_do_posto(consultas.Esquemas()).as_string()
