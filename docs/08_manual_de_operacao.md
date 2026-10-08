@@ -341,25 +341,7 @@ Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manua
 
 ## 10. Quando algo não sobe
 
-| sintoma | causa provável | o que fazer |
-|---|---|---|
-| `required variable ... is missing a value` | falta uma senha no `.env` | complete o `.env` (seção 2) |
-| `port is already allocated` | outra aplicação usa a porta | troque a porta correspondente no `.env` |
-| `mysql-staging` fica em `health: starting` por mais de um minuto | primeira inicialização do MySQL | normal na primeira subida; acompanhe com `docker compose logs -f mysql-staging` |
-| `dagster-daemon` `unhealthy` logo depois de subir | o daemon ainda não publicou o primeiro sinal de vida | espere o `start_period` (60 s); se persistir, `docker compose logs dagster-daemon` |
-| Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
-| `mysql-staging` não sobe e o log fala em `keyring` ou `Component_keyring_file` | o volume da chave não está acessível ao usuário do MySQL, ou o manifesto não foi montado | `docker compose logs keyring-init mysql-staging`; confira que `infra/mysql/mysqld.my` e `component_keyring_file.cnf` existem |
-| a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
-| containers de pé e `healthy`, mas `dagster-daemon` ou `dagster-web` `unhealthy` com `connection to server at "pg-dagster" ... timed out` no log | a rede bridge do Docker quebrou (em geral depois de a máquina reiniciar ou hibernar): o DNS resolve, o TCP não passa, e **nenhum** container alcança outro. `restart`, `down`/`up` e recriar o container não resolvem, porque o problema é no `dockerd` | primeiro `docker compose down` (**sem** `-v`) e `docker compose up -d`, que recria a rede e preserva os volumes (resolveu em 23/09 e 24/09); se não bastar, `sudo systemctl restart docker` e de novo `docker compose up -d && bash scripts/saude.sh` |
-| `required variable PSEUDONIMIZACAO_SEGREDO is missing a value` | `.env` anterior à v0.6.0 | gere o segredo com o comando da seção 2; nada mais muda |
-| a silver falha com `sem marca d'água: rode o job carga_incremental` | a silver foi pedida logo depois do backfill, antes de qualquer carga incremental | rode `carga_incremental` uma vez; ela cria a marca e dispara a silver |
-| a prestação de contas reprova as regras do candidato logo depois de recopiar uma tabela | a recópia trouxe o dado pessoal de volta e o descarte ainda não rodou | rode `construir_silver` (ou espere a próxima carga): o descarte registra o elo e a cadeia fecha |
-| um passo falha com `ChildProcessCrashException`, sem mais nada no erro | o kernel matou o processo do passo por falta de memória no container do daemon, que é quem executa agenda, sensor e o que a interface lança | confirme com `dmesg \| grep -i 'out of memory'`; o teto do daemon está em `compose.yaml` (3 GB) e o do DuckDB por passo em `DUCKDB_MEMORY_LIMIT` |
-| a silver falha com `defina PSEUDONIMIZACAO_SEGREDO no .env` | o container subiu sem o segredo | complete o `.env` e recrie os containers do Dagster: `docker compose up -d dagster-web dagster-daemon` |
-| o log do `mysql-staging` mostra `XA crash recovery` na subida | a máquina foi desligada com os containers de pé | desta vez deu certo; da próxima, `docker compose stop` antes de desligar (seção 4) |
-| um leitor do warehouse vê zero linhas em todo fato | o papel dele é de filial (coordenação ou assistente) e não tem linha em `acesso.filial_do_papel`: o RLS fecha por padrão | o administrador insere o papel e a filial na tabela de acesso (`docs/17`, seção 5) |
-| `permission denied for table candidato` num `SELECT *` | o perfil não tem as colunas de atributo de pessoa; o asterisco pede todas | nomeie as colunas; se o perfil precisa do atributo, a declaração em `gold/dcl.py` é o lugar de mudar, com teste |
-| `warehouse/fato/...` falha com `não confere com o parquet` | a tabela do Postgres foi alterada por fora, ou a gold foi republicada no meio da carga | rode `carregar_warehouse` de novo: a carga por partição substitui o ano inteiro e a conferência volta a fechar |
+A lista de tudo o que já quebrou, com o sintoma, a causa provada e o que resolveu, mudou de casa: está em [Solução de problemas](20_solucao_de_problemas.md), por área (subir a plataforma; silver, LGPD e a cadeia do dia; warehouse, acesso e API; backup e ferramentas), com o método de investigar antes da tabela. O primeiro passo continua sendo o mesmo: `bash scripts/saude.sh` diz o que está de pé e o que não está, e `docker compose logs <serviço>` diz por quê.
 
 ---
 

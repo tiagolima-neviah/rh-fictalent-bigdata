@@ -145,6 +145,7 @@ rh-fictalent-bigdata/
 
 - [08 · Manual de Operação](docs/08_manual_de_operacao.md): subir, verificar a saúde, parar, reiniciar e recuperar a plataforma; Dagster, logs, métricas e a chave de cifra.
 - [09 · Monitoramento e Healthcheck](docs/09_monitoramento_e_healthcheck.md): as três camadas, o painel indicador a indicador, os alertas, como investigar uma execução e a rotina.
+- [10 · Auditoria](docs/10_auditoria.md): onde está cada trilha (acesso, alteração, exportação, exclusão, execuções, descartes, quem lê o warehouse, a API), as treze perguntas prontas sem dado pessoal, o relatório em pasta e o que a base de hoje responde.
 - [11 · Ingestão](docs/11_ingestao.md): as três naturezas de fonte, a bronze, o backfill, a carga incremental por marca d'água, as exclusões, a planilha com esquema e os dias correntes, com os tempos medidos.
 - [12 · Bronze](docs/12_bronze.md): o que o lake guarda e o que a camada promete, os tipos do MySQL ao parquet e os dois defeitos que a auditoria achou, como ler a bronze com SQL, como conferir que ela ainda é o espelho da réplica, o dado pessoal e o descarte, e a investigação da queda de conexão com o lake.
 - [Auditoria de qualidade](notebooks/auditoria/README.md): os dez notebooks da auditoria às cegas da bronze, um por domínio e um de fechamento, executados e versionados; como rodar e o que sai deles.
@@ -156,7 +157,8 @@ rh-fictalent-bigdata/
 - [17 · Warehouse Postgres](docs/17_warehouse_postgres.md): a DDL gerada do modelo, a carga por partição conferida contra o parquet, quem lê o quê (os perfis de negócio, sem atributo de pessoa fora da necessidade), cada filial enxergando só as próprias linhas, os índices medidos por plano de execução e a cadeia do dia fechada por sensores.
 - [18 · API dos indicadores](docs/18_api.md): a gold servida do warehouse com o banco decidindo quem vê o quê, o contrato `/v1`, o rito de cadastrar consumidor e token, como testar com `curl`, os erros, a operação e os testes de acesso negado.
 
-Os demais manuais (auditoria, backup e restauração) entram com as versões em que cada assunto passa a existir; solução de problemas está na seção 10 do manual de operação.
+- [19 · Backup e restauração](docs/19_backup_e_restauracao.md): o que se guarda e por quê, fazer, provar em alvos descartáveis, restaurar de verdade, a pasta como dado pessoal, os tempos medidos.
+- [20 · Solução de problemas](docs/20_solucao_de_problemas.md): como investigar, e tudo o que já quebrou, com o sintoma, a causa provada e o que resolveu.
 
 </details>
 

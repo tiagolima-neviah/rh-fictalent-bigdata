@@ -3,7 +3,7 @@
 # API dos indicadores · a gold servida do warehouse, com o banco decidindo quem vê o quê
 
 <!-- nav:start -->
-[Home](../README.md) | [← Warehouse Postgres](17_warehouse_postgres.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [← Warehouse Postgres](17_warehouse_postgres.md) | [Backup e restauração →](19_backup_e_restauracao.md)
 <!-- nav:end -->
 
 > A API REST (`rh_fictalent.api`, FastAPI) é a porta pela qual o painel, um terceiro ou um teste leem os indicadores da [Gold](16_gold.md), servidos do [Warehouse Postgres](17_warehouse_postgres.md). Ela tem contrato (cada campo descrito, OpenAPI gerada do código), versão (`/v1`), um token por consumidor e um `/saude`. O que a diferencia de uma API comum é que **ela não decide quem vê o quê**: cada consumidor é um papel do Postgres, e a API assume esse papel a cada pedido, de modo que o controle de acesso por área e o isolamento por filial da v0.7.0 valem na porta HTTP sem uma linha de permissão no código. Este documento explica o desenho, o contrato, o rito de cadastrar um consumidor, como testar com `curl`, os erros, a operação e o que ainda não existe. Dado 100 % sintético; não usar em produção.

@@ -149,3 +149,15 @@ def test_o_backup_pequeno_se_restaura_e_confere(tmp_path: Path) -> None:
         "SELECT datname FROM pg_database WHERE datname LIKE '%_prova'",
     )
     assert bancos == []
+
+
+def test_o_docs_19_cita_toda_parte_e_toda_opcao() -> None:
+    texto = (RAIZ / "docs" / "19_backup_e_restauracao.md").read_text(encoding="utf-8")
+    faltando = [p for p in rotinas.PARTES if f"`{p}`" not in texto]
+    faltando += [
+        o for o in ("--fazer", "--provar", "--restaurar", "--sim", "--parte") if o not in texto
+    ]
+    faltando += [
+        a for a in ("_prova_restauracao", "dw_fictalent_prova", "manifesto.json") if a not in texto
+    ]
+    assert faltando == []
