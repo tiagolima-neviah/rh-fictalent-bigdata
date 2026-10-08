@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 import socket
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -235,3 +235,17 @@ def test_replica_tem_o_financeiro_e_bate_com_as_planilhas() -> None:
     assert float(sum(x[2] for x in na_replica)) == pytest.approx(
         float(nas_planilhas["Faturamento (R$)"].sum()), abs=0.05
     )
+
+
+def test_a_planilha_sai_byte_a_byte_igual_em_duas_gravacoes(
+    gerado: tuple[nucleo.Tabelas, dict[str, Any]], tmp_path: Path
+) -> None:
+    """O openpyxl carimba a hora da gravação; o gerador a fixa no fechamento do ano, e por isso o
+    `git status` fica limpo depois de gerar a base (promessa do docs/07, quebrada até a v1.0.0)."""
+    from openpyxl import load_workbook
+
+    primeira = e5.escrever_planilhas(*gerado, pasta=tmp_path / "a")
+    segunda = e5.escrever_planilhas(*gerado, pasta=tmp_path / "b")
+    assert [p.read_bytes() for p in primeira] == [p.read_bytes() for p in segunda]
+    propriedades = load_workbook(primeira[6]).properties
+    assert propriedades.modified == propriedades.created == datetime(2024, 12, 31, 18, 0)

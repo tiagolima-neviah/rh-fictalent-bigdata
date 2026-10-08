@@ -98,3 +98,16 @@ def test_replica_tem_as_linhas_do_laudo() -> None:
     assert {nome: float(n) for nome, n in contadas.items()} == {
         nome: versionadas[nome] for nome in bandas.LINHAS
     }
+
+
+def test_o_aceite_com_a_bronze_vazia_avisa_e_nao_gera(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Antes do backfill o C-06 não tem o que medir: o aceite diz isso e sai INCOMPLETO sem gastar
+    os minutos de geração nem reescrever o laudo (achado da reprodução do zero, 08/10/2026)."""
+    from rh_fictalent.lake import consulta
+    from rh_fictalent.orquestracao.recursos import Lake
+
+    monkeypatch.setattr(consulta, "bronze_vazia", lambda lake: True)
+    monkeypatch.setattr(aceite, "gerar_e_medir", lambda: pytest.fail("gerou mesmo sem bronze"))
+    lake = Lake(endpoint="http://127.0.0.1:1", chave="k", segredo="s", bucket="b")
+    codigo = aceite.executar(_ReplicaDeMentira({}), lake, leitor=_ReplicaDeMentira({}))
+    assert codigo == aceite.SAIDA[Veredito.INCOMPLETA]

@@ -76,7 +76,7 @@ Visão geral, com o estado de saúde de cada serviço:
 docker compose ps
 ```
 
-Resultado esperado: sete serviços com `(healthy)` e os jobs `s3-init` e `keyring-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
+Resultado esperado: oito serviços com `(healthy)` e os jobs `s3-init` e `keyring-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
 
 Esperar até tudo ficar saudável, sem precisar ficar repetindo o comando:
 
@@ -273,8 +273,11 @@ Cada fase fechada vira versão publicável ([ADR-0008](adr/0008-gitflow-por-vers
 **cinco passos, nesta ordem**, e a ordem importa: quem cria a tag antes do merge marca o commit errado, e quem
 faz o back-merge duas vezes descobre na recusa do push.
 
-**1. O card de fechamento.** Uma branch como qualquer outra, com o `CHANGELOG.md` da versão e o status no
-`README.md`. Entra em `develop` por PR, com a CI verde.
+**1. O card de fechamento.** Uma branch como qualquer outra, com o `CHANGELOG.md` da versão, o status no
+`README.md` e **a versão em três lugares**: `version` no `pyproject.toml`, o `uv.lock` (que o `uv sync` reescreve
+com ela) e a tag da imagem `fictalent/dagster:X.Y.Z` nas três ocorrências do `compose.yaml`. Entra em `develop`
+por PR, com a CI verde. A v0.7.0 esqueceu a versão, e o `pyproject` ficou em 0.6.0 até a v1.0.0: por isso o
+passo está escrito.
 
 **2. A versão: PR de `develop` para `main`.** Pela interface do GitHub, base `main`, comparação `develop`,
 título `vX.Y.Z · Nome da fase`. Espere a CI e faça o merge. **É este merge que a tag vai marcar.**

@@ -145,10 +145,15 @@ n=$(grafana_api "/api/v1/provisioning/alert-rules" | grep -o '"uid": *"fictalent
 [ "${n:-0}" = "2" ] && ok "2 regras de alerta provisionadas" || falha "regras de alerta: $n (esperadas 2)"
 
 echo "API"
-curl -s "$API/saude" | grep -q '"situacao":"ok"' && ok "responde em /saude e alcança o warehouse" || falha "API: /saude não está ok em $API"
+# Antes do --preparar não existe o usuário api no warehouse: a API sobe, responde /saude como
+# degradada e isso é o estado normal de uma plataforma recém-nascida (aviso, não falha).
+n=$(psql_admin "SELECT count(*) FROM acesso.token")
+saude_api=$(curl -s "$API/saude")
+if echo "$saude_api" | grep -q '"situacao":"ok"'; then ok "responde em /saude e alcança o warehouse"
+elif [ -z "$n" ] && echo "$saude_api" | grep -q '"situacao":"degradada"'; then aviso "API de pé, ainda sem o usuário api no warehouse (normal antes de python -m rh_fictalent.api --preparar)"
+else falha "API: /saude não está ok em $API"; fi
 codigo=$(curl -s -o /dev/null -w '%{http_code}' "$API/v1/filiais")
 [ "$codigo" = "401" ] && ok "sem token, /v1 responde 401" || falha "sem token, /v1 respondeu $codigo (esperado 401)"
-n=$(psql_admin "SELECT count(*) FROM acesso.token")
 if [ -z "$n" ]; then aviso "tabela de tokens ausente: rode python -m rh_fictalent.api --preparar"
 elif [ "$n" = "0" ]; then aviso "nenhum token cadastrado ainda (python -m rh_fictalent.api --token <papel>)"
 else ok "$n tokens cadastrados"; fi
