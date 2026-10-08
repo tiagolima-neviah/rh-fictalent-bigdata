@@ -124,6 +124,15 @@ def executar(
     """`replica` conta as linhas gravadas (o replicador, que as gravou); `leitor` é o usuário
     de leitura do pipeline, o único que enxerga a trilha em `meta`, e é quem mede a
     conservação junto com o lake."""
+    if leitor is not None and lake is not None:
+        from rh_fictalent.lake import consulta
+
+        if consulta.bronze_vazia(lake):
+            print(
+                "bronze vazia: o C-06 mede a conservação réplica → bronze e precisa do backfill "
+                "(docs/07, seção 7, passo 1); nada foi gravado"
+            )
+            return SAIDA[Veredito.INCOMPLETA]
     medidas, linhas = gerar_e_medir()
     conservacao = None
     if leitor is not None and lake is not None:

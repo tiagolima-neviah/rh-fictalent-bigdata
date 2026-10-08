@@ -109,7 +109,7 @@
 
 | etapa | ferramenta | o que ela faz aqui | por que ela, e não outra |
 |---|---|---|---|
-| infraestrutura | **Docker Compose** | sobe os 7 serviços e os 2 jobs de inicialização com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
+| infraestrutura | **Docker Compose** | sobe os 8 serviços e os 2 jobs de inicialização com um comando, com healthcheck, reinício automático e portas só em localhost | o analista roda o projeto inteiro na própria máquina |
 | versionamento | **Git + Gitflow** | ramo por funcionalidade, `develop` de integração, versão marcada em `main` | é o fluxo que as equipes de dados maiores exigem |
 | staging | **MySQL 8** | a réplica autorizada do sistema do cliente, de onde o pipeline lê | é o motor mais provável do sistema próprio de uma PME, e o que o mercado pede é saber **ingerir de** MySQL. Fecha a terceira técnica de carga incremental da série (Fictitur: coluna temporal; Fictoria: `rowversion`; Fictalent: a partir de MySQL). [ADR-0001](adr/0001-mysql-no-staging-postgres-no-olap.md) |
 | ingestão relacional | **leitor com saída Arrow** (ADBC, se houver driver MySQL maduro; senão ConnectorX) | traz o dado do MySQL em lotes colunares | não estoura a memória e preserva os tipos. A escolha é medida e registrada em ADR na v0.5.0 |

@@ -103,6 +103,11 @@ def catalogo(lake: Lake) -> list[View]:
     return views
 
 
+def bronze_vazia(lake: Lake) -> bool:
+    """Verdadeiro antes do backfill: nenhum parquet de tabela da réplica na bronze."""
+    return not lake.sistema().glob(lake.caminho(CAMADA, "*", "*", "ano=*.parquet"))
+
+
 def _apontar_para_o_lake(con: duckdb.DuckDBPyConnection, lake: Lake) -> None:
     """O `httpfs` do DuckDB com a credencial e o endereço do recurso `Lake`, e nada além."""
     pasta = os.environ.get(VARIAVEL_DAS_EXTENSOES)

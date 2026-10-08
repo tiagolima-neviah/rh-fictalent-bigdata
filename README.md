@@ -76,11 +76,11 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 
 ## Requisitos
 
-O projeto sobe sete serviços em containers. Em repouso, a plataforma inteira ocupou **cerca de 1,4 GB de RAM** (medido na v0.2.0, ainda sem dados); com a base sintética gerada, a réplica ocupa cerca de **1,5 GB** em disco e o gerador pede até 2,4 GB de RAM por alguns minutos; a referência é **8 GB de RAM no mínimo (16 GB recomendado)**, 4 núcleos e cerca de 20 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
+O projeto sobe oito serviços em containers. Em repouso, a plataforma inteira ocupou **cerca de 1,4 GB de RAM** (medido na v0.2.0, ainda sem dados); com a base sintética gerada, a réplica ocupa cerca de **1,5 GB** em disco e o gerador pede até 2,4 GB de RAM por alguns minutos; a referência é **8 GB de RAM no mínimo (16 GB recomendado)**, 4 núcleos e cerca de 20 GB livres em disco. O que precisa estar instalado: **Docker** (com Compose), **Python 3.12** e **git**. O gerenciamento de dependências é feito com [uv](https://docs.astral.sh/uv/).
 
 ## Como rodar (estado atual)
 
-O projeto está em construção. Na v0.7.0 já é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026, **ingeri-la na bronze do lake**, chegar à **silver pseudonimizada, com prestação de contas**, à **gold provada antes de publicar** e ao **warehouse Postgres com perfis de leitura e isolamento por filial**, com a cadeia diária inteira rodando sozinha:
+Na v1.0.0 é possível subir a plataforma inteira (réplica cifrada e com controle de acesso, warehouse, lake, Dagster, Grafana com painel e alertas, API), **gerar a base sintética da Fictalent** de 2018 a setembro de 2026, **ingeri-la na bronze do lake**, chegar à **silver pseudonimizada, com prestação de contas**, à **gold provada antes de publicar** e ao **warehouse Postgres com perfis de leitura e isolamento por filial**, com a cadeia diária inteira rodando sozinha:
 
 ```bash
 cp .env.example .env        # e gere as senhas: o manual tem o comando pronto
@@ -90,10 +90,10 @@ bash scripts/saude.sh       # espera tudo ficar saudável e diz o que falhou
 
 ```bash
 .venv/bin/python -m rh_fictalent.gerador --etapa 1 --gravar --zerar && for e in 2 3 4 5 6; do .venv/bin/python -m rh_fictalent.gerador --etapa $e --gravar || break; done
-.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # RÉGUA APROVADA: 166 de 166
+.venv/bin/python -m rh_fictalent.gerador --aceite --replica   # depois do backfill: RÉGUA APROVADA: 166 de 166
 ```
 
-São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. Depois, o backfill pela interface do Dagster (<http://127.0.0.1:3010>, job `backfill_bronze`, backfill das nove partições) leva a réplica inteira para o lake em cerca de 2 minutos, e a carga incremental das 5h traz só o que mudou; como o dado entra, e quanto custa, está em [Ingestão](docs/11_ingestao.md). Ao fim de cada carga incremental, o pipeline descarta o dado pessoal vencido e refaz a silver sozinho, em cerca de 3 minutos: 76 tabelas pseudonimizadas, cada uma conferida contra a bronze antes de publicar, e a prestação de contas das 34 regras aprovadas no catálogo ([Bronze](docs/12_bronze.md), [Catálogo de achados](docs/13_catalogo_de_achados.md), [Silver](docs/14_silver.md)). Depois da silver, a gold e o warehouse seguem sozinhos, por sensor: o modelo dimensional da matriz de barramento (11 dimensões, 14 fatos, 1,68 milhão de linhas) é montado e provado em cerca de 1 minuto, e o Postgres o recebe em pouco mais de 2, com perfis de leitura por área, isolamento por filial e índices medidos ([Matriz de barramento](docs/15_matriz_de_barramento.md), [Gold](docs/16_gold.md), [Warehouse Postgres](docs/17_warehouse_postgres.md)). O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
+São cerca de 7 minutos para 8,4 milhões de linhas em 76 tabelas, com o mesmo resultado em qualquer máquina. Depois, o backfill pela interface do Dagster (<http://127.0.0.1:3010>, job `backfill_bronze`, backfill das nove partições) leva a réplica inteira para o lake em cerca de 2 minutos, e a carga incremental das 5h traz só o que mudou; como o dado entra, e quanto custa, está em [Ingestão](docs/11_ingestao.md). Ao fim de cada carga incremental, o pipeline descarta o dado pessoal vencido e refaz a silver sozinho, em cerca de 3 minutos: 76 tabelas pseudonimizadas, cada uma conferida contra a bronze antes de publicar, e a prestação de contas das 34 regras aprovadas no catálogo ([Bronze](docs/12_bronze.md), [Catálogo de achados](docs/13_catalogo_de_achados.md), [Silver](docs/14_silver.md)). Depois da silver, a gold e o warehouse seguem sozinhos, por sensor: o modelo dimensional da matriz de barramento (11 dimensões, 14 fatos, 1,68 milhão de linhas) é montado e provado em cerca de 1 minuto, e o Postgres o recebe em pouco mais de 2, com perfis de leitura por área, isolamento por filial e índices medidos ([Matriz de barramento](docs/15_matriz_de_barramento.md), [Gold](docs/16_gold.md), [Warehouse Postgres](docs/17_warehouse_postgres.md)). Por cima do warehouse, a **API REST** serve os indicadores com o banco decidindo quem vê o quê ([API](docs/18_api.md)); a **trilha de auditoria** responde treze perguntas sem dado pessoal ([Auditoria](docs/10_auditoria.md)); o **backup** guarda réplica, chave, warehouse, Dagster e lake e prova que restaura antes de precisar ([Backup e restauração](docs/19_backup_e_restauracao.md)); e o mesmo warehouse pode ser carregado num **Postgres em nuvem** gratuito, para quem quer o painel fora da máquina ([Warehouse, seção 10](docs/17_warehouse_postgres.md)). O passo a passo completo do zero, com requisitos, geração das senhas e verificação, está em [Instalação e Reprodução](docs/07_instalacao_e_reproducao.md); o que a régua confere, em [Régua de Validação](docs/06_regua_de_validacao.md); o dia a dia, no [Manual de Operação](docs/08_manual_de_operacao.md).
 
 ## Qualidade e segurança a cada mudança
 
@@ -106,7 +106,7 @@ rh-fictalent-bigdata/
 ├── docs/                    # a documentação navegável (leia na ordem)
 │   ├── adr/                 # registros de decisão: que necessidade do caso cada tecnologia atende
 │   └── dicionario/          # dicionário de dados gerado da information_schema
-├── compose.yaml             # a plataforma inteira: 7 serviços com healthcheck
+├── compose.yaml             # a plataforma inteira: 8 serviços com healthcheck e 2 jobs de inicialização
 ├── infra/                   # Dockerfile do Dagster, inicialização dos bancos, keyring da réplica, provisionamento do Grafana
 ├── staging/                 # DDL da réplica (MySQL), módulo a módulo, e os gatilhos gerados
 ├── dados/publicos/          # tabelas de fonte pública (Novo CAGED, IBGE, BrasilAPI), cada uma com a fonte; o bruto fica fora do git
@@ -121,10 +121,17 @@ rh-fictalent-bigdata/
 │   ├── fontes/              # fontes públicas: CAGED (FTP, agregação) e APIs (IBGE, BrasilAPI) com retry e limite de taxa
 │   ├── gerador/             # o gerador determinístico dos dados sintéticos
 │   ├── validacao/           # a régua: bandas e checks de aceite
-│   ├── bronze/  silver/  gold/   # as camadas do lake
-│   └── warehouse/           # carga do star schema no destino
-├── notebooks/               # auditoria de qualidade e demonstrações
-└── tests/                   # esteira de qualidade (ruff, mypy, pytest) e as provas da réplica
+│   ├── ingestao/  lake/     # a bronze: backfill, carga incremental por marca d'água, exclusões; o lake por fsspec
+│   ├── auditoria/           # a auditoria de qualidade às cegas: checagens, achados, executor dos notebooks
+│   ├── bronze/  silver/  gold/   # as camadas do lake: leitura por SQL, pseudonimização e descarte, modelo dimensional
+│   ├── lgpd/                # o descarte de dado pessoal por retenção e a cadeia de custódia
+│   ├── warehouse/           # a DDL gerada do modelo e a carga por partição no Postgres
+│   ├── api/                 # a API REST dos indicadores (FastAPI), com o banco decidindo quem vê o quê
+│   ├── trilha/              # as treze perguntas de auditoria, sem dado pessoal
+│   ├── backup/              # backup, prova de restauração em alvos descartáveis e restauração
+│   └── observabilidade/     # logs em JSON e as métricas por execução
+├── scripts/                 # saude.sh, esteira.sh, aplicar_ddl.sh, medir_cifra.sh
+└── tests/                   # esteira de qualidade (ruff, mypy, pytest) e as provas sobre a plataforma de pé
 ```
 
 ## Documentação
