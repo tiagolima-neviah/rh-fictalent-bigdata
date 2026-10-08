@@ -2,6 +2,32 @@
 
 Cada versão fecha uma fase inteira, com código, testes e documentação. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.0.0] · 2026-10-08 · Servir, auditar e fechar
+
+O backend inteiro, do sistema do cliente à API, fechado e provado: a gold é **servida** por uma API em que o banco decide quem vê o quê, a plataforma **responde a um auditor** com treze perguntas sem dado pessoal, o **backup prova que restaura** antes de alguém precisar, o mesmo warehouse vive num Postgres gratuito em nuvem, e o manual inteiro foi seguido numa máquina que nunca tinha visto o projeto. O que vem depois é consumo (painel web, Power BI, Tableau), noutro repositório.
+
+### API dos indicadores
+- `rh_fictalent.api` (FastAPI): o contrato `/v1` com oito rotas (saúde, filiais, resultado da filial, Pareto dos clientes, ponto do posto, funil, escopos e mercado), servido do warehouse por um usuário `api` **sem direito a tabela nenhuma**, que a cada pedido assume o papel do consumidor com `SET LOCAL ROLE`: o DCL e a RLS do Postgres valem para a API sem uma linha de código de autorização. Token guardado só como SHA-256 em `acesso.token`, função `papel_do_token`, 401 sem token, 403 quando o banco recusa, 422 para parâmetro errado; todo pedido deixa trilha em `acesso.pedido`.
+- CLI para preparar o usuário, cadastrar consumidor (papel de login no perfil, com as filiais da RLS) e token (lido do teclado, nunca de argumento), revogar e servir; serviço `api` no Compose (porta 8010, só localhost); `saude.sh` com três provas da API. Testes contra o warehouse de verdade: 401 e 403 provados, a assistente de uma filial vendo o funil da filial como se fosse o todo, o resultado da filial igual ao da gold, o Pareto fechando em um, todo pedido na trilha.
+
+### Auditoria
+- `rh_fictalent.trilha`: treze perguntas declaradas em código (acessos por perfil e mês, contas ativas sem acesso, alterações por módulo, ações sem permissão vigente, exportações por usuário, ações fora do horário, exclusões na réplica, execuções por job, passos que falharam, descartes LGPD, papéis do warehouse, tokens e pedidos da API), sete sobre a silver pelo DuckDB e seis sobre o warehouse, todas pelo mesmo recorte de usuário sem identidade. `--lista`, `--consulta`, `--relatorio` (CSV por pergunta mais um `relatorio.md`, entregável a um auditor sem acesso a banco).
+- Na base sintética, a trilha conta a história plantada sem saber dela: 4.092 ações sem permissão vigente (quase todas exportações de assistentes), uma conta sem perfil vigente que exportou a folha 127 vezes, exportações crescendo de 372 em 2018 para 7.296 em 2025, 14.497 ações fora do horário, todas em fim de semana.
+
+### Backup e restauração
+- `rh_fictalent.backup`: réplica por `mysqldump` (um `.sql.gz` por database), a chave do keyring, warehouse e Dagster por `pg_dump -Fc`, o lake arquivo a arquivo, numa pasta datada com manifesto (contagens antes e depois do dump, tamanho e SHA-256 por arquivo). `--provar` restaura cada parte num alvo descartável (um MySQL efêmero, bancos `_prova`, um prefixo no bucket), compara com o manifesto e apaga o alvo; `--restaurar --sim` faz de verdade; `--parte` recorta.
+- Medido na base completa: 423 MB em 94 s; prova em 189 s com 8.410.930 linhas iguais na réplica. Dois tropeços registrados: o Dagster que escreve entre o dump e a contagem (daí o intervalo no manifesto) e a entrada de pasta vazia que o SeaweedFS lista como objeto (daí o download arquivo a arquivo).
+
+### Destino em nuvem
+- O mesmo warehouse carregado num Postgres gratuito (Neon, São Paulo), escolhido por comparação: `recursos.Warehouse` com TLS e nome, `--destino {local,nuvem}` na CLI da gold para carga, DCL, RLS e índices; a carga na nuvem é ato do operador, a cadeia do dia segue no Compose. Medido: 1.681.994 linhas em 179 s pela internet, 349 MB, latência de 23 a 31 ms, os mesmos 124 comandos de DCL e 79 de RLS, o índice valendo 149 vezes no compute pequeno; laudos `gold/_nuvem.json` e `gold/_indices_nuvem.json`. O dono do banco no Neon não é superusuário, e o `docs/17` explica o `GRANT … WITH SET TRUE` para testar como um perfil.
+
+### Reprodução do zero e revisão final
+- O `docs/07` foi seguido ao pé da letra numa distribuição WSL recém-instalada, do Docker Engine ao backup provado, com os tempos na seção 10. **Sete defeitos que só uma máquina limpa pegava**, todos corrigidos: o `saude.sh` reprovava a API antes do `--preparar`; a esteira era pedida antes de existir base (17 reprovavam, 31 nem montavam); o aceite quebrava numa bronze vazia; as planilhas do consolidado nunca batiam com as versionadas (o openpyxl carimbava a hora; agora saem byte a byte iguais); o `esteira.sh` só conhecia o caminho do `uv` do autor; um só Docker Engine por VM do WSL2 (o segundo quebra a rede do primeiro, e era a causa das quedas de setembro); disco interno e terminal aberto na distribuição.
+- Revisão: oito serviços em todo documento, a árvore do README completa, o rito da versão com a versão em três lugares (`pyproject`, `uv.lock`, tag da imagem), que a v0.7.0 esqueceu; a branch padrão do repositório passa a ser `main`.
+
+### Documentação
+- `docs/10` auditoria (onde mora cada trilha, as treze perguntas, o que a base responde), `docs/18` API (contrato, rito do consumidor e do token, `curl`, erros, operação), `docs/19` backup e restauração (fazer, provar, restaurar, a pasta como dado pessoal, os tempos), `docs/20` solução de problemas (a tabela do manual mudou de casa, por área, com o método de investigar e os sintomas novos) e **`docs/21` do zero ao pipeline**: o passo a passo para construir um projeto como este com as próprias mãos, da máquina vazia ao backend, com os comandos, onde comparar, o que ler (livro e capítulo) e o rito de Git e Gitflow com os tropeços reais. A bibliografia com a fase 8 confirmada card a card. 657 testes na esteira.
+
 ## [0.7.0] · 2026-10-06 · Gold e warehouse
 
 A matriz de barramento virou tabela: a **gold** existe, construída da silver por SQL declarado em código e provada em cinco provas antes de publicar, e o **warehouse Postgres** a serve com quem lê o quê provado por teste, filial a filial. A cadeia do dia fecha sozinha: a carga das 5h, a silver, a gold e o warehouse, cada camada disparada pelo fim da anterior. Ainda sem API nem destino em nuvem: isso é a v1.0.0.
@@ -211,6 +237,8 @@ A réplica do sistema do cliente, de pé, cifrada, com controle de acesso e prov
 - Modelo relacional de 75 tabelas em 10 módulos aprovado; plano de sintetização aprovado.
 - Repositório público com Gitflow (`develop` como branch padrão).
 
+[1.0.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v1.0.0
+[0.7.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.7.0
 [0.6.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.6.0
 [0.5.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.5.0
 [0.4.0]: https://github.com/tiagolima-neviah/rh-fictalent-bigdata/releases/tag/v0.4.0

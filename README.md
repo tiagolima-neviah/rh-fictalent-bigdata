@@ -71,7 +71,7 @@ O projeto é entregue em versões publicáveis. Cada versão fecha um bloco inte
 | v0.5.0 | Ingestão: a bronze em parquet (8,4 milhões de linhas em 162 MB), backfill, carga diária por marca d'água, exclusões como marcação, planilhas com pandera e a réplica em movimento | concluído |
 | v0.6.0 | Lake: a bronze lida com SQL (DuckDB), auditoria de qualidade às cegas com 61 achados, catálogo aprovado antes de transformar, silver com cinco provas por tabela e prestação de contas, pseudonimização e descarte de dado pessoal por retenção | concluído |
 | v0.7.0 | Gold provada antes de publicar, SQL analítico com funções de janela, warehouse Postgres com perfis de negócio, RLS por filial e índices medidos; a cadeia do dia por sensores | concluído |
-| v1.0.0 | API REST, auditoria, backup e restauração, destino em nuvem | próxima |
+| v1.0.0 | API REST com o banco decidindo quem vê o quê, trilha de auditoria, backup com restauração provada, destino em nuvem, reprodução do zero numa máquina limpa e o guia do zero ao pipeline | concluído |
 | (outro repositório) | Painel web, Power BI e Tableau Public | previsto |
 
 ## Requisitos
