@@ -132,19 +132,30 @@ A fase em que a matriz de barramento vira tabela, a gold é provada antes de pub
 | 7.8 | *row level security* por filial no warehouse: política por tabela, a ligação papel → filiais numa tabela que só o administrador escreve, lida por função `SECURITY DEFINER`, fechada por padrão, com a leitura direta da partição provada bloqueada | Postgres 16, *Row Security Policies* e *Writing SECURITY DEFINER Functions Safely* · fora dos livros; FoDE cap. 10 · acervo; DEDP cap. 7 · acervo | na documentação, por que `current_user` dentro de uma função `SECURITY DEFINER` é o dono, e por que o `search_path` fixo é obrigatório; no FoDE e no DEDP, o isolamento no dado em vez de na aplicação |
 | 7.9 | os documentos da gold e do warehouse, com as tabelas saídas do código e um teste que reprova o documento que envelhecer; a cadeia do dia fechada por sensores (carga → silver → gold → warehouse) | FoDE cap. 2, o *undercurrent* de gestão de dados, seção sobre documentação · acervo; Dagster, *Run status sensors* · fora dos livros | documentação que nasce do código e é cobrada por teste, em vez de escrita e esquecida; no Dagster, o sensor de fim de execução como o elo entre camadas |
 
-## 10. Fases 8 e 9 e o previsto (planejado)
+## 10. Fase 8 · servir, auditar e fechar (v1.0.0, concluída)
+
+A fase em que o backend fecha: a gold servida por uma API em que o banco decide o acesso, a trilha de auditoria pronta, o backup provado, o warehouse em nuvem e o manual seguido numa máquina limpa. As leituras foram confirmadas ao fechar cada card, em 08/10/2026.
+
+| card | o que se construiu | leitura | o que procurar lá |
+|---|---|---|---|
+| 8.1 e 8.2 | a API dos indicadores (FastAPI): usuário `api` sem direito a tabela, `SET LOCAL ROLE` por pedido, token só como hash, 401/403/422 e a trilha de pedidos; testes contra o warehouse de verdade, com o acesso negado provado | FoDE cap. 9, *Ways to Serve Data* · acervo; DDIA cap. 4, *Dataflow Through Services: REST and RPC* · acervo; Okken cap. 6 e 7 · fora do acervo; Postgres 16, *SET ROLE* e *Row Security Policies* · fora dos livros | no DDIA, compatibilidade de contrato (`/v1`) e por que o serviço não repete a autorização que o banco já faz; no Okken, marcadores e a estratégia de testar uma API viva separada dos testes de unidade |
+| 8.3 | a trilha de auditoria: treze perguntas declaradas em código, sem dado pessoal, sobre a silver e o warehouse, com relatório em pasta | FoDE cap. 10, *Security and Privacy*, seção *Processes* · acervo; DQF cap. 7, *Building End-to-End Lineage* · acervo; DEDP cap. 7, *Data Security Design Patterns* · acervo | a auditoria é um processo, não uma tabela: a pergunta vem antes do SQL, e o recorte sem identidade (a chave HMAC) é o que permite responder sem violar o que se protege |
+| 8.4 | backup e restauração: réplica, chave, warehouse, Dagster e lake com manifesto, e a prova de restauração em alvos descartáveis | DDIA cap. 5, *Replication*, e cap. 7, *Transactions* · acervo; FoDE cap. 10, *Processes* · acervo; Foca Linux, volume de segurança · acervo | o que uma restauração precisa reconstruir e por que um dump de banco vivo precisa de um intervalo, não de um número; o Foca para `mysqldump`, `gzip`, permissões da chave |
+| 8.5 | o destino em nuvem: o mesmo warehouse num Postgres gratuito, com TLS, medido contra o local | FoDE cap. 4, *Cloud Economics* e *Build Versus Buy* · acervo; AWS cap. 9, o warehouse na nuvem · acervo; DDIA cap. 8, *Unreliable Networks* · acervo | a comparação de provedores gratuitos é o roteiro do FoDE aplicado; a latência de 25 ms por ida e volta e o compute que dorme são o cap. 8 do DDIA na prática |
+| 8.6 e 8.7 | os manuais de auditoria, API, backup e solução de problemas; a revisão final e a reprodução do zero numa máquina limpa, com sete defeitos achados e corrigidos | FoDE cap. 2, DataOps · acervo; DDIA cap. 1, *Maintainability* · acervo | a reprodução numa máquina limpa é o teste de operabilidade do DDIA: o que só funciona na máquina do autor não é mantível; a tabela de sintomas é o *runbook* que o DataOps pede |
+| 8.8 | o guia do zero ao pipeline, com o rito de Git e Gitflow | Pro Git cap. 3, *Git Branching* · fora do acervo (gratuito em git-scm.com/book/pt-br); FoDE cap. 2, DataOps · acervo; o ADR-0008 | branches, merge e conflito explicados com o modelo mental certo (commits como nós, branches como ponteiros); o guia reaproveita a demonstração do hotfix no mesmo arquivo |
+
+## 11. Fase 9 e o previsto (planejado)
 
 Estas fases ainda não foram construídas. A leitura abaixo é a que o plano prevê, e cada linha será confirmada ou corrigida quando o card fechar, com data, como a régua faz com as bandas.
 
 | fase · card | o que se planeja | leitura | o que procurar lá |
 |---|---|---|---|
-| 8.1 e 8.2 | a API dos indicadores (FastAPI) com token e testes, incluindo acesso negado | FoDE cap. 9, seção *Ways to Serve Data* · acervo; DDIA cap. 4, *Encoding and Evolution* · acervo; Okken cap. 6 e 7 · fora do acervo | no DDIA, *Dataflow Through Services: REST and RPC* e compatibilidade de versões de contrato (`/v1`); no Okken, marcadores e estratégia de teste para uma API |
-| 8.3 e 8.4 | consultas de auditoria e backup com restauração testada | FoDE cap. 10, seção *Processes* · acervo; DDIA cap. 5 · acervo | backup que nunca foi restaurado não é backup: o capítulo de segurança do FoDE diz isso em outras palavras, e o DDIA explica o que uma restauração precisa reconstruir |
 | 9.3 a 9.5 | os painéis: web, Power BI e Tableau Public | Storytelling cap. 1 a 6 · acervo; DQF cap. 8, *Democratizing Data Quality* · acervo | contexto, visual, saturação, atenção, design e a dissecagem de modelos: os seis capítulos são o manual de cada tela; o DQF diz o que o consumidor precisa saber sobre a confiabilidade do que vê |
 | P.2 | PySpark sobre a fato de maior volume, com comparativo medido contra DuckDB | Spark cap. 1, 2, 4 e 9 · acervo; DDIA cap. 10, *Batch Processing* · acervo | o Spark responde "quando o cluster compensa"; o DDIA cap. 10 explica MapReduce e o que veio depois, que é o contexto do comparativo |
 | P.3 | MLflow com modelo de risco de desistência nos primeiros 90 dias | DMLS cap. 4 a 8 · acervo; PracStat cap. 4 a 6 · acervo; `livro_09` (Feature Engineering) e `livro_06` (Hands-On ML) · acervo | dado de treino, features, avaliação offline, serviço e desvio de distribuição, na ordem em que o DMLS apresenta |
 
-## 11. Fora dos livros: documentação oficial e a lei
+## 12. Fora dos livros: documentação oficial e a lei
 
 Parte do que o projeto usa não está em livro nenhum, ou está melhor na fonte. Tudo abaixo é gratuito.
 
@@ -161,7 +172,7 @@ Parte do que o projeto usa não está em livro nenhum, ou está melhor na fonte.
 | Postgres 16 | documentação: *Table Partitioning*, *Privileges* (a concessão por coluna), *Row Security Policies*, `CREATE POLICY`, *Writing SECURITY DEFINER Functions Safely*, *Using EXPLAIN* | cards 7.5 a 7.8 |
 | Novo CAGED, IBGE, BrasilAPI | as páginas de metadados de cada fonte, citadas em `dados/publicos` com o `fonte.json` de cada tabela | cards 4.1 e 4.2 |
 
-## 12. Como a lista cresce
+## 13. Como a lista cresce
 
 Toda entrega que cita bibliografia cita capítulo, e a citação entra aqui na linha do card, no mesmo PR. Título citado que não esteja na tabela da seção 2 é acrescentado na hora, com a marca do acervo. Quando um card planejado fecha, a linha dele sai da seção 10 e entra na seção da fase, confirmada ou corrigida. Obra adquirida muda de "Não" para "Sim" com o nome do arquivo. A lista não cresce por assunto interessante: cresce por capítulo que sustentou uma decisão registrada.
 
