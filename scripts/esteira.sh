@@ -21,7 +21,13 @@ passo "testes (pytest)";        confere "$PY/pytest" -q
 passo "código (bandit)";        confere "$PY/bandit" -c pyproject.toml -r src -q
 passo "dependências (pip-audit)"
 "$PY/python" -c "import sys; sys.exit(0)" && {
-  UV="${UV:-$(command -v uv || echo "$HOME/.local/share/mise/installs/uv/0.11.26/uv-x86_64-unknown-linux-musl/uv")}"
+  # o uv pode estar fora do PATH num shell não interativo: o instalador oficial o põe em
+  # ~/.local/bin, o mise em ~/.local/share/mise; UV=/caminho/do/uv vale por cima de tudo
+  UV="${UV:-$(command -v uv 2>/dev/null || true)}"
+  for candidato in "$HOME/.local/bin/uv" "$HOME"/.local/share/mise/installs/uv/*/uv-*/uv; do
+    [ -z "$UV" ] && [ -x "$candidato" ] && UV="$candidato"
+  done
+  [ -n "$UV" ] || { echo "uv não encontrado: instale (docs/07, seção 1) ou exporte UV=/caminho/do/uv"; exit 1; }
   "$UV" export --frozen --no-dev --no-hashes --no-emit-project -o /tmp/requisitos-auditoria.txt >/dev/null
   # o lock já vem totalmente pinado: audita a lista como está, sem resolver dependências
   confere "$PY/pip-audit" -r /tmp/requisitos-auditoria.txt --no-deps --disable-pip --strict

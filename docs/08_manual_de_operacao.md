@@ -33,7 +33,7 @@ cp .env.example .env
 ```
 
 ```bash
-for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
+for v in STAGING_ROOT_PASSWORD PIPELINE_PASSWORD RELATORIOS_PASSWORD REPLICADOR_PASSWORD DAGSTER_PG_PASSWORD S3_SECRET_KEY DW_ADMIN_PASSWORD GRAFANA_ADMIN_PASSWORD GRAFANA_LEITOR_PASSWORD API_DB_PASSWORD; do sed -i "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env; done && sed -i "s/^S3_ACCESS_KEY=.*/S3_ACCESS_KEY=$(openssl rand -hex 12)/" .env
 ```
 
 O segredo da pseudonimização da silver é mais longo e gerado à parte. O comando grava no `.env` sem mostrar o valor na tela, e serve também para um `.env` antigo que ainda não tem a linha (é o caso de quem vem da v0.5.0):
@@ -58,7 +58,7 @@ A primeira subida baixa as imagens e constrói a do Dagster (cerca de 1 minuto m
 bash scripts/saude.sh
 ```
 
-O script tem duas fases. A primeira espera cada serviço ficar saudável e os dois jobs de inicialização terminarem. A segunda prova o que está **dentro** dos containers: a réplica responde ao usuário `pipeline` com as 76 tabelas, tem os 75 gatilhos, os 76 tablespaces cifrados e o keyring ativo; o lake tem o bucket; o warehouse aceita o `grafana_leitor` e informa quantas execuções registrou e há quantos minutos foi o último sucesso (aviso acima de 26 h); o Dagster carregou a code location e tem os 4 sensores ligados (3 de métricas e o da silver); o Grafana responde, com as duas fontes `OK`, o painel e as 2 regras provisionados. Cada verificação sai com `✓` ou `✗`, e o fim é `PLATAFORMA OK` ou a contagem de falhas. `SO_CONTAINERS=1 bash scripts/saude.sh` roda só a primeira fase (é o que a CI faz).
+O script tem duas fases. A primeira espera cada serviço ficar saudável e os dois jobs de inicialização terminarem. A segunda prova o que está **dentro** dos containers: a réplica responde ao usuário `pipeline` com as 76 tabelas, tem os 75 gatilhos, os 76 tablespaces cifrados e o keyring ativo; o lake tem o bucket; o warehouse aceita o `grafana_leitor` e informa quantas execuções registrou e há quantos minutos foi o último sucesso (aviso acima de 26 h); o Dagster carregou a code location e tem os 6 sensores ligados (3 de métricas, o da silver, o da gold e o do warehouse); o Grafana responde, com as duas fontes `OK`, o painel e as 2 regras provisionados. Cada verificação sai com `✓` ou `✗`, e o fim é `PLATAFORMA OK` ou a contagem de falhas. `SO_CONTAINERS=1 bash scripts/saude.sh` roda só a primeira fase (é o que a CI faz).
 
 **4. A réplica já nasce com as tabelas.** Na primeira inicialização o MySQL executa a DDL de `staging/ddl` (10 módulos, 76 tabelas). Se o volume da réplica já existia antes da DDL entrar no repositório, aplique por cima:
 
@@ -76,7 +76,7 @@ Visão geral, com o estado de saúde de cada serviço:
 docker compose ps
 ```
 
-Resultado esperado: sete serviços com `(healthy)` e os jobs `s3-init` e `keyring-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
+Resultado esperado: oito serviços com `(healthy)` e os jobs `s3-init` e `keyring-init` como `Exited (0)`. Um serviço em `(health: starting)` ainda está subindo; em `(unhealthy)`, veja a seção 6.
 
 Esperar até tudo ficar saudável, sem precisar ficar repetindo o comando:
 
@@ -231,6 +231,10 @@ docker exec -e PGPASSWORD="$(grep -E '^DW_ADMIN_PASSWORD=' .env | cut -d= -f2-)"
 
 O primeiro publica a gold (8,8 s); o segundo imprime o laudo e o que saiu da banda; o terceiro carrega e confere o warehouse inteiro. `--ddl`, `--dcl` e `--rls` imprimem o SQL gerado; `--dcl --aplicar` e `--rls --aplicar` o aplicam; `--indices --medir` mede os índices antes e depois e grava o laudo em `gold/_indices.json`. Dar acesso a uma pessoa é rito do administrador, no `psql`: `CREATE ROLE ana LOGIN IN ROLE perfil_coordenacao`, a senha pelo `\password`, e a filial em `acesso.filial_do_papel` ([Warehouse, seção 5](17_warehouse_postgres.md)).
 
+**A API dos indicadores** (v1.0.0). O serviço `api` sobe com a plataforma e lê o warehouse como o usuário `api`, que só pode assumir o papel de cada consumidor; o preparo (`python -m rh_fictalent.api --preparar`), o consumidor (`--consumidor <papel> --perfil <perfil> [--filial n]`), o token (`--token <papel>`, pedido escondido) e a revogação (`--revogar <papel>`) são do administrador, e o rito inteiro, com o `curl` para testar, está no [API](18_api.md). Mudou código em `src/rh_fictalent/api`, `docker compose up -d --build api`; os logs, `docker compose logs api`.
+
+**O destino em nuvem** (v1.0.0). O mesmo warehouse pode ser carregado num Postgres gratuito no Neon com `--destino nuvem` nos comandos da gold (`--warehouse`, depois `--dcl --aplicar`, `--rls --aplicar` e `--indices --aplicar`), lendo as variáveis `NUVEM_*` do `.env`; é um ato do operador, não um job. O que o Neon tem de diferente (o dono não é superusuário, o TLS termina no proxy) e os tempos medidos estão no [Warehouse, seção 10](17_warehouse_postgres.md).
+
 ## 7. Antes de abrir um PR
 
 O mesmo que a CI vai fazer, na sua máquina:
@@ -243,14 +247,37 @@ Roda lint, formato, tipos, testes (os de integração, se a réplica estiver de 
 
 **A esteira prova a venv, não a imagem.** Se a mudança tocou dependência (`pyproject.toml`) ou arquivo que o Dagster lê ao carregar (a DDL, os dados que um asset abre), reconstrua a imagem antes de rodar a esteira: `docker compose up -d --build dagster-web dagster-daemon && bash scripts/saude.sh`. O `test_saude` fala com o container que está de pé; se ele ainda for o da versão anterior, o teste passa e a imagem nova quebra. Foi assim na v0.5.0: a fábrica de assets lia a DDL no import, a imagem não a carregava, e a code location subiu com zero assets.
 
+**O rito do card, pelo terminal.** Com a esteira verde, o card vai para a `develop` por PR, e o PR inteiro cabe no terminal com a CLI do GitHub (`gh`, instalação em [Instalação, seção 1](07_instalacao_e_reproducao.md); a autenticação, `gh auth login`, é de quem tem a conta). O `gh` encontra o repositório pelo remoto, inclusive quando o remoto usa um apelido de host do `~/.ssh/config`. Quatro comandos, e o quinto é só conferência:
+
+```bash
+git push -u origin "$(git branch --show-current)" && gh pr create --base develop --fill
+```
+
+```bash
+gh pr checks --watch
+```
+
+```bash
+gh pr merge --merge --delete-branch
+```
+
+```bash
+git pull --ff-only && git log -1 --oneline
+```
+
+O `--fill` tira o título e o corpo do PR da mensagem do commit (com mais de um commit, do primeiro; `--title` troca o título). O `--watch` espera os três trilhos da CI e sai com erro se algum falhar, que é o momento de parar. O `--merge` faz o mesmo merge que o botão da interface (um commit de merge, como a `develop` sempre recebeu), e o `--delete-branch` apaga a branch no remoto e na máquina e volta para a `develop`. O `git pull --ff-only` traz o commit de merge, e o hash que ele imprime é o que vai para o registro do card. O que não precisa: `git branch` para ver em que branch está (o `checkout` e o `merge` já dizem), `git status` depois de um pull em fast-forward (não há como a árvore estar suja) e o print da CI (o merge só existe porque a CI passou: a `develop` é protegida).
+
 ## 8. O rito de uma versão
 
 Cada fase fechada vira versão publicável ([ADR-0008](adr/0008-gitflow-por-versao-publicavel.md)). O rito tem
 **cinco passos, nesta ordem**, e a ordem importa: quem cria a tag antes do merge marca o commit errado, e quem
 faz o back-merge duas vezes descobre na recusa do push.
 
-**1. O card de fechamento.** Uma branch como qualquer outra, com o `CHANGELOG.md` da versão e o status no
-`README.md`. Entra em `develop` por PR, com a CI verde.
+**1. O card de fechamento.** Uma branch como qualquer outra, com o `CHANGELOG.md` da versão, o status no
+`README.md` e **a versão em três lugares**: `version` no `pyproject.toml`, o `uv.lock` (que o `uv sync` reescreve
+com ela) e a tag da imagem `fictalent/dagster:X.Y.Z` nas três ocorrências do `compose.yaml`. Entra em `develop`
+por PR, com a CI verde. A v0.7.0 esqueceu a versão, e o `pyproject` ficou em 0.6.0 até a v1.0.0: por isso o
+passo está escrito.
 
 **2. A versão: PR de `develop` para `main`.** Pela interface do GitHub, base `main`, comparação `develop`,
 título `vX.Y.Z · Nome da fase`. Espere a CI e faça o merge. **É este merge que a tag vai marcar.**
@@ -317,25 +344,7 @@ Backup da réplica sem o keyring é backup de nada: os dois viajam juntos (manua
 
 ## 10. Quando algo não sobe
 
-| sintoma | causa provável | o que fazer |
-|---|---|---|
-| `required variable ... is missing a value` | falta uma senha no `.env` | complete o `.env` (seção 2) |
-| `port is already allocated` | outra aplicação usa a porta | troque a porta correspondente no `.env` |
-| `mysql-staging` fica em `health: starting` por mais de um minuto | primeira inicialização do MySQL | normal na primeira subida; acompanhe com `docker compose logs -f mysql-staging` |
-| `dagster-daemon` `unhealthy` logo depois de subir | o daemon ainda não publicou o primeiro sinal de vida | espere o `start_period` (60 s); se persistir, `docker compose logs dagster-daemon` |
-| Grafana sobe, mas a fonte de dados falha no teste | usuário só de leitura não foi criado (volume antigo, senha trocada) | seção 5, ou recrie o usuário manualmente |
-| `mysql-staging` não sobe e o log fala em `keyring` ou `Component_keyring_file` | o volume da chave não está acessível ao usuário do MySQL, ou o manifesto não foi montado | `docker compose logs keyring-init mysql-staging`; confira que `infra/mysql/mysqld.my` e `component_keyring_file.cnf` existem |
-| a réplica está de pé, mas sem os databases dos módulos | o volume foi criado antes da DDL existir (a inicialização só roda em volume novo) | `bash scripts/aplicar_ddl.sh` |
-| containers de pé e `healthy`, mas `dagster-daemon` ou `dagster-web` `unhealthy` com `connection to server at "pg-dagster" ... timed out` no log | a rede bridge do Docker quebrou (em geral depois de a máquina reiniciar ou hibernar): o DNS resolve, o TCP não passa, e **nenhum** container alcança outro. `restart`, `down`/`up` e recriar o container não resolvem, porque o problema é no `dockerd` | primeiro `docker compose down` (**sem** `-v`) e `docker compose up -d`, que recria a rede e preserva os volumes (resolveu em 23/09 e 24/09); se não bastar, `sudo systemctl restart docker` e de novo `docker compose up -d && bash scripts/saude.sh` |
-| `required variable PSEUDONIMIZACAO_SEGREDO is missing a value` | `.env` anterior à v0.6.0 | gere o segredo com o comando da seção 2; nada mais muda |
-| a silver falha com `sem marca d'água: rode o job carga_incremental` | a silver foi pedida logo depois do backfill, antes de qualquer carga incremental | rode `carga_incremental` uma vez; ela cria a marca e dispara a silver |
-| a prestação de contas reprova as regras do candidato logo depois de recopiar uma tabela | a recópia trouxe o dado pessoal de volta e o descarte ainda não rodou | rode `construir_silver` (ou espere a próxima carga): o descarte registra o elo e a cadeia fecha |
-| um passo falha com `ChildProcessCrashException`, sem mais nada no erro | o kernel matou o processo do passo por falta de memória no container do daemon, que é quem executa agenda, sensor e o que a interface lança | confirme com `dmesg \| grep -i 'out of memory'`; o teto do daemon está em `compose.yaml` (3 GB) e o do DuckDB por passo em `DUCKDB_MEMORY_LIMIT` |
-| a silver falha com `defina PSEUDONIMIZACAO_SEGREDO no .env` | o container subiu sem o segredo | complete o `.env` e recrie os containers do Dagster: `docker compose up -d dagster-web dagster-daemon` |
-| o log do `mysql-staging` mostra `XA crash recovery` na subida | a máquina foi desligada com os containers de pé | desta vez deu certo; da próxima, `docker compose stop` antes de desligar (seção 4) |
-| um leitor do warehouse vê zero linhas em todo fato | o papel dele é de filial (coordenação ou assistente) e não tem linha em `acesso.filial_do_papel`: o RLS fecha por padrão | o administrador insere o papel e a filial na tabela de acesso (`docs/17`, seção 5) |
-| `permission denied for table candidato` num `SELECT *` | o perfil não tem as colunas de atributo de pessoa; o asterisco pede todas | nomeie as colunas; se o perfil precisa do atributo, a declaração em `gold/dcl.py` é o lugar de mudar, com teste |
-| `warehouse/fato/...` falha com `não confere com o parquet` | a tabela do Postgres foi alterada por fora, ou a gold foi republicada no meio da carga | rode `carregar_warehouse` de novo: a carga por partição substitui o ano inteiro e a conferência volta a fechar |
+A lista de tudo o que já quebrou, com o sintoma, a causa provada e o que resolveu, mudou de casa: está em [Solução de problemas](20_solucao_de_problemas.md), por área (subir a plataforma; silver, LGPD e a cadeia do dia; warehouse, acesso e API; backup e ferramentas), com o método de investigar antes da tabela. O primeiro passo continua sendo o mesmo: `bash scripts/saude.sh` diz o que está de pé e o que não está, e `docker compose logs <serviço>` diz por quê.
 
 ---
 

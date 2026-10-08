@@ -926,5 +926,31 @@ def escrever_planilhas(t: Tabelas, base: dict[str, Any], pasta: Path = PLANILHAS
             folha.column_dimensions[coluna].width = largura
         caminho = pasta / f"consolidado_gerencial_{ano}.xlsx"
         livro.save(caminho)
+        _fixar_instante(caminho, livro.properties.created)
         escritas.append(caminho)
     return escritas
+
+
+def _fixar_instante(caminho: Path, instante: datetime) -> None:
+    """O openpyxl carimba a hora da gravação no `docProps/core.xml` e em cada entrada do zip, e
+    o arquivo nunca batia com o versionado. Aqui a planilha recebe o instante do fechamento
+    do ano, para sair byte a byte igual em qualquer máquina: o `git status` limpo depois de
+    gerar a base é uma promessa do docs/07."""
+    import re
+    import zipfile
+
+    with zipfile.ZipFile(caminho) as original:
+        partes = [(i.filename, original.read(i.filename)) for i in original.infolist()]
+    marca = instante.strftime("%Y-%m-%dT%H:%M:%SZ").encode()
+    quando = (instante.year, instante.month, instante.day, instante.hour, instante.minute, 0)
+    with zipfile.ZipFile(caminho, "w", zipfile.ZIP_DEFLATED) as novo:
+        for nome, dados in partes:
+            if nome == "docProps/core.xml":
+                dados = re.sub(
+                    rb"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)",
+                    rb"\g<1>" + marca + rb"\g<2>",
+                    dados,
+                )
+            info = zipfile.ZipInfo(nome, date_time=quando)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            novo.writestr(info, dados)

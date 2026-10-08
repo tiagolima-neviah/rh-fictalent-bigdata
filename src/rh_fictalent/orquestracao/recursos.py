@@ -100,21 +100,26 @@ class ApisPublicas(dg.ConfigurableResource):  # type: ignore[type-arg]
 
 
 class Warehouse(dg.ConfigurableResource):  # type: ignore[type-arg]
-    """O warehouse Postgres, destino da gold."""
+    """O warehouse Postgres, destino da gold: o local do Compose ou o da nuvem (card 8.5)."""
 
     host: str
     porta: int
     banco: str
     usuario: str
     senha: str
+    sslmode: str | None = None  # "require" no destino em nuvem; nulo no Compose, que é rede interna
+    nome: str = "local"
 
     def conectar(self) -> psycopg.Connection[Any]:
+        extras: dict[str, Any] = {"sslmode": self.sslmode} if self.sslmode else {}
         return psycopg.connect(
             host=self.host,
             port=self.porta,
             dbname=self.banco,
             user=self.usuario,
             password=self.senha,
+            connect_timeout=20,
+            **extras,
         )
 
     def consultar(self, sql: str, *args: Any) -> list[tuple[Any, ...]]:
@@ -145,6 +150,23 @@ def warehouse_do_ambiente() -> Warehouse:
         banco=_ambiente("DW_DB", "dw_fictalent"),
         usuario=_ambiente("DW_ADMIN_USER", "fictalent_admin"),
         senha=os.environ["DW_ADMIN_PASSWORD"],
+    )
+
+
+def nuvem_do_ambiente() -> Warehouse:
+    """O destino em nuvem (Neon, projeto fictalent em São Paulo): as variáveis NUVEM_* do `.env`,
+    com TLS obrigatório. Fora do Dagster, de propósito: a carga na nuvem é um ato do operador."""
+    faltam = [v for v in ("NUVEM_HOST", "NUVEM_USER", "NUVEM_PASSWORD") if not os.environ.get(v)]
+    if faltam:
+        raise RuntimeError(f"destino em nuvem sem configuração: defina {', '.join(faltam)} no .env")
+    return Warehouse(
+        host=os.environ["NUVEM_HOST"],
+        porta=int(_ambiente("NUVEM_PORT", "5432")),
+        banco=_ambiente("NUVEM_DB", "dw_fictalent"),
+        usuario=os.environ["NUVEM_USER"],
+        senha=os.environ["NUVEM_PASSWORD"],
+        sslmode="require",
+        nome="nuvem",
     )
 
 

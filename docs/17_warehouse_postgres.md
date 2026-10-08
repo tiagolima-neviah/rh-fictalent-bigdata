@@ -3,7 +3,7 @@
 # Warehouse Postgres · a gold servida num banco, com quem lê o quê provado por teste
 
 <!-- nav:start -->
-[Home](../README.md) | [← Gold](16_gold.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [← Gold](16_gold.md) | [API →](18_api.md)
 <!-- nav:end -->
 
 > O parquet no lake é a [Gold](16_gold.md); o Postgres é onde ela é consultada, pela API, pelo Power BI e por quem abrir um cliente de banco. Este documento explica como a DDL sai do modelo em vez de ser escrita à mão, como a carga é feita por partição e conferida contra o parquet, quem lê o quê (os perfis de negócio, sem atributo de pessoa fora da necessidade), como cada filial enxerga só as próprias linhas no próprio banco, quais índices existem e por que só esses, e como o warehouse se liga ao resto no Dagster. Todo número foi medido na base completa em 06/10/2026.
@@ -189,13 +189,47 @@ Um cliente de banco (DBeaver, o Power BI) entra em `127.0.0.1:5441`, banco `dw_f
 | o RLS | 14 tabelas, 28 políticas, 79 comandos | 1,3 s |
 | a medida dos índices | 8 consultas, três vezes cada, sem e com índice | 8,9 s |
 | job `carregar_warehouse`, no container | 28 passos, dois por vez | 140 s, disparado pelo sensor |
+| o warehouse inteiro no Neon, pela linha de comando | as mesmas 25 tabelas, pela internet, com a conferência | 179 s (seção 10) |
 
-## 10. O que ainda não existe
+## 10. O destino em nuvem
+
+O mesmo warehouse, carregado num Postgres gratuito em nuvem: o **Neon**, projeto `fictalent`, região AWS São Paulo, plano Free (1 GB de armazenamento, 100 horas de compute por mês, o compute dorme após 5 minutos parado e acorda no primeiro pedido, nada é apagado, sem cartão). A escolha foi por comparação em 07/10/2026: o Supabase pausa o projeto após uma semana sem uso e só volta à mão, o que um painel público não pode ter; o Aiven não deixa escolher região (fora do Brasil); o Render expira em 30 dias. Com 1 GB, o warehouse inteiro cabe (349 MB no Neon, com índices), e o recorte é o todo.
+
+**Nada muda no código, só o destino.** As variáveis `NUVEM_*` do `.env` (host direto, sem `-pooler`; porta; banco; role; senha) descrevem o segundo warehouse, com TLS obrigatório (`sslmode=require`; o TLS termina no proxy do Neon, por isso `SHOW ssl` lá diz `off`). A CLI da gold ganhou `--destino nuvem`, e os mesmos comandos que montam o warehouse local montam o da nuvem, na mesma ordem:
+
+```bash
+.venv/bin/python -m rh_fictalent.gold --warehouse --destino nuvem
+```
+
+```bash
+.venv/bin/python -m rh_fictalent.gold --dcl --aplicar --destino nuvem && .venv/bin/python -m rh_fictalent.gold --rls --aplicar --destino nuvem && .venv/bin/python -m rh_fictalent.gold --indices --aplicar --destino nuvem
+```
+
+A carga na nuvem é um ato do operador, pela linha de comando, e não um asset do Dagster: o destino gratuito é vitrine e espelho, e a cadeia do dia continua escrevendo no warehouse do Compose. O laudo da carga fica no lake, em `gold/_nuvem.json`, e o da medida dos índices lá, em `gold/_indices_nuvem.json`.
+
+**Medido em 07/10/2026**, do WSL em Atibaia ao Neon em São Paulo:
+
+| o quê | local (Compose) | Neon (Free) |
+|---|---|---|
+| ida e volta de um `SELECT 1` | < 1 ms | 23 a 31 ms |
+| carga das 25 tabelas, 1.681.994 linhas, conferida | 115 s | 179 s |
+| `fato.ponto_dia` (1.166.361 linhas) | 91 s | 95 s |
+| `fato.candidatura` (282.605 linhas) | 7 s | 25 s |
+| DCL (124 comandos) e RLS (79 comandos) | 1,5 s e 1,3 s | aplicados, mesmos números |
+| índices: o ponto de um posto no mês, sem e com índice | 22,9 → 0,5 ms (43x) | 96,1 → 0,6 ms (149x) |
+| índices: as candidaturas de uma pessoa | 8,6 → 0,1 ms (66x) | 41,8 → 0,3 ms (150x) |
+| uma pergunta do painel, de ponta a ponta (receita de um cliente por mês) | | 26 a 58 ms, a primeira acordando o compute |
+
+Duas lições do destino. A carga pela internet custou só 1,6 vez a local, porque o `COPY` em lotes de 50 mil linhas manda poucos pedidos grandes; o que paga a latência é a conferência, uma consulta por total. E a varredura sem índice é quatro vezes mais lenta no compute pequeno do Free (96 ms contra 23 ms no ponto), o que faz os índices adotados valerem ainda mais lá: a mesma pergunta cai para 0,6 ms. O planejador do Neon tomou as mesmas decisões do local, inclusive ignorar o índice de filial.
+
+**O que é diferente no Neon.** O role dono do banco não é superusuário: ele cria papéis (o DCL e o RLS entram iguais, 5 perfis e 28 políticas), mas para *ver o banco como um perfil* precisa receber o perfil com `SET` (`GRANT perfil_financeiro TO <dono> WITH SET TRUE, INHERIT FALSE`), porque no Postgres 16 em diante quem cria um papel ganha a administração dele e não a filiação. Provado lá: como `perfil_financeiro`, o dono lê o faturamento (9.934 linhas) e recebe `permission denied for table ponto_dia`; como `perfil_coordenacao` sem filial cadastrada, lê zero linhas. O servidor é Postgres 18 (o console criou com 18, o local é 16); para uma carga lógica nada muda, e a DDL gerada é a mesma. Um leitor de BI (Power BI, Tableau) entra no Neon com um papel de login criado pelo rito da seção 5, e o DCL e o RLS valem para ele do mesmo jeito.
+
+## 11. O que ainda não existe
 
 - **Coluna nova no modelo.** A DDL é `IF NOT EXISTS`: uma coluna acrescentada a uma tabela da gold não entra no warehouse sozinha. O caminho hoje é apagar a tabela no Postgres e deixar a carga recriá-la; uma migração de esquema é trabalho futuro.
 - **Carga pelo ADBC.** Os 91 s do fato de ponto são a conversão linha a linha para o `COPY`; o `adbc_ingest` do Arrow já está nas dependências e entra quando o volume pedir.
 - **Pessoas cadastradas.** Os perfis existem e a tabela de acesso está vazia; o rito da seção 5 é do administrador, por pessoa.
-- **O destino em nuvem.** O warehouse roda no Compose; um Postgres gratuito em nuvem como destino, previsto na [Arquitetura](03_arquitetura.md), é da v1.0.0, junto com a API.
+- **A cadeia do dia na nuvem.** A carga no Neon é à mão (seção 10); um sensor que a dispare depois do warehouse local é decisão para quando houver um painel público lendo de lá.
 - **Auditoria de acesso.** O que cada perfil consultou não é registrado; as consultas de auditoria são da v1.0.0.
 
 ---

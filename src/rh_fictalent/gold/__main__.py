@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """A gold pela linha de comando, fora do Dagster (lê o `.env`).
 
     python -m rh_fictalent.gold --matriz                  # gera docs/15_matriz_de_barramento.md
@@ -11,7 +12,8 @@
     python -m rh_fictalent.gold --ddl                         # a DDL do warehouse, gerada do modelo
     python -m rh_fictalent.gold --dcl [--aplicar]             # o DCL do warehouse (perfis)
     python -m rh_fictalent.gold --rls [--aplicar]             # o RLS por filial no warehouse
-    python -m rh_fictalent.gold --indices [--medir]           # os índices: DDL, ou medida
+    python -m rh_fictalent.gold --indices [--medir|--aplicar] # os índices: DDL, medida, ou criar
+    python -m rh_fictalent.gold --warehouse --destino nuvem   # a mesma carga, no Neon (card 8.5)
 
 No dia a dia quem publica é o job `construir_gold` do Dagster; este caminho existe para a
 prova e para o estudo.
@@ -20,9 +22,12 @@ prova e para o estudo.
 from __future__ import annotations
 
 import argparse
+import json
+import statistics
 import sys
 import time
 from datetime import UTC, datetime
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -39,7 +44,12 @@ from rh_fictalent.gold import (
     warehouse,
 )
 from rh_fictalent.lake import consulta
-from rh_fictalent.orquestracao.recursos import lake_do_ambiente, warehouse_do_ambiente
+from rh_fictalent.orquestracao.recursos import (
+    Warehouse,
+    lake_do_ambiente,
+    nuvem_do_ambiente,
+    warehouse_do_ambiente,
+)
 
 
 def _matriz() -> int:
@@ -129,15 +139,35 @@ def _regua(so_problemas: bool) -> int:
     return 0 if resultado.aprovada else 1
 
 
-def _warehouse(nomes: list[str]) -> int:
+def _destino(nome: str) -> Warehouse:
+    return nuvem_do_ambiente() if nome == "nuvem" else warehouse_do_ambiente()
+
+
+def _latencia(dw: Warehouse, vezes: int = 5) -> float:
+    """A mediana, em ms, de uma ida e volta (`SELECT 1`) numa conexão já aberta."""
+    tempos = []
+    with dw.conectar() as con, con.cursor() as cur:
+        for _ in range(vezes):
+            inicio = time.monotonic()
+            cur.execute("SELECT 1")
+            cur.fetchone()
+            tempos.append((time.monotonic() - inicio) * 1000)
+    return round(statistics.median(tempos), 1)
+
+
+def _warehouse(nomes: list[str], destino: str = "local") -> int:
     desconhecidas = set(nomes) - {t.nome for t in modelo.TABELAS}
     if desconhecidas:
         print(f"tabela que o modelo não tem: {sorted(desconhecidas)}")
         return 2
-    con = consulta.abrir_gold(lake_do_ambiente())
-    dw = warehouse_do_ambiente()
+    lake = lake_do_ambiente()
+    con = consulta.abrir_gold(lake)
+    dw = _destino(destino)
     reprovadas = 0
+    laudo: dict[str, Any] = {"destino": dw.nome, "host": dw.host.split(".", 1)[-1], "tabelas": []}
+    inicio_geral = time.monotonic()
     try:
+        laudo["latencia_ms"] = _latencia(dw)
         for tabela in modelo.TABELAS:  # dimensões antes dos fatos: a chave estrangeira exige
             if nomes and tabela.nome not in nomes:
                 continue
@@ -148,13 +178,32 @@ def _warehouse(nomes: list[str]) -> int:
             anos = (
                 f"anos {resultado.anos[0]}..{resultado.anos[-1]}" if resultado.anos else "dimensão"
             )
-            destino = warehouse.alvo(tabela).qualificado
-            print(f"{sinal} {destino:<24} {resultado.linhas:>9} linhas  {tempo:5.1f} s  {anos}")
+            alvo = warehouse.alvo(tabela).qualificado
+            print(f"{sinal} {alvo:<24} {resultado.linhas:>9} linhas  {tempo:5.1f} s  {anos}")
             for problema in resultado.problemas:
                 print(f"      {problema}")
             reprovadas += not resultado.aprovada
+            laudo["tabelas"].append(
+                {
+                    "tabela": alvo,
+                    "linhas": resultado.linhas,
+                    "segundos": round(tempo, 1),
+                    "aprovada": resultado.aprovada,
+                }
+            )
     finally:
         con.close()
+    laudo["segundos"] = round(time.monotonic() - inicio_geral, 1)
+    laudo["linhas"] = sum(int(x["linhas"]) for x in laudo["tabelas"])
+    laudo["medido_em"] = datetime.now(UTC).isoformat(timespec="seconds")
+    if destino == "nuvem" and not nomes:
+        caminho = lake.caminho(consulta.CAMADA_GOLD, "_nuvem.json")
+        with lake.sistema().open(caminho, "w") as arquivo:
+            arquivo.write(json.dumps(laudo, ensure_ascii=False, indent=2))
+        print(f"laudo em {caminho}")
+    print(
+        f"{dw.nome}: {laudo['linhas']} linhas em {laudo['segundos']} s; ida e volta {laudo['latencia_ms']} ms"
+    )
     return 1 if reprovadas else 0
 
 
@@ -168,12 +217,13 @@ def _ddl() -> int:
     return 0
 
 
-def _dcl(aplicar: bool) -> int:
+def _dcl(aplicar: bool, destino: str = "local") -> int:
     con = consulta.abrir_gold(lake_do_ambiente())
     try:
         if aplicar:
-            comandos = dcl.aplicar(con, warehouse_do_ambiente())
-            print(f"DCL aplicado: {comandos} comandos, {len(dcl.PERFIS)} perfis")
+            dw = _destino(destino)
+            comandos = dcl.aplicar(con, dw)
+            print(f"DCL aplicado em {dw.nome}: {comandos} comandos, {len(dcl.PERFIS)} perfis")
         else:
             print(dcl.gerar_sql(con))
     finally:
@@ -181,24 +231,35 @@ def _dcl(aplicar: bool) -> int:
     return 0
 
 
-def _rls(aplicar: bool) -> int:
+def _rls(aplicar: bool, destino: str = "local") -> int:
     if aplicar:
-        comandos = rls.aplicar(warehouse_do_ambiente())
-        print(f"RLS aplicado: {comandos} comandos, {len(rls.tabelas_com_filial())} tabelas")
+        dw = _destino(destino)
+        comandos = rls.aplicar(dw)
+        print(
+            f"RLS aplicado em {dw.nome}: {comandos} comandos, {len(rls.tabelas_com_filial())} tabelas"
+        )
     else:
         print(rls.gerar_sql())
     return 0
 
 
-def _indices(medir: bool) -> int:
+def _indices(medir: bool, aplicar: bool, destino: str = "local") -> int:
+    if aplicar:
+        dw = _destino(destino)
+        print(
+            f"índices em {dw.nome}: {indices.criar(dw)} adotados garantidos, estatísticas atualizadas"
+        )
+        return 0
     if not medir:
         print(indices.ddl())
         return 0
+    dw = _destino(destino)
     medido_em = datetime.now(UTC).isoformat(timespec="seconds")
-    medidas = indices.medir(warehouse_do_ambiente())
+    medidas = indices.medir(dw)
     print(indices.texto(medidas))
     lake = lake_do_ambiente()
-    caminho = lake.caminho(consulta.CAMADA_GOLD, indices.LAUDO)
+    nome = indices.LAUDO if destino == "local" else f"_indices_{destino}.json"
+    caminho = lake.caminho(consulta.CAMADA_GOLD, nome)
     with lake.sistema().open(caminho, "w") as arquivo:
         arquivo.write(indices.laudo_json(medidas, medido_em))
     adotados, medidos = len(indices.adotados()), len(indices.INDICES)
@@ -228,7 +289,15 @@ def main(argv: list[str] | None = None) -> int:
         "--medir", action="store_true", help="nos índices, mede antes e depois em vez de imprimir"
     )
     parser.add_argument(
-        "--aplicar", action="store_true", help="no DCL e no RLS, aplica em vez de imprimir"
+        "--aplicar",
+        action="store_true",
+        help="no DCL, no RLS e nos índices, aplica em vez de imprimir",
+    )
+    parser.add_argument(
+        "--destino",
+        choices=("local", "nuvem"),
+        default="local",
+        help="o warehouse do Compose (local) ou o Neon (nuvem, variáveis NUVEM_* do .env)",
     )
     parser.add_argument(
         "--so-problemas", action="store_true", help="na régua, só o que não aprovou"
@@ -243,15 +312,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.regua:
         return _regua(args.so_problemas)
     if args.warehouse is not None:
-        return _warehouse(args.warehouse)
+        return _warehouse(args.warehouse, args.destino)
     if args.ddl:
         return _ddl()
     if args.dcl:
-        return _dcl(args.aplicar)
+        return _dcl(args.aplicar, args.destino)
     if args.rls:
-        return _rls(args.aplicar)
+        return _rls(args.aplicar, args.destino)
     if args.indices:
-        return _indices(args.medir)
+        return _indices(args.medir, args.aplicar, args.destino)
     return _publicar(args.publicar)
 
 
