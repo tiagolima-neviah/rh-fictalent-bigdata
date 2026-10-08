@@ -3,7 +3,7 @@
 # Solução de problemas · o sintoma, a causa provável e o que fazer
 
 <!-- nav:start -->
-[Home](../README.md) | [← Backup e restauração](19_backup_e_restauracao.md) | [Bibliografia →](bibliografia.md)
+[Home](../README.md) | [← Backup e restauração](19_backup_e_restauracao.md) | [Do zero ao pipeline →](21_do_zero_ao_pipeline.md)
 <!-- nav:end -->
 
 > Tudo o que já quebrou neste projeto, com o sintoma como ele aparece na tela, a causa que foi encontrada e o que resolveu. A lista cresceu com as versões (cada caso aqui aconteceu de verdade, numa rodada registrada no worklog) e é a primeira parada quando algo não sobe ou não roda. Antes da tabela, o método: como achar a causa quando ela não está aqui.

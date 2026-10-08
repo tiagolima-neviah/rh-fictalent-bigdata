@@ -166,6 +166,7 @@ rh-fictalent-bigdata/
 
 - [19 · Backup e restauração](docs/19_backup_e_restauracao.md): o que se guarda e por quê, fazer, provar em alvos descartáveis, restaurar de verdade, a pasta como dado pessoal, os tempos medidos.
 - [20 · Solução de problemas](docs/20_solucao_de_problemas.md): como investigar, e tudo o que já quebrou, com o sintoma, a causa provada e o que resolveu.
+- [21 · Do zero ao pipeline](docs/21_do_zero_ao_pipeline.md): o passo a passo para construir um projeto como este com as próprias mãos, da máquina vazia ao backend servindo a API, na ordem real de construção, com os comandos, onde comparar, o que ler (livro e capítulo) e um exercício por capítulo; e o rito de Git e Gitflow, com os tropeços reais.
 
 </details>
 

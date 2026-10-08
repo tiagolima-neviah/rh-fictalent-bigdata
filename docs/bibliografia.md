@@ -3,7 +3,7 @@
 # Bibliografia · o que ler, fase a fase e card a card
 
 <!-- nav:start -->
-[Home](../README.md) | [← Solução de problemas](20_solucao_de_problemas.md) | [Registros de decisão](adr/README.md)
+[Home](../README.md) | [← Do zero ao pipeline](21_do_zero_ao_pipeline.md) | [Registros de decisão](adr/README.md)
 <!-- nav:end -->
 
 > Este projeto foi construído com um acervo ao lado, e cada decisão técnica tem um capítulo que a sustenta. Este documento é a lista dessas leituras, na ordem em que o projeto foi construído: por fase e por card, com livro e capítulo, para quem quer entender o porquê de cada peça antes (ou depois) de ler o código. Serve a quem vai começar um projeto parecido do zero e a quem só quer estudar. A regra da lista é a mesma da régua de validação: capítulo sempre, título nunca sozinho; o que está confirmado é o que foi lido durante a construção, e o que é plano está marcado como plano.
