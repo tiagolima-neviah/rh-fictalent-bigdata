@@ -190,9 +190,9 @@ Todo serviço do Compose tem **healthcheck**, e a ordem de subida respeita as de
 | [catálogo de achados](13_catalogo_de_achados.md) | a decisão sobre cada achado da auditoria e a regra aprovada para a silver |
 | [silver](14_silver.md) | as colunas das regras, a pseudonimização, as cinco provas de cada tabela e a prestação de contas |
 | [matriz de barramento](15_matriz_de_barramento.md) | os fatos, as dimensões e o grão da gold, dos indicadores e das afirmações dos donos até a tabela que responde |
-| auditoria | onde está cada trilha e como consultar |
-| backup e restauração | dos bancos e do lake, com teste de restauração |
-| solução de problemas | as falhas conhecidas, o sintoma e o remédio |
+| [auditoria](10_auditoria.md) | onde está cada trilha e as treze perguntas prontas, sem dado pessoal |
+| [backup e restauração](19_backup_e_restauracao.md) | dos bancos e do lake, com a restauração provada em alvos descartáveis |
+| [solução de problemas](20_solucao_de_problemas.md) | como investigar, e as falhas conhecidas com o sintoma, a causa e o remédio |
 
 ## 7. Estado atual, etapa por etapa
 

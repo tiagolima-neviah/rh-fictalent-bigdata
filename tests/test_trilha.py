@@ -184,3 +184,11 @@ def test_as_consultas_do_warehouse_respondem_no_banco_de_verdade() -> None:
     assert "hash" not in tokens.columns
     for nome in ("passos_que_falharam", "descartes_lgpd", "pedidos_da_api_por_dia"):
         assert consultas.no_warehouse(dw, nome, date(2026, 1, 1), date(2099, 12, 31)) is not None
+
+
+def test_o_docs_10_cita_toda_consulta_da_trilha() -> None:
+    """O `docs/10` é escrito à mão, mas a lista de perguntas sai do código: consulta nova sem linha reprova."""
+    texto = (RAIZ / "docs" / "10_auditoria.md").read_text(encoding="utf-8")
+    faltando = [c.nome for c in consultas.CONSULTAS if f"`{c.nome}`" not in texto]
+    assert faltando == []
+    assert f"As {len(consultas.CONSULTAS)} perguntas" in texto or "treze perguntas" in texto

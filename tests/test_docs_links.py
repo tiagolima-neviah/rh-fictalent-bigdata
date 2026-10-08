@@ -33,3 +33,25 @@ def test_cadeia_de_navegacao_dos_docs() -> None:
         assert seguinte.name in texto, f"{anterior.name} não aponta para {seguinte.name}"
         assert "../README.md" in texto, f"{anterior.name} sem link Home"
     assert "../README.md" in docs[-1].read_text(encoding="utf-8")
+
+
+def test_o_docs_20_concentra_os_sintomas_e_o_manual_aponta_para_ele() -> None:
+    """A tabela de problemas mudou do manual (§10) para o docs/20; o manual só aponta."""
+    docs = RAIZ / "docs"
+    vinte = (docs / "20_solucao_de_problemas.md").read_text(encoding="utf-8")
+    manual = (docs / "08_manual_de_operacao.md").read_text(encoding="utf-8")
+    for sintoma in (
+        "required variable ... is missing a value",
+        "ChildProcessCrashException",
+        "XA crash recovery",
+        "sem marca d'água",
+        "permission denied to set role",
+        "The specified key does not exist",
+        "xdg-open",
+    ):
+        assert sintoma in vinte, sintoma
+        assert sintoma not in manual.split("## 10. Quando algo não sobe")[1].split("## ")[0], (
+            sintoma
+        )
+    assert "20_solucao_de_problemas.md" in manual
+    assert vinte.count("| ") > 40  # as tabelas por área
